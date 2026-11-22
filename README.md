@@ -29,6 +29,27 @@ pnpm build    # the site, in dist/, for the base path /docs
 pnpm dev      # a local server at http://localhost:4321/docs/
 ```
 
+## The image and the module
+
+- `Dockerfile`: builds the site and serves it with an unprivileged nginx
+  (`infra/nginx.conf`) under `/docs/` on port 8080; both bases are pinned
+  by digest. `/docs/healthz` answers `ok`, for the image's healthcheck.
+- `module.yaml`: the module's manifest for quality-sdk: its name (`docs`),
+  its version and its health. It has no data and requires nothing.
+- CI (`.github/workflows/ci.yml`) tests and builds the site, builds the
+  image, checks that it serves the guide, and keeps it as the workflow
+  artifact `image-docs` for a week:
+
+  ```sh
+  gh run download <run-id> -n image-docs
+  docker load -i qd-docs.tar
+  ```
+
+```sh
+docker build -t quality-data-docs .
+docker run --rm -p 8080:8080 quality-data-docs   # http://localhost:8080/docs/
+```
+
 ## License
 
 MIT, see [LICENSE](LICENSE).

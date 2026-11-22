@@ -1,0 +1,13 @@
+# The docs module's manifest for quality-sdk: the user guide, a static site
+# with no data of its own and nothing it requires.
+name: docs
+version: 0.1.0
+
+# Besides its container's healthcheck (the image's HEALTHCHECK), the web
+# service must have a running container and answer its health page.
+health:
+  services: [web]
+  checks:
+    - service: web
+      command: [wget, -q, -O, /dev/null, "http://127.0.0.1:8080/docs/healthz"]
+      timeout_secs: 10

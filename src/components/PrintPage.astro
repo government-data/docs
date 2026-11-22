@@ -1,0 +1,31 @@
+---
+// One page of the docs in the print book (PrintBook.astro): the parts it
+// sits in, its title and description, then its content. It renders the entry
+// itself: Astro gathers the styles of an entry's components (a flow diagram,
+// a chart) into the head only for a component that renders the entry.
+import { getEntry, render } from "astro:content";
+import type { PageInOrder } from "../print/order";
+import PrintRebase from "./PrintRebase.astro";
+
+interface Props {
+  page: PageInOrder;
+  /** The entry printed: the page's own, or English's when not translated. */
+  entry: string;
+  /** The book's pages, by path → anchor. */
+  anchors: ReadonlyMap<string, string>;
+}
+const { page, entry: id, anchors } = Astro.props;
+const entry = (await getEntry("docs", id))!;
+const { Content } = await render(entry);
+---
+
+<article class="qd-print-page" id={page.anchor}>
+  {page.trail.length > 0 && <p class="qd-print-trail">{page.trail.join(" · ")}</p>}
+  <h1>{entry.data.title}</h1>
+  {entry.data.description && <p class="qd-print-lead">{entry.data.description}</p>}
+  <div class="qd-print-body">
+    <PrintRebase page={page.href} anchor={page.anchor} anchors={anchors}>
+      <Content />
+    </PrintRebase>
+  </div>
+</article>

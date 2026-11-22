@@ -1,0 +1,127 @@
+---
+title: De los resultados a los indicadores
+description: Cómo el resultado de una regla se vuelve conformidad, ICD, IGCD y banda, cómo leer cada uno y la decisión que apoya.
+sidebar:
+  order: 4
+---
+
+import FlowDiagram from "../../../../components/FlowDiagram.astro";
+import { methodFlow } from "../../../../components/methodFlows";
+
+Todo indicador que muestra Quality Data sale de una sola fuente: el
+resultado de cada regla sobre cada registro de un corte. Esta página sigue
+ese resultado hasta las cifras que la gente lee, y dice qué responde cada
+cifra y qué hacer con ella. Las fórmulas exactas están en
+[Formulaciones](../formulas/); dónde aparece cada cifra en el dashboard, en
+[Cómo leer el dashboard](../charts/).
+
+<FlowDiagram {...methodFlow("indicator", "es")} />
+
+## Resultados de las reglas
+
+Para cada registro, una regla **falla**, **pasa** o **no aplica**. Un
+registro al que la regla no aplica queda fuera de las cifras de esa regla:
+no es ni un paso ni un fallo. Así un valor faltante no cuenta una vez por
+regla, y una regla escrita para algunos registros (empresas, cuentas
+cerradas) no parece mejor por los registros que ignora. Más en [Conceptos:
+evaluación](../concepts/#evaluación).
+
+## Conformidad
+
+La **conformidad** de una regla es la proporción de los registros a los que
+aplica que pasan. Responde qué tan bien se cumple cada requisito, y es la
+cifra con la que se revisan las reglas: una regla con conformidad muy baja
+quiere decir que el dato está mal o que la regla está mal planteada. La
+conformidad general, en la tendencia por corte, es la proporción de todas
+las revisiones de reglas que pasaron.
+
+La conformidad cuenta revisiones, no registros, y trata igual a todas las
+reglas. El ICD pondera lo que importa.
+
+## El ICD de un campo
+
+El **ICD** (índice de confiabilidad del dato) es un puntaje de 0 a 1 para
+cada campo de cada registro. Junta hasta tres componentes, y cada uno dice
+una razón distinta por la que un valor no es confiable:
+
+| Componente           | Sale de                                                               | Cuando está bajo, el valor…                              |
+| -------------------- | --------------------------------------------------------------------- | -------------------------------------------------------- |
+| **C** · conformidad  | Las reglas que leen solo este campo                                   | está mal por sí solo: vacío, mal formado, repetido       |
+| **S** · consistencia | Las reglas que leen este campo con otros                              | contradice a otro campo                                  |
+| **A** · actualidad   | El tiempo desde la fecha de actualización del registro hasta el corte | puede estar bien, pero es viejo y merece menos confianza |
+
+C y S pesan cada regla que falla según su severidad: un fallo bloqueante
+cuesta más que uno menor. A pierde la mitad de su valor por cada año sin
+actualizar, y solo se aplica a los campos cuyo valor caduca, como un correo
+o una dirección, y solo si el dataset tiene fecha de actualización. Un
+componente sin nada que medir, por ejemplo porque ninguna regla aplica,
+sale del puntaje, y los demás se reparten su peso.
+
+## El ICD de un registro y de una entidad
+
+El ICD de un registro promedia el ICD de sus campos, pesando cada campo por
+su **prioridad**: un campo crítico pesa cuatro veces uno bajo.
+
+Una **entidad** es aquello de lo que tratan los registros, como un cliente
+o una empresa, y se reconoce por el campo que tiene la llave de entidad.
+Cuando una entidad tiene varios registros, su ICD toma, por campo, la media
+de sus registros, salvo en los campos críticos, donde toma el peor: basta
+un documento de identidad malo para dudar de la entidad. Sin llave de
+entidad, las cifras llegan hasta los registros.
+
+## El IGCD
+
+El **IGCD** (índice global de calidad de datos) es el ICD medio del dataset
+en un corte: sobre sus entidades si tiene llave de entidad, si no sobre sus
+registros. Es la cifra que se sigue en el tiempo, en la gráfica
+**Conformidad e IGCD por corte**. Si sube, los datos se volvieron más
+confiables; si baja sin errores nuevos, lo usual es que haya datos
+caducando.
+
+## Bandas
+
+Cada entidad cae en una **banda** según su ICD:
+
+| Banda       | ICD         | Qué dice                                                                      |
+| ----------- | ----------- | ----------------------------------------------------------------------------- |
+| Buen estado | ≥ 0,90      | El registro es confiable                                                      |
+| Regular     | 0,75 – 0,90 | Usable, con algunos campos por corregir o actualizar en el siguiente contacto |
+| Malo        | < 0,75      | Demasiados problemas para confiar en él sin revisarlo                         |
+
+Las bandas vuelven accionable el ICD. Cada organización decide qué
+significa cada banda para sus propios procesos, por ejemplo a qué registros
+va primero una campaña de actualización, o qué segmento necesita revisar su
+formulario de captura. Un montón de entidades justo debajo de un límite es
+barato de mover: unas pocas correcciones por entidad les cambian la banda.
+Las bandas necesitan llave de entidad.
+
+## Prioridad
+
+La **prioridad** de un hallazgo dice qué fallos cuestan más: el peso del
+campo que falla (su prioridad sobre cuatro) por lo que le falta a su ICD
+para llegar a 1. Un fallo en un campo crítico que ya es dudoso va antes que
+uno menor en un campo confiable. Cada cola de remediación suma la prioridad
+de sus hallazgos abiertos, así que una cola con pocos hallazgos pero
+costosos resalta.
+
+## Cómo leer un indicador
+
+| Indicador                  | La pregunta que responde                                                                         | La decisión que apoya                                                          |
+| -------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
+| Conformidad de una regla   | ¿Qué tan bien se cumple cada requisito?                                                          | Revisar la regla o el dato; ajustar reglas con sus autores                     |
+| ICD de un campo            | ¿Qué datos son los menos confiables, y por qué?                                                  | Corregir un campo con C o S bajos; actualizar uno con A baja                   |
+| ICD y banda de una entidad | ¿Qué tan confiable es el registro completo de este cliente o empresa?                            | A dónde va primero una campaña de actualización o una revisión                 |
+| IGCD                       | ¿Está mejorando la calidad del dataset?                                                          | Seguir la tendencia corte a corte; confirmar que las correcciones se sostienen |
+| Prioridad                  | ¿Qué hallazgos cuestan más?                                                                      | El orden en que se atiende una cola                                            |
+| Carta p′ por grupo         | ¿Este grupo falla más de lo normal, o es ruido?                                                  | Buscar una causa en el punto de captura solo donde hay señal                   |
+| Atípicos por grupo         | ¿Este importe es raro para su grupo?                                                             | Revisarlo: corregir los errores, conservar los valores legítimos               |
+| PSI por deciles            | ¿Cambió la población desde el corte anterior? Lo mide el índice de estabilidad poblacional (PSI) | Revisar una población que se movió antes de usarla                             |
+| Tiempo por etapa           | ¿La evaluación es más lenta para el volumen que maneja?                                          | Comparar por millón de valores, no en tiempo simple                            |
+
+Toda cifra se lee en el corte al que pertenece, y una gráfica que compara lo
+hace con el corte evaluado anterior. Lo que los indicadores no capturan
+está en [Supuestos y límites](../assumptions/).
+
+Las organizaciones de un sector regulado pueden seguir además un indicador
+que mide su supervisor: ver el [módulo opcional para entidades financieras
+vigiladas en Colombia](../sector-colombia-finance/).

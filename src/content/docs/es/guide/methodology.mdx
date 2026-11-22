@@ -1,0 +1,141 @@
+---
+title: Cómo se mide la calidad
+description: Por qué Quality Data mide la calidad como lo hace, el ciclo de calidad que sigue y las dimensiones de calidad que mide.
+sidebar:
+  order: 3
+---
+
+import FlowDiagram from "../../../../components/FlowDiagram.astro";
+import { methodFlow } from "../../../../components/methodFlows";
+
+Esta página explica el método detrás del producto: por qué la calidad se
+mide con reglas sobre cada registro, el ciclo que sigue el trabajo y qué
+significa cada dimensión de calidad. Qué quiere decir cada palabra está en
+[Conceptos](../concepts/); cómo un resultado se vuelve indicador, en [De
+los resultados a los indicadores](../indicators/); los cálculos exactos, en
+[Formulaciones](../formulas/).
+
+## Por qué medir así
+
+Quality Data se apoya en tres ideas de los marcos de referencia de calidad
+de datos.
+
+- **La calidad se mide frente a requisitos escritos.** ISO 8000, la norma
+  de calidad de datos de la Organización Internacional de Normalización,
+  dice que un dato es de buena calidad cuando cumple requisitos declarados
+  de antemano. En Quality Data cada requisito es una **regla**: unas pocas
+  líneas de texto con un patrón, una severidad y la frase que lee quien
+  corrige el registro. Una cifra siempre se puede rastrear hasta las reglas
+  que la producen, y **Así se lee** dice cada regla en palabras a partir de
+  la misma definición que la ejecuta.
+- **Cuenta cada registro, no una muestra.** Una regla corre sobre cada
+  registro del corte. Una tasa sacada de una muestra esconde dónde están
+  los errores; una tasa sobre todos los registros se puede abrir por campo,
+  por grupo y por severidad, y cada fallo puede ir a una cola.
+- **Una medición se puede repetir.** Un corte son los datos tal como
+  estaban en una fecha, guardados en la copia propia del producto, y las
+  fechas se comparan con el corte, nunca con hoy. Medir otra vez el mismo
+  corte con las mismas reglas da las mismas cifras, así que un cambio en
+  una cifra es un cambio en los datos o en las reglas, nunca en el día en
+  que se midió.
+
+## El ciclo de calidad
+
+El trabajo sigue el ciclo de gestión de calidad de DAMA-DMBOK, el cuerpo
+de conocimiento de gestión de datos que publica DAMA International (Data Management Association):
+definir, medir, analizar, mejorar y controlar.
+
+<FlowDiagram {...methodFlow("cycle", "es")} />
+
+### Definir
+
+Quienes conocen los datos escriben lo que deben cumplir, campo por campo,
+como reglas. No todo campo necesita reglas: empieza por los campos cuyos
+errores cuestan más, y dales prioridad **crítica** o **alta** en el mapeo,
+porque la prioridad los pondera en todos los indicadores. Una regla cuenta
+solo cuando está aprobada en `main`. Más en [Escribir, cambiar y probar una
+regla](../write-a-rule/) y [Llevar un cambio a main](../rules-to-main/).
+
+### Medir
+
+Un corte copia los datos, y su evaluación corre cada regla de `main` sobre
+cada registro. Cada registro recibe uno de tres resultados por regla: falla,
+pasa o la regla no aplica. Más en [Ejecutar y programar
+cortes](../run-cuts/).
+
+### Analizar
+
+El dashboard convierte los resultados en indicadores y gráficas: qué tipo
+de problema domina, en qué campos, en qué grupos y si está mejorando. Más en
+[Cómo leer el dashboard](../charts/).
+
+### Mejorar
+
+Los fallos van a colas de remediación, una por grupo de un campo de
+agrupación (una oficina, una región, un canal), cada una con un plazo. El
+dato se corrige donde vive, en el sistema de origen: Quality Data solo lee.
+Cuando muchos registros fallan por una misma razón, como un formulario de
+captura o una carga, corregir la causa una vez vale más que corregir
+registro por registro. Más en [Atender una cola de
+remediación](../work-a-queue/).
+
+### Controlar
+
+El siguiente corte muestra si las correcciones se sostuvieron. La
+tendencia por corte, el movimiento entre bandas y la carta p′ por grupo
+distinguen un cambio duradero del ruido. Lo que enseña el ciclo vuelve al
+primer paso: una regla que falla casi todos los registros puede estar mal
+planteada, y un campo que sigue fallando puede necesitar una regla más
+estricta en el punto de captura.
+
+## Las dimensiones de calidad
+
+Cada regla mide una dimensión de calidad, que le da su patrón. Las
+dimensiones vienen de ISO/IEC 25012, el modelo de calidad de datos de ISO y
+la Comisión Electrotécnica Internacional, y de DAMA-DMBOK. Quality Data usa
+seis:
+
+| Dimensión    | El dato…                                     | Patrones                                            | Ejemplo en `customers`                                                |
+| ------------ | -------------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------- |
+| Completitud  | está presente cuando debe estarlo            | `required`                                          | Todo cliente tiene correo                                             |
+| Validez      | tiene la forma correcta y un valor permitido | `format`, `length`, `domain`                        | El correo tiene `@` y dominio; la región está en su lista             |
+| Consistencia | no contradice a otros campos                 | `empty`, `sum`, `combination`, `implies`, `differs` | Una cuenta cerrada tiene fecha de cierre                              |
+| Actualidad   | es lo bastante reciente                      | `fresh`                                             | El registro se actualizó en los 24 meses previos al corte             |
+| Unicidad     | aparece una sola vez                         | `unique`                                            | Un cliente por documento de identidad                                 |
+| Exactitud    | es creíble como retrato de la realidad       | `range`, `placeholder`                              | La fecha de nacimiento no está en el futuro; no hay "N/A" como nombre |
+
+Una `expression` declara su propia dimensión. Dos cosas más que un lector
+puede buscar:
+
+- La **integridad referencial**, que un código apunte a algo que existe, se
+  revisa con `domain` contra una columna de referencia o una tabla de
+  catálogo, y cuenta como validez.
+- La **exactitud** en sentido estricto, que el valor sea cierto, necesita
+  una fuente externa con qué comparar. Sin ella, las reglas la aproximan
+  con plausibilidad: valores posibles pero poco probables.
+
+La gráfica **Fallos por dimensión y severidad** cuenta los fallos por estas
+dimensiones. La dimensión y la severidad por defecto de cada patrón están
+en [Patrones de reglas](../rule-patterns/).
+
+## Más allá de las reglas
+
+Las reglas dicen qué está mal en un registro. Tres tipos más de evidencia
+miran los datos en conjunto, y cada uno tiene su gráfica en el dashboard:
+
+1. El **perfilado** describe cada campo antes de cualquier regla: qué tan
+   seguido está vacío, cuántos valores distintos tiene y su forma más
+   común. Un código guardado como número que perdió su cero inicial se ve
+   aquí primero.
+2. El **control estadístico** pregunta si un grupo falla más de lo que
+   explica la variación normal. La carta p′ por grupo traza límites anchos
+   para los grupos pequeños y estrechos para los grandes, así que solo
+   resaltan las señales reales.
+3. Los **atípicos y la deriva** miran importes y poblaciones: un importe
+   raro para su grupo, medido con un z robusto basado en la desviación
+   absoluta mediana (MAD), y una población que se movió desde el corte
+   anterior, medida con el índice de estabilidad poblacional (PSI).
+
+Cómo leer cada uno está en [Cómo leer el dashboard](../charts/); cómo se
+calcula, en [Formulaciones](../formulas/). Lo que el método supone y no
+mide está en [Supuestos y límites](../assumptions/).

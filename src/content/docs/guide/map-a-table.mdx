@@ -1,0 +1,160 @@
+---
+title: "Tasks: map a table into a dataset"
+description: What mapping decides, the field roles and what each switches on, what the automatic proposal does, what can be changed afterwards, and removing a dataset.
+sidebar:
+  label: Map a table into a dataset
+  order: 2.2
+---
+
+import FlowDiagram from "../../../components/FlowDiagram.astro";
+import { taskFlow } from "../../../components/taskFlows";
+
+**Who does this:** a data steward, with the `quality-steward` policy. The
+source must be connected first ([Connect a source](../connect-a-source/)).
+The first time through is in
+[Getting started: data steward](../start-steward/#2-map-a-table); this page
+is the fuller account. The example is the `customers` table of
+[Concepts](../concepts/).
+
+<FlowDiagram {...taskFlow("map", "en")} />
+
+## What mapping decides
+
+Mapping turns one table of a source into a **dataset**. Its mapping says:
+
+- **The fields:** one per column of the table, named as the column, each
+  with its type (text, number, date…).
+- **The record key:** the field or fields that tell one record from
+  another, taken from the table's primary key. Without a record key (or an
+  entity key), failing records cannot be followed, and the remediation
+  queues stay empty.
+- **Each field's priority:** critical, high, medium or low, which weights
+  the field in a record's ICD (data reliability index). Mapping sets every
+  field to medium, so all weigh the same.
+- **The roles of some fields**, which switch charts and queues on.
+
+## Field roles
+
+A role tells Quality Data what a field is for. Mapping proposes them from
+the column's name and its sample: a role proposed for the wrong column, or
+missed, changes which charts appear.
+
+| Role           | What it is                                                                                                | Proposed for                                                                                                                      | Switches on                                                                                                                                 |
+| -------------- | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Grouping field | A field whose values are groups that fix their own data: an office, a region, a channel                   | A text column named like _office_, _branch_, _advisor_, _product_, _channel_, _region_ or _zone_, with up to 500 different values | The **Remediation queues**, one per value, and the charts by group: **p′ chart by group**, **Largest groups**, **Groups that changed most** |
+| Entity key     | Who the record is about, such as a person's or company's identity document                                | A column that looks like an identity document, or named like _document type_                                                      | **Distribution of the ICD by entity** and **How entities moved between bands**                                                              |
+| Segment        | A kind of customer or product, with few values                                                            | A text column named like _client type_ or _segment_, with up to 12 values                                                         | With an entity key, **Data condition by segment**                                                                                           |
+| Update date    | When the record was last updated                                                                          | A date column named like _update_ or _modified_                                                                                   | **Update recency**                                                                                                                          |
+| Outlier amount | An amount where unusual values are sought                                                                 | A number column named like _income_, _amount_, _balance_ or _value_                                                               | With a grouping field, **Outliers by group**                                                                                                |
+| Drift variable | A number whose population is compared from one cut to the next, with the PSI (population stability index) | A number column named like _income_, _age_, _rate_ or _term_                                                                      | **PSI by deciles**                                                                                                                          |
+
+The names are recognised in English and Spanish. Entity key, segment,
+update date and outlier amount go to one field at most: the first column
+that fits. Two more roles belong to an optional sector indicator and are
+never proposed. Charts that need no role appear for every dataset.
+
+Mapping also marks fields whose value goes out of date, such as an e-mail,
+a phone, an address, an income or an employer, by their names: the time
+since the last update lowers their ICD.
+
+## To map a table
+
+1. In the **Explorer**, open the source, then the schema, until you see
+   the table, marked **not read**.
+2. Open the table and choose **Map this table**.
+3. In **Map a table of …**, check **Table** (`schema.table`, as the source
+   names it) and type the **Dataset** name: lowercase letters, digits and
+   `_`, starting with a letter, such as `customers`. The name cannot be
+   changed later.
+4. Choose **Map and collect**.
+
+**You should see** the notice _Mapping customers: you will be told when it
+is ready._ and a turning circle beside the table; point at it to read the
+step it is on and since when: waiting for a worker, sampling the table,
+collecting its data, evaluating the rules. When it is done, a notice says
+_customers is ready: 12,000 records evaluated._ It stays until you close
+it.
+
+The notices come only while Quality Data is open in your browser. If you
+close it, nothing is lost: the dataset appears under **Lake** once it is
+published, and its first cut under its **Cuts**.
+
+## What the proposal does
+
+1. It reads a **sample** of 10,000 records of the table and keeps counts:
+   how many are empty, how many different values, lengths. It never keeps a
+   value.
+2. It proposes the mapping: the fields and their types, the record key, the
+   roles, the priorities.
+3. It proposes rules for each field: `required` when no record of the
+   sample is empty and the column does not allow empty values; `unique` on
+   the primary key; `format` for a column that looks like an e-mail, a
+   mobile number or an identity document. Each is named `MAP-001`,
+   `MAP-002`… with severity major.
+4. It **publishes** the mapping and those rules directly on `main`, the
+   approved version: there is no draft to approve.
+5. It takes the **first cut**, today's, and evaluates it with those rules.
+
+## To see what was proposed
+
+- **The dataset:** under **Lake** in the Explorer, as **◆ customers**, with
+  the source and table it reads. Open it: a line per column, with its rules
+  under it; a column with none is marked **no rules**.
+- **The first cut:** under the dataset's **Cuts**, **Evaluated**, with its
+  records.
+- **The grouping fields:** on the dataset's **Dashboard**, below the
+  charts, **Remediation SLAs** (the service level agreements, the days each
+  queue has) shows one block per grouping field. If it says **The dataset's mapping
+  has no field with the dimension role: its findings have no queue.**, none
+  was proposed (the form calls a grouping field a `dimension`).
+- **The other roles:** by the charts on the **Dashboard**; each chart
+  appears only when its role is there ([Reading the
+  dashboard](../charts/#before-you-read-a-chart)).
+
+No screen shows the mapping itself yet: its roles, priorities and key are
+seen only through what they switch on.
+
+## What you can change afterwards
+
+- **The rules:** write, change and remove them as with any rule; see the
+  [tutorial](../rule-tutorial/) and [Write, change and test a
+  rule](../write-a-rule/).
+- **New columns:** when the source's table gains columns, open the dataset
+  after **List again** on the source: the new ones show as **not read**.
+  **Map the whole table**, under the dataset, adds them as fields, at once,
+  ready for rules, with no role and medium priority.
+- **The roles, the priorities, the record key and the types** cannot be
+  changed yet: there is no screen for it. Mapping the table again proposes
+  the same, so it does not help. If something in the mapping is wrong, ask
+  whoever supports your installation.
+
+## To remove a dataset
+
+1. In the Explorer, right-click the dataset (**◆ customers** under
+   **Lake**, or its table in the source) and choose **Delete**.
+2. Read what goes, type the dataset's name under **To confirm, type**, and
+   choose **Delete**.
+
+The mapping and the rules leave `main` (the rules catalog's history keeps
+them); the schedules, cuts, results and the dataset's copy in the lake are
+deleted. The source's table is not touched and can be mapped again. It
+cannot be undone, and it is refused while one of its cuts is being
+extracted or evaluated.
+
+## Problems
+
+| What you see                                                                                | What it means and what to do                                                                                                                                         |
+| ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| No **Map this table** on the table                                                          | A dataset reads it already: the table shows **→** and the dataset's name.                                                                                            |
+| **There is a dataset with that name already.**                                              | Choose another name.                                                                                                                                                 |
+| **Check the table, the dataset or the sample.**                                             | The name is not valid, the table is not in the source's last listing (**List again** on the source, and try again), or your policies do not let you manage datasets. |
+| **… could not be mapped.**                                                                  | The sample could not be read; nothing was published. Check the source's connection ([Connect a source](../connect-a-source/#to-check-the-connection)) and map again. |
+| **…'s data could not be collected.** or **…'s rules could not be evaluated.**               | The dataset was published, but its first cut failed. See [When a run fails](../run-cuts/#when-a-run-fails).                                                          |
+| The circle stays on _queued, waiting for a worker_                                          | No worker is taking jobs. Tell your administrator.                                                                                                                   |
+| **… was not deleted: one of its cuts is being collected or evaluated. Wait for it to end.** | Wait until the cut is **Evaluated** or **Failed**, then delete again.                                                                                                |
+| **Not deleted: the name typed is not ….**                                                   | Type the dataset's name exactly.                                                                                                                                     |
+
+## Where next
+
+[Run and schedule cuts](../run-cuts/) to measure the dataset again, and the
+[tutorial](../rule-tutorial/) to write its rules.

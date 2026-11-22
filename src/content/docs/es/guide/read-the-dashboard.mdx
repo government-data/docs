@@ -1,0 +1,146 @@
+---
+title: "Tareas: leer el dashboard para responder una pregunta"
+description: Abrir el dashboard de un dataset, elegir el corte y seguir una pregunta desde si la calidad mejora hasta el campo, la regla y el grupo donde falla.
+sidebar:
+  label: Leer el dashboard para responder una pregunta
+  order: 2.91
+---
+
+import FlowDiagram from "../../../../components/FlowDiagram.astro";
+import { taskFlow } from "../../../../components/taskFlows";
+
+**Quién lo hace:** cualquiera que siga la calidad de un dataset. Todas las
+políticas listas pueden leer el dashboard: `quality-viewer` y `auditor`
+para gerencia y cumplimiento, `quality-analyst` y `quality-steward` para
+quienes actúan sobre él. El dashboard muestra totales, nunca los valores de
+un registro. Esta página dice en qué orden leerlo;
+[Cómo leer el dashboard](../charts/) explica cada gráfica por separado.
+
+## Para abrir el dashboard de un dataset
+
+1. En el **Explorador** de la barra lateral, abre **Lago**: cada dataset es
+   una línea marcada con **◆**.
+2. Abre el dataset, **◆ customers**, y elige **Dashboard**.
+
+**Deberías ver** la página **Dashboard de customers**, con el selector
+**Corte** arriba y las gráficas debajo. Las mismas gráficas están en la
+pestaña **Calidad** de la tabla que lee el dataset, abierta desde
+**Fuentes** en el Explorador.
+
+## Para elegir el corte y el dataset
+
+- **El dataset.** Cada dataset tiene su propio dashboard. Para comparar
+  dos, abre el de cada uno; no hay un dashboard que junte varios.
+- **El corte.** **Corte** lista los cortes evaluados del dataset, el más
+  reciente primero. Cada gráfica muestra el corte elegido, calculado a la
+  fecha de ese corte y nunca a la de hoy, así que un corte viejo sigue
+  diciendo lo que dijo en su día. Las gráficas que comparan (bandas, grupos
+  que cambiaron, deriva, tiempo por etapa) lo comparan con el corte evaluado
+  anterior.
+
+Para ver qué cambió entre dos fechas, lee primero la tendencia y luego
+elige cada corte y compara las tablas que hay bajo las gráficas. Más en
+[Antes de leer una gráfica](../charts/#antes-de-leer-una-gráfica).
+
+## Una pregunta, de arriba abajo
+
+Una pregunta sobre un dataset suele ir del todo al detalle: si mejora, qué
+tipo de problema, dónde, qué regla, qué grupo. Cada paso son una o dos
+gráficas en el mismo corte.
+
+<FlowDiagram {...taskFlow("dashboard", "es")} />
+
+## ¿La calidad mejora o empeora?
+
+Mira **Conformidad e IGCD por corte**: la proporción de revisiones de reglas
+que pasaron y el IGCD (índice global de calidad de datos), la cifra única
+del dataset, de 0 a 1, en los últimos doce cortes. Que suba es bueno. El eje
+no empieza en cero, así que lee los valores en la tabla de abajo antes de
+llamar cambio a un salto; un salto que coincide con un salto de registros
+suele ser otra población, no mejores datos. Más en [Conformidad e IGCD por
+corte](../charts/#conformidad-e-igcd-por-corte).
+
+## ¿Qué tipo de problema domina?
+
+Mira **Fallos por dimensión y severidad**: completitud, validez, actualidad
+y las demás dimensiones, repartidas en bloqueantes, mayores y menores.
+Empieza por los bloqueantes y los mayores. Muchos fallos de completitud
+apuntan a cómo se capturan los datos; muchos de actualidad, a datos que
+nadie ha actualizado. Más en [Fallos por dimensión y
+severidad](../charts/#fallos-por-dimensión-y-severidad).
+
+## ¿Dónde falla?
+
+Mira **Campos con más fallos** y después **Campos con menor ICD** (índice
+de confiabilidad del dato). Un campo con muchos fallos puede ser solo el
+más revisado: su tabla dice cuántas reglas lo leen. Un campo con ICD bajo y
+pocos fallos suele estar viejo más que errado. **Campos más vacíos** muestra
+qué campos faltan más, como formas, nunca valores. Más en [Campos con más
+fallos](../charts/#campos-con-más-fallos) y [Campos con menor
+ICD](../charts/#campos-con-menor-icd).
+
+## ¿Qué regla falla, y sobre qué?
+
+1. Mira **Reglas con menor conformidad**: cada regla con su campo,
+   dimensión, severidad, los registros a los que aplica y sus fallos. Una
+   regla que aplica a pocos registros se mueve mucho de un corte a otro.
+2. Para ver qué revisa la regla, ábrela en el Explorador, debajo de su campo
+   (**◆ customers**, luego `Email`, luego `EML-02`): **Así se lee** la dice
+   en palabras.
+3. Para ver ejemplos, elige **Probar**. La pestaña **Resultado** muestra los
+   conteos de la regla y unos pocos registros de cada resultado. Corre
+   sobre el último corte del dataset, sea cual sea el que muestre el
+   dashboard.
+
+Los valores de **Resultado** salen enmascarados; si tu política te deja
+ver datos personales, como `quality-analyst`, **Mostrar valores** los
+muestra con un motivo: ver [Datos personales y
+el rastro de auditoría](../personal-data-and-audit/). Una conformidad baja
+quiere decir que los datos están mal o que la regla está mal planteada:
+revisa la regla con su autor antes de que alguien corrija miles de
+registros. Más en [Reglas con menor
+conformidad](../charts/#reglas-con-menor-conformidad).
+
+## ¿Qué grupo falla?
+
+Si el dataset tiene un campo de agrupación, como `Region`, las gráficas por
+grupo salen una vez por cada campo de agrupación:
+
+- **Carta p′ por grupo**: qué grupos fallan más de lo normal y cuáles solo
+  parecen peores por azar. Solo los puntos fuera de las curvas son señales.
+  Ver [Carta p′ por grupo](../charts/#carta-p-por-grupo).
+- **Grupos más grandes** y **Grupos que más cambiaron**: dónde están la
+  mayoría de los registros y qué grupos se movieron desde el corte anterior.
+- **Colas de remediación**: cuánto espera en cada grupo. Cómo atender una
+  cola está en [Atender una cola de remediación](../work-a-queue/).
+
+## Lo que el dashboard todavía no responde
+
+- Qué registros forman una cifra: ninguna gráfica abre los registros que
+  tiene detrás. **Probar** sobre una regla da ejemplos del último corte.
+- Una gráfica que necesita un rol de campo que el mapeo no trae, como un
+  campo de agrupación o una fecha de actualización: todavía no hay una
+  pantalla para cambiar el mapeo.
+- Una copia para llevar: las gráficas todavía no se pueden exportar ni
+  descargar.
+
+## Problemas
+
+| Lo que ves                                                      | Qué significa y qué hacer                                                                                                                 |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **Aún no se ha evaluado ningún corte de este dataset.**         | Todavía no hay qué graficar. Pídele al responsable de datos que corra un corte ([Ejecutar y programar cortes](../run-cuts/)).             |
+| El nombre de una gráfica seguido de **sin datos en este corte** | La gráfica aplica al dataset, pero este corte no le dio nada, como un primer corte sin nada con qué compararse. No es un cero.            |
+| Falta una gráfica que esperabas                                 | Al mapeo del dataset le falta el campo que necesita: ver [Antes de leer una gráfica](../charts/#antes-de-leer-una-gráfica).               |
+| **No se pudo cargar. Intenta de nuevo.**                        | Recarga la página. Si sigue, pregúntale a tu administrador si tu política te deja ver los resultados de este dataset.                     |
+| No hay **Explorador** en la barra lateral                       | Tus políticas no te dejan ver reglas ni fuentes. Pídeselo a tu administrador.                                                             |
+| Tu grupo no aparece en **Colas de remediación**                 | La gráfica muestra los quince grupos con más hallazgos abiertos: ver [Atender una cola de remediación](../work-a-queue/#qué-es-una-cola). |
+| **Reglas con menor conformidad** muestra "—" en una regla       | La regla no aplicó a ningún registro en este corte.                                                                                       |
+
+## A dónde ir después
+
+- [Atender una cola de remediación](../work-a-queue/): de las cifras de un
+  grupo a que se corrijan sus registros.
+- [Cómo leer el dashboard](../charts/): cada gráfica, qué responde y sus
+  trampas; [Formulaciones](../formulas/) para cómo se calcula cada cifra.
+- [Gráficas](../../charts/evolution/): reportes de ejemplo hechos con datos
+  inventados.

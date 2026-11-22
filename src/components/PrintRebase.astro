@@ -1,0 +1,18 @@
+---
+// A printed page's content with its links and ids rewritten for the book
+// (src/print/links.ts), at build time, so they need no script.
+import { rebase } from "../print/links";
+
+interface Props {
+  /** The page's own path, which its relative links were written for. */
+  page: string;
+  /** The page's anchor in the book. */
+  anchor: string;
+  /** The book's pages, by path → anchor. */
+  anchors: ReadonlyMap<string, string>;
+}
+const { page, anchor, anchors } = Astro.props;
+const html = rebase(await Astro.slots.render("default"), page, anchor, anchors);
+---
+
+<Fragment set:html={html} />

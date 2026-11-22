@@ -1,0 +1,104 @@
+---
+title: "Getting started: data steward"
+description: Connect a source, map one of its tables into a dataset, get its first cut, write a first rule and see its result on the dashboard.
+sidebar:
+  label: Data steward
+  order: 1.7
+---
+
+import FlowDiagram from "../../../components/FlowDiagram.astro";
+import { startPath } from "../../../components/startFlows";
+
+**For** the person who prepares the data and writes the rules. **At the
+end** one table of a source is a dataset, measured at a first cut, with a
+rule of yours deployed and its result on the dashboard. The example is the
+`customers` table of [Concepts](../concepts/).
+
+<FlowDiagram {...startPath("steward", "en")} />
+
+## Before you start
+
+- An account with the `quality-steward` policy (see
+  [Getting started: administrator](../start-admin/)).
+- The **Explorer** in the side bar shows **Sources**. If it stays empty and
+  says **Could not load. Try again.**, the installation cannot measure data
+  yet: tell your administrator.
+- The source's server, port, database name, and a user that can read the
+  table. A read-only user is best: Quality Data never writes to a source.
+
+## 1. Add the source
+
+In the **Explorer**, choose **+** beside **Sources** (**New source**). Type a
+**Name** (lowercase letters, digits and `_`), pick the kind of database
+under **Engine**, fill in **Server**, **Port**, **Database**, **User** and
+**Password**, and choose **Save**.
+
+**You should see** the source in the Explorer. Open it: a moment later it
+lists its schemas and tables, and says how many tables it read and when. If
+it says the source did not accept the connection, choose **Edit** on it and
+check the server, port and credentials. The password is stored sealed and
+never shown again.
+
+## 2. Map a table
+
+Open the table, `customers`, and choose **Map this table**. In **Map a table
+of …**, check **Table**, type the **Dataset** name, such as `customers`, and
+choose **Map and collect**.
+
+**You should see** a notice that the mapping started, and the table marked
+while Quality Data samples it, proposes the mapping and some first rules,
+publishes them, copies the data and evaluates it. When it is done, a notice
+says _customers is ready_ with the number of records evaluated. The sample
+keeps counts, never values.
+
+## 3. Look at the first cut
+
+The dataset now appears under **Lake** in the Explorer, as **◆ customers**.
+Open it: its fields with the rules proposed for each, then **Cuts**,
+**Schedules** and **Dashboard**. Under **Cuts**, today's cut is
+**Evaluated**, with its records. You did not have to start it: mapping takes
+the first cut.
+
+The mapping also proposed a grouping field from the column names, such as
+`Region`. There is no screen yet to change the mapping afterwards; if
+something is wrong in it, ask whoever supports your installation.
+
+## 4. Write a first rule
+
+Follow the [tutorial](../rule-tutorial/) on your dataset: choose **+**
+beside a field (**Add a rule to …**), write the rule, read it under **As
+read**, use **Test** to run it on the latest cut, and choose **Deploy** to
+take it to `main`. The tutorial's example dataset differs from yours; its
+steps are the same. Without the right to approve, use **Save as a draft**;
+someone who may approve reviews it from the field's **History**, under
+**Open drafts** ([Take a change to main](../rules-to-main/#to-review-a-draft)).
+
+## 5. Measure again and see the result
+
+A cut is measured with the rules on `main` when it is taken, so your new
+rule counts from the next cut. Under the dataset's **Cuts**, set **If
+today's cut is there** to **Replace it (unless running)** and choose **Run
+now**.
+
+**You should see** today's cut at the top of **Cuts**, **Extracting**. The
+list does not refresh by itself: reload the page and open **Cuts** again
+until it reads **Evaluating**, then **Evaluated**. Then open **Dashboard**, keep the latest **Cut**, and find
+your rule in **Rules with the lowest conformity**; the
+[dashboard guide](../charts/#rules-with-the-lowest-conformity) explains it.
+
+## Where next
+
+The Tasks pages take each job further:
+
+- [Connect a source](../connect-a-source/), [Map a table into a
+  dataset](../map-a-table/) and [Run and schedule cuts](../run-cuts/),
+  including a schedule that measures on a calendar.
+- [Write, change and test a rule](../write-a-rule/), [Share rules across
+  fields](../share-rules/), [Take a change to main](../rules-to-main/),
+  [See a rule's history and undo a change](../rule-history/) and [Export
+  and import rules](../export-import-rules/).
+- Set how many days each queue has under **Remediation SLAs**, below the
+  dashboard: [Reading the dashboard: remediation
+  queues](../charts/#remediation-queues).
+- The rule language itself: [Rule patterns](../rule-patterns/) and [Rule
+  language](../rule-language/).

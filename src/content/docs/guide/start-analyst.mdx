@@ -1,0 +1,100 @@
+---
+title: "Getting started: analyst"
+description: Find a dataset's remediation queues, read what a queue shows, and learn what to do about it with the product as it is today.
+sidebar:
+  label: Analyst
+  order: 1.8
+---
+
+import FlowDiagram from "../../../components/FlowDiagram.astro";
+import { startPath } from "../../../components/startFlows";
+
+**For** the person who gets failing data fixed, for an office, a region or a
+channel. **At the end** you know where your group's queue is, how much is
+open in it, which fields and rules make it up, and how to see a fix count.
+The example is the `customers` dataset of [Concepts](../concepts/), whose
+queues are split by `Region`.
+
+<FlowDiagram {...startPath("analyst", "en")} />
+
+## Before you start
+
+- An account with the `quality-analyst` policy.
+- A dataset with at least one evaluated cut and a grouping field, from your
+  data steward. Without a grouping field a dataset has no queues.
+
+## 1. Open the dashboard
+
+In the **Explorer** in the side bar, open **Lake**, then the dataset,
+**◆ customers**, and choose **Dashboard**.
+
+**You should see** the page **Dashboard of customers**, with the **Cut**
+selector at the top on the latest evaluated cut. If it says that no cut has
+been evaluated yet, ask your data steward to run one.
+
+## 2. Find your queue
+
+Scroll to **Remediation queues**: one chart per grouping field, such as
+**Remediation queues · Region**, with a column per group. Its table has,
+for each group:
+
+- **Open**: the findings waiting, each a record failing a rule at this cut.
+- **Priority**: the open findings' summed priority; high with few findings
+  means a few costly ones.
+- **SLA** (service level agreement): the days the queue has to fix a
+  finding, 30 unless your data
+  steward set another under **Remediation SLAs**, below the charts.
+- **Overdue**, **Resolved at this cut** and **Oldest open**: see below what
+  they show today.
+
+More in [Reading the dashboard: remediation
+queues](../charts/#remediation-queues).
+
+## 3. See what fails
+
+On the same dashboard, **Fields with the most failures** and **Rules with
+the lowest conformity** say which fields and rules produce the findings.
+For examples of failing records, open the rule in the Explorer, under its
+field, and choose **Test**: the **Result** tab shows its counts at the
+latest cut and a few records of each outcome. They are records of the whole
+dataset, not only of your group, masked. Your policy lets you show their
+values whole with **Show values** and a purpose, and every view is
+recorded in the audit trail.
+
+## 4. Get it fixed at the source
+
+Quality Data only reads. The records are corrected where they live, in the
+source system, by whoever captures or owns them; tell them which rule
+fails and why, as **As read** says it.
+
+## 5. Check the fix
+
+A finding is resolved when a later cut no longer fails it. Wait for the next
+scheduled cut, or under the dataset's **Cuts** choose **Run now** (with
+**Replace it (unless running)** if today's cut is there). Once it is
+**Evaluated**, pick it in **Cut**: your group's **Open** should drop.
+
+## What is not there yet
+
+The product does not yet list the records of a queue, nor carry a finding
+from one cut to the next. So today a queue shows counts only, and
+**Overdue**, **Resolved at this cut** and **Oldest open** read 0, because
+every open finding counts from the cut shown. Use **Open**, its change from cut to cut, and the
+examples from **Test**.
+
+## Where next
+
+- [Work a remediation queue](../work-a-queue/): the fuller account of this
+  path, including setting the queues' SLAs.
+- [Read the dashboard to answer a question](../read-the-dashboard/): the
+  charts around the queues, in the order to read them.
+- [Personal data and the audit trail](../personal-data-and-audit/): how
+  you show values whole, and what is recorded when you do.
+- [Reading the dashboard](../charts/): every chart, including the groups'
+  charts, which show which groups stand out.
+- [Concepts: remediation queue](../concepts/#remediation-queue).
+- [Write, change and test a rule: to test a
+  rule](../write-a-rule/#to-test-a-rule): what **Test** shows, and why
+  values may be masked.
+- [Run and schedule cuts](../run-cuts/): taking a cut now, and following
+  it until it is evaluated.

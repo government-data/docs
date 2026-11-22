@@ -1,0 +1,47 @@
+---
+title: Measurement
+description: Profiling, conformity per rule and the ICD.
+sidebar:
+  order: 3
+---
+
+import { Aside } from "@astrojs/starlight/components";
+import Chart from "../../../components/Chart.astro";
+
+<Aside type="caution" title="Example data">
+  The figures are made up to show how the report reads.
+</Aside>
+
+## Profiling (level 1)
+
+Before the rules, each column is described. Pattern: `9` = digit, `A` =
+upper-case letter, `a` = lower-case letter, `·` = space, `{n}` = repetitions.
+
+| Field         | Nulls | Distinct | Most frequent pattern | Share  |
+| ------------- | ----- | -------- | --------------------- | ------ |
+| Mobile phone  | 3.1 % | 9,480    | `39{9}`               | 94.2 % |
+| Email         | 8.4 % | 8,910    | `a{n}@a{n}.aaa`       | 88.0 % |
+| City code     | 0.2 % | 412      | `9{8}`                | 97.5 % |
+| Activity code | 1.6 % | 286      | `9{4}`                | 81.3 % |
+| Date of birth | 0.4 % | 7,950    | `9{4}-99-99`          | 99.6 % |
+
+**How to read it.** An activity code with only 81 % in the four-digit pattern suggests
+codes stored as numbers that lost their leading zero: a type problem,
+systemic, fixed in the extraction.
+
+## Conformity per rule
+
+<Chart id="rule-conformity" />
+
+**How to read it.** Low conformity means either the data is wrong or the rule
+is badly posed. The lowest rules are reviewed with their owner before fixing
+thousands of records.
+
+## ICD and IGCD
+
+The data reliability index (ICD) of each entity and each field, and their
+mean, the overall data quality index (IGCD).
+
+<Chart id="icd-distribution" />
+
+<Chart id="fields-lowest-icd" />

@@ -1,0 +1,131 @@
+---
+title: "Tareas: llevar un cambio a main"
+description: Los dos caminos por los que un cambio llega a main, desplegarlo o guardarlo como borrador para revisión, quién puede hacer qué, y cómo revisar, aprobar y descartar un borrador.
+sidebar:
+  label: Llevar un cambio a main
+  order: 2.6
+---
+
+import FlowDiagram from "../../../../components/FlowDiagram.astro";
+import { taskFlow } from "../../../../components/taskFlows";
+
+**Quién lo hace:** un responsable de datos, con la política
+`quality-steward`, despliega y aprueba. Un autor de reglas cuya política le
+deja editar reglas pero no aprobarlas guarda borradores. Cómo se escribe el
+cambio está en [Escribir, cambiar y probar una regla](../write-a-rule/).
+
+## Dos caminos a main
+
+Solo se evalúan las reglas que están en `main`, la versión aprobada. Un
+cambio llega allí por uno de dos caminos:
+
+- **Desplegar:** quien puede aprobar lleva un archivo directo a `main`,
+  después de leer lo que dice el linter (el revisor) y qué cambia.
+- **Un borrador:** quien solo puede editar guarda el cambio aparte, como
+  **borrador**; alguien que puede aprobar lo revisa y luego lo aprueba o lo
+  descarta.
+
+<FlowDiagram {...taskFlow("draft", "es")} />
+
+## Quién puede hacer qué
+
+| Para…                                                                       | La política necesita                                   | Entre las políticas listas |
+| --------------------------------------------------------------------------- | ------------------------------------------------------ | -------------------------- |
+| Abrir, leer y probar reglas                                                 | **Ver reglas**                                         | Todas                      |
+| **Guardar como borrador**, **Guardar en el borrador**                       | **Editar reglas**                                      | `quality-steward`          |
+| **Desplegar**, **Aprobar**, **Borrar regla**, restaurar, deshacer, importar | **Aprobar reglas y mapeos** y **Administrar datasets** | `quality-steward`          |
+| **Descartar** un borrador                                                   | **Administrar datasets**                               | `quality-steward`          |
+
+`quality-steward` da todo eso, así que un responsable de datos despliega.
+En un archivo abierto desde `main`, quien puede desplegar ve **Desplegar**,
+nunca **Guardar como borrador**. Para autores cuyos cambios aprueba otra
+persona, un administrador crea una política propia (**Nueva política**, en
+**Políticas**) que permita **Editar reglas**, **Ver reglas** y **Ver
+datasets**, pero no **Aprobar reglas y mapeos**.
+
+Nada impide que un aprobador apruebe un borrador que guardó él mismo: la
+revisión por alguien distinto del autor todavía no existe.
+
+## Para desplegar un cambio
+
+1. Con el archivo abierto desde `main` y tu cambio hecho, elige
+   **Desplegar**.
+2. Lee el diálogo **Desplegar Email.yaml a main**: los errores que lo
+   impiden, los avisos que conviene mirar, qué reglas agrega, quita o
+   cambia, y el cambio línea por línea (**Lado a lado** o **Unificado**).
+3. Elige **Desplegar**.
+
+**Deberías ver** _Desplegado en main: las reglas ya están bajo su campo._ El
+cambio queda en el historial del campo, a nombre de tu cuenta, y cuenta
+desde el siguiente corte
+([Ejecutar y programar cortes](../run-cuts/#para-ejecutar-un-corte-ahora)).
+
+## Para guardar un cambio como borrador
+
+1. Con tu cambio hecho, elige **Guardar como borrador**.
+2. **Deberías ver** _Guardado en el borrador._, la pestaña marcada
+   **borrador** y arriba _Editas un borrador: lo que guardes queda en él
+   hasta que se apruebe._ **Versión** muestra el borrador en lugar de
+   `main`.
+3. Sigue cambiando el archivo y elige **Guardar en el borrador** las veces
+   que quieras; cada guardado se conserva.
+4. Avísale a quien aprueba qué dataset y qué campo: todavía nada le avisa
+   de un borrador nuevo.
+
+Un borrador cambia el archivo de un solo campo, o las reglas globales. Para
+cambiar otro campo, abre su archivo desde `main` y guarda un borrador
+aparte. Un campo puede tener varios borradores abiertos; para volver a uno,
+abre el archivo del campo y elígelo en **Versión**.
+
+## Para revisar un borrador
+
+1. Abre el archivo del campo en el editor y elige **Historial**. Mientras
+   el campo tenga borradores, el botón muestra cuántos.
+2. En **Borradores abiertos**, cada borrador muestra su id, la cuenta que lo
+   guardó y la fecha. Elige **Revisar**.
+3. Léelo en sus dos pestañas:
+   - **Cambios:** el borrador como una línea de guardados, del más reciente
+     hacia atrás, hasta **Salió de main**. **Todo el borrador** muestra todo
+     lo que cambia frente a `main`; un guardado muestra lo que cambió ese
+     guardado.
+   - **Archivos:** el mapeo, marcado **Se lee** o no, y cada archivo de
+     reglas con **Sin errores** o sus errores. **Editar** abre el archivo en
+     el borrador.
+
+Un borrador de todo el dataset, como el que crea **Repartir por campo**,
+se revisa igual desde el **⎇** junto al dataset en el Explorador.
+
+## Para aprobar o descartar un borrador
+
+- **Aprobar** lleva el borrador a `main`. Está en gris, con _Para
+  aprobarlo, el mapeo debe leerse y las reglas no deben tener errores._,
+  hasta que se cumplan las dos cosas. **Deberías ver** _Borrador aprobado:
+  main tiene ahora el dataset customers._, y el cambio en el historial del
+  campo.
+- **Descartar** elimina el borrador sin que llegue a `main`, tras
+  _¿Descartar este borrador? Se elimina sin entrar en main._ **Deberías
+  ver** _Borrador descartado._
+
+En los dos casos el borrador sale de **Borradores abiertos**. Un cambio
+aprobado cuenta desde el siguiente corte.
+
+## Rechazos que pueden aparecer
+
+| Lo que ves                                                                                | Qué significa y qué hacer                                                                                                                                                                                          |
+| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **2 errores: no se puede desplegar**, en el diálogo                                       | El archivo tiene errores: **Cancelar**, corrígelos y despliega de nuevo.                                                                                                                                           |
+| **El linter encontró errores: no se desplegó.**                                           | Lo mismo, detectado al enviarlo.                                                                                                                                                                                   |
+| **El archivo cambió en main desde que lo abriste: vuelve a abrirlo.**                     | Alguien desplegó este archivo mientras tanto. Guarda una copia de tu cambio, recarga la página y vuelve a hacerlo sobre el archivo como está ahora.                                                                |
+| **No se guardó: el archivo tiene errores.**                                               | Un borrador tampoco se guarda con errores: corrígelos antes.                                                                                                                                                       |
+| **Este borrador es de otra columna: abre el archivo desde main para empezar el de esta.** | Un borrador guarda el archivo de un solo campo: abre el de este campo desde `main` y guarda un borrador aparte.                                                                                                    |
+| **main cambió este dataset desde que se propuso: descártalo y propón de nuevo.**          | El archivo del campo (o, en un borrador de todo el dataset, el dataset) cambió en `main` después de crear el borrador, por ejemplo por otro borrador aprobado. Descártalo y vuelve a hacer el cambio desde `main`. |
+| **Choca con main: descártalo y propón de nuevo.**                                         | El mismo remedio.                                                                                                                                                                                                  |
+| **El mapeo no se lee o las reglas tienen errores.**                                       | Corrige el archivo en el borrador (**Editar**), guarda y aprueba de nuevo.                                                                                                                                         |
+| **No tienes permiso para esto.**                                                          | Tu política no te deja aprobar, o descartar.                                                                                                                                                                       |
+| **Ese borrador ya no existe.**                                                            | Alguien lo aprobó o lo descartó mientras tanto.                                                                                                                                                                    |
+
+## A dónde ir después
+
+[Ver el historial de una regla y deshacer un cambio](../rule-history/), y
+[Ejecutar y programar cortes](../run-cuts/) para medir con lo que ahora hay
+en `main`.

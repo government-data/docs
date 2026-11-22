@@ -1,0 +1,162 @@
+---
+title: "Tareas: mapear una tabla en un dataset"
+description: Qué decide el mapeo, los roles de los campos y qué activa cada uno, qué hace la propuesta automática, qué se puede cambiar después y cómo quitar un dataset.
+sidebar:
+  label: Mapear una tabla en un dataset
+  order: 2.2
+---
+
+import FlowDiagram from "../../../../components/FlowDiagram.astro";
+import { taskFlow } from "../../../../components/taskFlows";
+
+**Quién lo hace:** un responsable de datos, con la política
+`quality-steward`. Antes hay que conectar la fuente
+([Conectar una fuente](../connect-a-source/)). La primera vez está en
+[Primeros pasos: responsable de datos](../start-steward/#2-mapear-una-tabla);
+esta página lo cuenta completo. El ejemplo es la tabla `customers` de
+[Conceptos](../concepts/).
+
+<FlowDiagram {...taskFlow("map", "es")} />
+
+## Qué decide el mapeo
+
+Mapear convierte una tabla de una fuente en un **dataset**. Su mapeo dice:
+
+- **Los campos:** uno por columna de la tabla, con el nombre de la columna
+  y su tipo (texto, número, fecha…).
+- **La llave del registro:** el campo o los campos que distinguen un
+  registro de otro, tomados de la llave primaria de la tabla. Sin llave del
+  registro (ni llave de entidad), los registros que fallan no se pueden
+  seguir, y las colas de remediación quedan vacías.
+- **La prioridad de cada campo:** crítica, alta, media o baja, que pesa el
+  campo en el ICD (índice de confiabilidad del dato) de un registro. Mapear
+  deja todos los campos en media, así que todos pesan lo mismo.
+- **El rol de algunos campos**, que activa gráficas y colas.
+
+## Roles de los campos
+
+Un rol le dice a Quality Data para qué sirve un campo. Mapear los propone a
+partir del nombre de la columna y de su muestra: un rol propuesto en la
+columna equivocada, o que faltó, cambia qué gráficas aparecen.
+
+| Rol                    | Qué es                                                                                                       | Se propone para                                                                                                                                             | Activa                                                                                                                                              |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Campo de agrupación    | Un campo cuyos valores son grupos que corrigen sus propios datos: una oficina, una región, un canal          | Una columna de texto con un nombre como _oficina_, _agencia_, _sucursal_, _asesor_, _producto_, _canal_, _zona_ o _región_, con hasta 500 valores distintos | Las **Colas de remediación**, una por valor, y las gráficas por grupo: **Carta p′ por grupo**, **Grupos más grandes**, **Grupos que más cambiaron** |
+| Llave de entidad       | De quién es el registro, como el documento de identidad de una persona o una empresa                         | Una columna que parece un documento de identidad, o con un nombre como _tipo de documento_                                                                  | **Distribución del ICD por entidad** y **Cómo se movieron las entidades entre bandas**                                                              |
+| Segmento               | Un tipo de cliente o de producto, con pocos valores                                                          | Una columna de texto con un nombre como _tipo de cliente_ o _segmento_, con hasta 12 valores                                                                | Con llave de entidad, **Estado de los datos por segmento**                                                                                          |
+| Fecha de actualización | Cuándo se actualizó el registro por última vez                                                               | Una columna de fecha con un nombre como _actualización_ o _modificación_                                                                                    | **Antigüedad de la actualización**                                                                                                                  |
+| Importe de atípicos    | Un importe en el que se buscan valores raros                                                                 | Una columna numérica con un nombre como _ingreso_, _monto_, _saldo_ o _valor_                                                                               | Con campo de agrupación, **Atípicos por grupo**                                                                                                     |
+| Variable de deriva     | Un número cuya población se compara de un corte al siguiente, con el PSI (índice de estabilidad poblacional) | Una columna numérica con un nombre como _ingreso_, _edad_, _tasa_ o _plazo_                                                                                 | **PSI por deciles**                                                                                                                                 |
+
+Los nombres se reconocen en español y en inglés. La llave de entidad, el
+segmento, la fecha de actualización y el importe de atípicos van a un solo
+campo como mucho: la primera columna que encaja. Otros dos roles son de un
+indicador sectorial opcional y nunca se proponen. Las gráficas que no
+necesitan rol salen en todo dataset.
+
+Mapear también marca, por su nombre, los campos cuyo valor se desactualiza,
+como un correo, un teléfono, una dirección, un ingreso o un empleador: el
+tiempo desde la última actualización les baja el ICD.
+
+## Para mapear una tabla
+
+1. En el **Explorador**, abre la fuente y luego el esquema, hasta ver la
+   tabla, marcada **sin leer**.
+2. Abre la tabla y elige **Mapear esta tabla**.
+3. En **Mapear una tabla de …**, revisa la **Tabla** (`esquema.tabla`, como
+   la nombra la fuente) y escribe el nombre del **Dataset**: minúsculas,
+   números y `_`, empezando por una letra, como `customers`. Después no se
+   puede cambiar.
+4. Elige **Mapear y recolectar**.
+
+**Deberías ver** el aviso _Mapeando customers: te avisamos cuando esté
+listo._ y un círculo que gira junto a la tabla; pasa el puntero por encima
+para leer en qué paso va y desde qué hora: esperando un worker, tomando la
+muestra, recolectando los datos, evaluando las reglas. Al terminar, un aviso
+dice _customers está listo: 12.000 registros evaluados._ y se queda hasta
+que lo cierres.
+
+Los avisos solo llegan mientras tengas Quality Data abierto en el
+navegador. Si lo cierras no se pierde nada: el dataset aparece en **Lago**
+en cuanto se publica, y su primer corte en sus **Cortes**.
+
+## Qué hace la propuesta
+
+1. Lee una **muestra** de 10.000 registros de la tabla y guarda conteos:
+   cuántos vacíos, cuántos valores distintos, longitudes. Nunca guarda un
+   valor.
+2. Propone el mapeo: los campos y sus tipos, la llave del registro, los
+   roles, las prioridades.
+3. Propone reglas para cada campo: `required` cuando ningún registro de la
+   muestra está vacío y la columna no admite vacíos; `unique` en la llave
+   primaria; `format` en una columna que parece un correo, un celular o un
+   documento de identidad. Se llaman `MAP-001`, `MAP-002`…, con severidad
+   mayor.
+4. **Publica** el mapeo y esas reglas directo en `main`, la versión
+   aprobada: no hay borrador que aprobar.
+5. Toma el **primer corte**, el de hoy, y lo evalúa con esas reglas.
+
+## Para ver qué se propuso
+
+- **El dataset:** en **Lago**, en el Explorador, como **◆ customers**, con
+  la fuente y la tabla que lee. Ábrelo: una línea por columna, con sus
+  reglas debajo; una columna sin reglas aparece marcada **sin reglas**.
+- **El primer corte:** en los **Cortes** del dataset, **Evaluado**, con sus
+  registros.
+- **Los campos de agrupación:** en el **Dashboard** del dataset, debajo de
+  las gráficas, **ANS de remediación** (los acuerdos de nivel de servicio,
+  los días que tiene cada cola) muestra un bloque por campo de agrupación.
+  Si dice **El mapeo del dataset no tiene ningún campo con el rol de
+  dimensión: sus hallazgos no tienen cola.**, no se propuso ninguno (el
+  formulario llama `dimensión` al campo de agrupación).
+- **Los demás roles:** por las gráficas del **Dashboard**; cada una aparece
+  solo cuando está su rol
+  ([Cómo leer el dashboard](../charts/#antes-de-leer-una-gráfica)).
+
+Ninguna pantalla muestra todavía el mapeo como tal: sus roles, prioridades
+y llave se ven solo por lo que activan.
+
+## Qué se puede cambiar después
+
+- **Las reglas:** se escriben, cambian y quitan como cualquier regla; ver el
+  [tutorial](../rule-tutorial/) y [Escribir, cambiar y probar una
+  regla](../write-a-rule/).
+- **Columnas nuevas:** cuando la tabla de la fuente gana columnas, abre el
+  dataset después de **Volver a listar** la fuente: las nuevas aparecen
+  **sin leer**. **Mapear tabla completa**, bajo el dataset, las agrega como
+  campos de una vez, listas para reglas, sin rol y con prioridad media.
+- **Los roles, las prioridades, la llave del registro y los tipos** todavía
+  no se pueden cambiar: no hay pantalla para eso. Mapear la tabla otra vez
+  propone lo mismo, así que no sirve. Si algo del mapeo quedó mal, pídeselo a
+  quien da soporte a tu instalación.
+
+## Para quitar un dataset
+
+1. En el Explorador, haz clic derecho en el dataset (**◆ customers** en
+   **Lago**, o su tabla en la fuente) y elige **Borrar**.
+2. Lee qué se va, escribe el nombre del dataset en **Para confirmar,
+   escribe** y elige **Borrar**.
+
+El mapeo y las reglas salen de `main` (el historial del catálogo de reglas
+los conserva); se borran las programaciones, los cortes, los resultados y
+la copia del dataset en el lago. La tabla de la fuente no se toca y se puede
+volver a mapear. No se puede deshacer, y se rechaza mientras uno de sus
+cortes se esté recolectando o evaluando.
+
+## Problemas
+
+| Lo que ves                                                                                   | Qué significa y qué hacer                                                                                                                                                       |
+| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| No aparece **Mapear esta tabla** en la tabla                                                 | Ya la lee un dataset: la tabla muestra **→** y el nombre del dataset.                                                                                                           |
+| **Ya hay un dataset con ese nombre.**                                                        | Elige otro nombre.                                                                                                                                                              |
+| **Revisa la tabla, el dataset o la muestra.**                                                | El nombre no es válido, la tabla no está en el último listado de la fuente (**Volver a listar** la fuente e intentar de nuevo), o tus políticas no te dejan gestionar datasets. |
+| **No se pudo mapear ….**                                                                     | No se pudo leer la muestra; no se publicó nada. Revisa la conexión de la fuente ([Conectar una fuente](../connect-a-source/#para-comprobar-la-conexión)) y vuelve a mapear.     |
+| **No se pudieron recolectar los datos de ….** o **No se pudieron evaluar las reglas de ….**  | El dataset quedó publicado, pero su primer corte falló. Ver [Si una ejecución falla](../run-cuts/#si-una-ejecución-falla).                                                      |
+| El círculo se queda en _en cola, esperando un worker_                                        | Ningún worker está tomando trabajos. Avísale a tu administrador.                                                                                                                |
+| **No se borró …: uno de sus cortes se está recolectando o evaluando. Espera a que termine.** | Espera a que el corte quede **Evaluado** o en **Falló** y vuelve a borrar.                                                                                                      |
+| **No se borró: el nombre escrito no es ….**                                                  | Escribe el nombre del dataset tal cual.                                                                                                                                         |
+
+## A dónde ir después
+
+[Ejecutar y programar cortes](../run-cuts/) para medir otra vez el dataset,
+y el [tutorial](../rule-tutorial/) para escribir sus reglas.

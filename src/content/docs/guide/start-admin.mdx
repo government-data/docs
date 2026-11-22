@@ -1,0 +1,115 @@
+---
+title: "Getting started: administrator"
+description: Get Quality Data installed on a server, sign in for the first time, and give a colleague an account and a policy until they can sign in.
+sidebar:
+  label: Administrator
+  order: 1.6
+---
+
+import FlowDiagram from "../../../components/FlowDiagram.astro";
+import { startPath } from "../../../components/startFlows";
+
+**For** whoever installs Quality Data and looks after it. **At the end** the
+product runs on your server, you can sign in, and a colleague has signed in
+with the policy that fits their work.
+
+<FlowDiagram {...startPath("admin", "en")} />
+
+## Before you start
+
+- A Linux server (Ubuntu, Debian, Red Hat Enterprise Linux or a derivative)
+  with Docker and its Compose plugin, ports 80 and 443 free, and access as
+  root (`sudo`) for whoever installs it.
+- Access from the server to the internet over HTTPS, the secure web
+  protocol: the server downloads its versions and updates from there.
+  Nothing on the internet connects to the server.
+- The name people will type to reach the product, such as
+  `quality.example.org`, pointing to the server on your network.
+- Your organisation's mail server (SMTP, the standard mail protocol, or
+  Office 365), to send colleagues their activation links.
+
+## 1. Install
+
+Whoever supports your installation runs the Quality Data installer on the
+server, as root. It checks the server, registers it with its certificate
+(the only way the server proves who it is when it downloads a version),
+downloads the version to install, checks its signature, generates the
+installation's passwords, starts the product and makes it start with the
+server. Running it again does only what is missing and keeps the data and
+the passwords.
+
+**You should see**, from them, the address to open and a link to choose
+your password as the first administrator, with your e-mail. The link works
+once. If the browser warns about the site's certificate, ask them which
+certificate to trust on the computers that will open the product.
+
+## 2. Sign in for the first time
+
+Open the link. On **Activate your account**, type your password in **New
+password** and **Repeat the new password**, following the rules listed, and
+choose **Activate the account**. On **Sign in**, type your **Email** and
+**Password** and choose **Sign in**.
+
+**You should see** the product open, signed in as you. If the link expired,
+ask whoever supports your installation for a new one: they make it on the
+server.
+
+## 3. Set up outgoing mail
+
+Accounts are activated by e-mail, so mail comes first. In the menu at the
+top right, choose **Settings**, then **Outgoing mail**. If the card says
+**Not configured**, turn on **Send mail**, pick the **Mail provider**, fill
+in the fields (each has its help), use **Send test**, then **Save**.
+
+**You should see** the card on **Settings** say _On_, and the test message
+in your inbox.
+
+## 4. Create a colleague's account
+
+In **Settings**, open **Users and access**, tab **Users**, and choose
+**Register user**. In **New user**, type their **Email**, optionally their
+name, leave **Role** as **User**, and choose **Create and send the link**.
+
+**You should see** the account in the list, **Waiting for activation**, with
+**Nothing** under **Access**. The role **Administrator** can do everything,
+without policies.
+
+## 5. Give them a policy
+
+On the account's row, choose **Edit**. Under **Policies attached
+directly**, tick the ready-made policy for their work, and choose **Save
+changes**:
+
+| They will…                             | Policy            |
+| -------------------------------------- | ----------------- |
+| Connect sources, write rules, run cuts | `quality-steward` |
+| Work a remediation queue               | `quality-analyst` |
+| Read dashboards and indicators         | `quality-viewer`  |
+| Read dashboards and the audit trail    | `auditor`         |
+
+**You should see** the policy under **Access**. To give the same policies to
+several people at once, use the **Groups** tab.
+
+## 6. Your colleague signs in
+
+They open the link in their e-mail, choose their password on **Activate
+your account**, and sign in. **You should see** their account become
+**Active**. If the e-mail is lost or the link expired, use **Resend link**.
+
+## Before anyone measures data
+
+The installer sets up the application: the web screens, sign-in, settings,
+updates and its own database. Mapping tables and taking cuts also need the lake, the
+rules catalog and at least one worker, which run on their own and which the
+product cannot install by itself yet. If the **Explorer** in the side bar
+stays empty and says **Could not load. Try again.**, ask your provider to set
+them up before the data steward starts.
+
+## Where next
+
+- Your data steward goes on with
+  [Getting started: data steward](../start-steward/).
+- Accounts, groups and policies in full: [Manage users and
+  access](../manage-access/).
+- Sign-in through a company directory or an external provider, updates,
+  machines: [Mail, sign-in and updates](../administer-the-installation/).

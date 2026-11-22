@@ -1,0 +1,84 @@
+---
+// The whole documentation as one page to print (the entry print.mdx, in
+// each language, at /docs/print/ and /docs/es/print/): a cover, the contents
+// with links, then every page of the sidebar in its order, each from a new
+// sheet. The order and what is left out come from
+// src/print/order.ts, over the sidebar Starlight resolved for this language,
+// so nothing here lists the pages.
+//
+// It lives in an entry, not in a page of src/pages: Astro gathers the styles
+// of the printed entries' components (a flow diagram, a chart) before the
+// head, and only a docs entry has its sidebar resolved by then.
+import { getCollection } from "astro:content";
+import { bookOf, pagesOf, type BookNode, type SidebarEntry } from "../print/order";
+import { TEXTS, langOf } from "../print/texts";
+import PrintContents from "./PrintContents.astro";
+import PrintPage from "./PrintPage.astro";
+import logo from "../assets/logo.svg?raw";
+import "../print/print.css";
+
+const base = import.meta.env.BASE_URL;
+const lang = langOf(Astro.url.pathname);
+const t = TEXTS[lang];
+const route = Astro.locals.starlightRoute;
+// Every entry of this build but this page, in either language. A page not
+// yet translated is printed in English, as the site shows it.
+const english = (id: string) => id.replace(/^es\//, "");
+const ids = new Set((await getCollection("docs")).map((e) => e.id));
+ids.delete(route.id);
+ids.delete(english(route.id));
+const entryOf = (id: string) => [id, english(id)].find((e) => ids.has(e));
+const sidebar = route.sidebar as SidebarEntry[];
+const book: BookNode[] = bookOf(sidebar, base, (id) => entryOf(id) !== undefined);
+const pages = pagesOf(book);
+const built = new Intl.DateTimeFormat(lang, { dateStyle: "long" }).format(new Date());
+const anchors = new Map(pages.map((p) => [p.href, p.anchor]));
+---
+
+<script is:inline>
+  // Before the figures' scripts: here they are drawn at rest, as with reduced
+  // motion (the stack's tour on its first stop, every unit lit), and in the
+  // light theme, the paper's.
+  {
+    const real = window.matchMedia.bind(window);
+    const still = "(prefers-reduced-motion: reduce)";
+    window.matchMedia = (q) => real(q.trim() === still ? "all" : q);
+    document.documentElement.dataset.theme = "light";
+  }
+</script>
+
+<div class="qd-print-bar not-content" data-qd-print-bar>
+  <p>{t.howTo}</p>
+  <button type="button" data-qd-print>
+    {t.print}
+  </button>
+</div>
+
+<div class="qd-book">
+  <section class="qd-print-cover">
+    <span class="qd-print-logo" aria-hidden="true" set:html={logo} />
+    <p class="qd-print-product">Quality Data</p>
+    <h1>{t.cover}</h1>
+    <p>{t.coverNote}</p>
+    <p class="qd-print-built">
+      {t.built} {built}
+    </p>
+  </section>
+
+  <nav class="qd-print-contents" aria-labelledby="qd-print-contents">
+    <h2 id="qd-print-contents">{t.contents}</h2>
+    <PrintContents nodes={book} />
+  </nav>
+
+  {pages.map((page) => (
+    <PrintPage page={page} entry={entryOf(page.id)!} anchors={anchors} />
+  ))}
+</div>
+
+<script>
+  document.querySelector("[data-qd-print]")?.addEventListener("click", () => print());
+  // On paper nothing is folded.
+  for (const d of document.querySelectorAll(".qd-print-page details")) {
+    (d as HTMLDetailsElement).open = true;
+  }
+</script>

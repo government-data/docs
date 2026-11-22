@@ -1,0 +1,35 @@
+---
+title: Remediación y rendimiento
+description: Las colas priorizadas y el tiempo de una ejecución.
+sidebar:
+  order: 5
+---
+
+import { Aside } from "@astrojs/starlight/components";
+import Chart from "../../../../components/Chart.astro";
+
+<Aside type="caution" title="Datos de ejemplo">
+  Las cifras son inventadas para mostrar cómo se lee el reporte.
+</Aside>
+
+## Colas de remediación
+
+Cada registro que falla una regla es un hallazgo, y los hallazgos caen en una
+cola por valor de un campo de agrupación (aquí, la oficina), cada una con su acuerdo de nivel de servicio (ANS). Un
+hallazgo está vencido cuando lleva abierto más tiempo que el ANS de su cola.
+En el producto, **Vencidos** da 0 hasta que los hallazgos pasen de un corte
+al siguiente ([Cómo leer el dashboard](../../guide/charts/#colas-de-remediación)).
+
+<Chart id="queues" />
+
+**Cómo se lee.** El rojo es lo primero que hay que atender. Una oficina con
+muchos hallazgos abiertos y pocos vencidos va al día; una donde la mayoría
+están vencidos necesita atención antes de que su cola crezca.
+
+## Tiempo por etapa
+
+<Chart id="performance" />
+
+**Cómo se lee.** La evaluación de reglas domina el tiempo. Compara una etapa
+con su valor anterior por millón de valores (registros × campos): una base
+más grande tarda más sin ser más lenta.

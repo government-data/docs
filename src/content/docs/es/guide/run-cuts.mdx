@@ -1,0 +1,165 @@
+---
+title: "Tareas: ejecutar y programar cortes"
+description: Qué es un corte, cómo ejecutar uno ahora y las opciones del mismo día, las programaciones, cómo seguir una ejecución por sus etapas, qué hacer si falla y dónde está el historial.
+sidebar:
+  label: Ejecutar y programar cortes
+  order: 2.3
+---
+
+import FlowDiagram from "../../../../components/FlowDiagram.astro";
+import { taskFlow } from "../../../../components/taskFlows";
+
+**Quién lo hace:** un responsable de datos, con la política
+`quality-steward`, ejecuta cortes y gestiona programaciones. Un analista,
+con `quality-analyst`, también puede ejecutar un corte ahora. Mapear una
+tabla toma su primer corte por sí solo
+([Mapear una tabla en un dataset](../map-a-table/)); esta página trata de
+todos los cortes que siguen.
+
+## Qué es un corte
+
+Un **corte** son los datos de un dataset tal como estaban en una fecha.
+Quality Data copia la tabla de la fuente a su propio almacenamiento, el
+lago, y evalúa esa copia con las reglas que hay en `main` en ese momento. Un
+dataset tiene a lo sumo un corte por fecha.
+
+Los resultados se comparan con el corte, nunca con hoy: una regla como
+"actualizado en los últimos 24 meses" cuenta hacia atrás desde la fecha del
+corte, y el dashboard compara un corte con el corte evaluado anterior. Así,
+un corte sigue diciendo lo que dijo en su día, y dos cortes muestran cómo
+cambiaron los datos entre uno y otro. Una regla nueva cuenta desde el
+siguiente corte; los anteriores quedan como se evaluaron.
+
+<FlowDiagram {...taskFlow("cut", "es")} />
+
+## Para ejecutar un corte ahora
+
+1. En el **Explorador**, en **Lago**, abre el dataset (**◆ customers**) y
+   luego **Cortes**.
+2. Deja **Si el corte de hoy ya existe** en **No hacer nada**, o mira la
+   sección siguiente.
+3. Elige **Ejecutar ahora**.
+
+**Deberías ver** _Corte 2026-11-12 en cola: se extrae y luego se evalúa._ y
+el corte de hoy de primero en **Cortes**, **Extrayendo**. La fecha es la de
+hoy en la zona horaria de la instalación.
+
+## Si el corte de hoy ya existe
+
+Hay un corte por fecha, así que una segunda ejecución el mismo día tiene que
+decir qué hacer con la primera. **Si el corte de hoy ya existe** ofrece:
+
+- **No hacer nada**, lo predeterminado: el corte de hoy queda como está, y
+  el aviso dice _El corte … ya existe y no se reemplazó._ Úsalo cuando basta
+  un corte al día, para que nadie lo reemplace por error.
+- **Reemplazarlo (si no está en curso)**: el corte de hoy se toma de nuevo,
+  con los datos de la fuente tal como están ahora y las reglas que hay ahora
+  en `main`; el aviso dice _Corte … reemplazado: se extrae de nuevo._ Úsalo
+  después de desplegar una regla que quieres ver hoy, después de que se
+  corrigieron los datos en la fuente, o para reintentar un corte que falló.
+  Un corte que todavía se está extrayendo o evaluando nunca se reemplaza.
+
+Solo el corte de hoy se puede tomar de nuevo. Un corte de una fecha anterior
+no se puede volver a ejecutar.
+
+## Para programar un corte diario
+
+1. Abre el dataset en el Explorador y elige **+** junto a **Programaciones**
+   (**Agregar una programación a customers**).
+2. En **Nueva programación**, deja elegido **Diariamente**, con **Repetir
+   cada** 1 días, y fija **Inicio** y **Hora**, por ejemplo 06:00, una hora
+   tranquila para la fuente.
+3. Revisa la **Zona horaria**: empieza en `America/Bogota`; elige la de tu
+   organización.
+4. Deja **Qué dispara** en **Extrae el corte y lo evalúa**, y elige **Si el
+   corte ya existe**, como en **Ejecutar ahora**.
+5. Deja marcada **Habilitada**. La línea junto a los botones dice la
+   programación en palabras; revísala y elige **Guardar**.
+
+**Deberías ver** la programación en **Programaciones**, descrita en
+palabras, con _próxima_ y la fecha y hora en que se dispara la próxima vez.
+Un corte programado lleva la fecha del día en que se dispara, en la zona
+horaria de la programación.
+
+Las demás frecuencias funcionan igual: **Semanalmente** (cada tantas
+semanas, los días que marques), **Mensualmente** (los meses y luego unos
+días del mes o, con **En**, un día como el primer lunes), **Una vez**, o
+**Personalizado (cron)** para una expresión cron de cinco campos. La
+**Configuración avanzada** agrega un retraso aleatorio, una repetición dentro
+del día y una fecha de expiración.
+
+## Para cambiar, pausar o quitar una programación
+
+- **Cambiarla:** elige su descripción en **Programaciones**, cambia el
+  formulario y elige **Guardar**.
+- **Pausarla:** ábrela igual, desmarca **Habilitada** y guarda. Aparece
+  **Deshabilitada** y no dispara nada hasta que la vuelvas a marcar.
+- **Quitarla:** elige **×** junto a ella y confirma. Una programación que ya
+  disparó cortes no se puede quitar: páusala en su lugar.
+
+## Para seguir una ejecución
+
+En los **Cortes** del dataset, cada corte muestra su fecha, su estado y, una
+vez evaluado, sus registros:
+
+- **Extrayendo:** el corte espera un worker, o un worker está copiando la
+  tabla de la fuente al lago.
+- **Evaluando:** la copia está completa y las reglas de `main` están
+  corriendo sobre cada registro.
+- **Evaluado:** listo. Sus resultados están en el **Dashboard** del dataset.
+- **Falló:** ver la sección siguiente.
+
+La lista no se actualiza sola: recarga la página y vuelve a abrir
+**Cortes** para ver avanzar el corte. El último resultado de una
+programación aparece a su lado: **Encolado**, **Reemplazado**, **Bloqueado**
+(el corte ya existía y se conservó) u **Omitido (tarde)**.
+
+## Si una ejecución falla
+
+Un corte que falla muestra **Falló** y, a su lado, **Falló al extraer** o
+**Falló al evaluar**, seguido de un motivo técnico corto, en inglés, que
+nombra el paso en que se detuvo. Nunca contiene tus datos. Antes de fallar,
+Quality Data reintenta el paso por su cuenta, tres veces en total.
+
+- **Falló al extraer:** no se pudo copiar la tabla de la fuente. Revisa la
+  fuente como en
+  [Conectar una fuente](../connect-a-source/#para-comprobar-la-conexión):
+  una contraseña cambiada, un servidor que no responde, una tabla renombrada
+  o quitada. Luego ejecuta el corte otra vez con **Reemplazarlo (si no está
+  en curso)**.
+- **Falló al evaluar:** los datos se copiaron, pero las reglas no pudieron
+  correr sobre ellos. Una regla que lee otro dataset necesita que ese
+  dataset tenga registros en la misma fecha, y el motivo lo nombra: toma
+  primero el corte de ese dataset. Luego ejecuta el corte otra vez con
+  **Reemplazarlo (si no está en curso)**. Si vuelve a fallar, avísale a quien
+  da soporte a tu instalación, con el dataset, la fecha y el motivo que
+  aparece.
+
+Todavía nada te avisa de un corte programado que falló: mira **Cortes**
+después de la hora en que debía correr.
+
+## Dónde está el historial
+
+- **Cortes** lista los 60 cortes más recientes del dataset, del más nuevo al
+  más viejo, con su estado y sus registros.
+- El selector **Corte** del **Dashboard** lista todos los cortes evaluados,
+  y **Conformidad e IGCD por corte** sigue la conformidad y el IGCD (índice
+  global de calidad de datos) en los últimos doce; **Tiempo por etapa**
+  muestra cuánto tardó cada etapa de la evaluación, junto al corte anterior.
+- Quién ejecutó un corte a mano, y cada cambio a una programación, está en
+  el rastro de auditoría, que la política `auditor` lee en Grafana ([Datos
+  personales y el rastro de
+  auditoría](../personal-data-and-audit/#para-saber-quién-vio-qué)).
+
+## Problemas
+
+| Lo que ves                                                                                                 | Qué significa y qué hacer                                                                                                                                          |
+| ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| No hay **Ejecutar ahora** en **Cortes**, ni **+** junto a **Programaciones**                               | Tus políticas no te dejan ejecutar cortes o gestionar programaciones. Pídeselo a tu administrador.                                                                 |
+| **El corte … ya existe y no se reemplazó.**                                                                | El corte de hoy existe, o todavía está en curso. Elige **Reemplazarlo (si no está en curso)**, o espera a que termine.                                             |
+| **No se puede ejecutar: este dataset no se lee de una fuente, sus datos se cargaron al lago.**             | El dataset no tiene una fuente de la cual copiar, así que no se le puede tomar un corte.                                                                           |
+| Un corte se queda en **Extrayendo** mucho tiempo                                                           | Ningún worker lo está tomando. Avísale a tu administrador.                                                                                                         |
+| **¿Eliminar esta programación? …** y luego **Ya disparó cortes: deshabilítala en vez de eliminarla.**      | Desmarca **Habilitada** en su lugar.                                                                                                                               |
+| **La zona horaria no existe.**, **El cron no es válido.**, **Ese cron nunca vuelve a dispararse.**         | Corrige el campo que nombra y guarda otra vez.                                                                                                                     |
+| Una programación muestra **Omitido (tarde)**                                                               | Le tocaba mientras la instalación estaba detenida, hace más tiempo del que la instalación permite (24 horas por defecto); se dispara otra vez a su siguiente hora. |
+| **Este dataset aún no tiene un corte extraído: extrae uno en Cortes para probar.**, en el editor de reglas | Todavía no se ha copiado ningún corte. Ejecuta uno ahora.                                                                                                          |

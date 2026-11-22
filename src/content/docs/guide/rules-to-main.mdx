@@ -1,0 +1,124 @@
+---
+title: "Tasks: take a change to main"
+description: The two ways a change reaches main, deploying it or saving it as a draft for review, who may do which, and reviewing, approving and discarding a draft.
+sidebar:
+  label: Take a change to main
+  order: 2.6
+---
+
+import FlowDiagram from "../../../components/FlowDiagram.astro";
+import { taskFlow } from "../../../components/taskFlows";
+
+**Who does this:** a data steward, with the `quality-steward` policy,
+deploys and approves. A rule author whose policy lets them edit rules but
+not approve them saves drafts. Writing the change itself is in [Write,
+change and test a rule](../write-a-rule/).
+
+## Two ways to main
+
+Only the rules on `main`, the approved version, are evaluated. A change gets
+there in one of two ways:
+
+- **Deploy:** whoever may approve takes a file straight to `main`, after
+  reading what the linter (the checker) says and what changes.
+- **A draft:** whoever may only edit saves the change apart, as a
+  **draft**; someone who may approve reviews it, then approves or discards
+  it.
+
+<FlowDiagram {...taskFlow("draft", "en")} />
+
+## Who may do which
+
+| To…                                                             | The policy needs                                       | Among the ready-made policies |
+| --------------------------------------------------------------- | ------------------------------------------------------ | ----------------------------- |
+| Open, read and test rules                                       | **View rules**                                         | All of them                   |
+| **Save as a draft**, **Save on the draft**                      | **Edit rules**                                         | `quality-steward`             |
+| **Deploy**, **Approve**, **Delete rule**, restore, undo, import | **Approve rules and mappings** and **Manage datasets** | `quality-steward`             |
+| **Discard** a draft                                             | **Manage datasets**                                    | `quality-steward`             |
+
+`quality-steward` gives all of them, so a steward deploys. On a file opened
+from `main`, whoever may deploy sees **Deploy**, never **Save as a draft**.
+For authors whose changes someone else approves, an administrator makes a
+policy of their own (**New policy**, under **Policies**) that allows **Edit
+rules**, **View rules** and **View datasets**, but not **Approve rules and
+mappings**.
+
+Nothing stops an approver from approving a draft they saved themselves:
+review by someone other than the author is not built yet.
+
+## To deploy a change
+
+1. With the file open from `main` and your change made, choose **Deploy**.
+2. Read the dialog **Deploy Email.yaml to main**: the errors that block it,
+   the warnings to look at, which rules it adds, removes or changes, and the
+   change line by line (**Side by side** or **Unified**).
+3. Choose **Deploy**.
+
+**You should see** _Deployed to main: the rules are under their field now._
+The change is in the field's history, under your account. It counts from
+the next cut ([Run and schedule cuts](../run-cuts/#to-run-a-cut-now)).
+
+## To save a change as a draft
+
+1. With your change made, choose **Save as a draft**.
+2. **You should see** _Saved on the draft._, the tab marked **draft**, and
+   the head saying _You are editing a draft: what you save stays on it until
+   it is approved._ **Version** shows the draft chosen instead of `main`.
+3. Go on changing the file and choose **Save on the draft** as often as you
+   like; each save is kept.
+4. Tell whoever approves which dataset and field: nothing warns them of a
+   new draft yet.
+
+A draft changes one field's file, or the global rules. To change another
+field, open its file from `main` and save a draft of its own. A field can
+have several open drafts; to go back to one, open the field's file and
+choose it under **Version**.
+
+## To review a draft
+
+1. Open the field's file in the editor and choose **History**. While the
+   field has drafts, the button shows how many.
+2. Under **Open drafts**, each draft shows its id, the account that saved
+   it and the date. Choose **Review**.
+3. Read it in its two tabs:
+   - **Changes:** the draft as a line of saves, newest first, down to **Left
+     main**. **The whole draft** shows everything it changes against
+     `main`; a save shows what that save changed.
+   - **Files:** the mapping, marked **Reads** or not, and each rules file
+     with **No errors** or its errors. **Edit** opens the file on the draft.
+
+A draft of the whole dataset, such as one made by **Split by field**, is
+reviewed the same way from the **⎇** beside the dataset in the Explorer.
+
+## To approve or discard a draft
+
+- **Approve** takes the draft into `main`. It is greyed with _To approve
+  it, the mapping must read and the rules must have no errors._ until both
+  hold. **You should see** _Draft approved: main now has the dataset
+  customers._, and the change in the field's history.
+- **Discard** deletes the draft without it reaching `main`, after _Discard
+  this draft? It is deleted without going into main._ **You should see**
+  _Draft discarded._
+
+Either way the draft leaves **Open drafts**. An approved change counts from
+the next cut.
+
+## Refusals you will meet
+
+| What you see                                                                       | What it means and what to do                                                                                                                                                                        |
+| ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **2 errors: it cannot be deployed**, in the dialog                                 | The file has errors: **Cancel**, fix them, deploy again.                                                                                                                                            |
+| **The linter found errors: nothing was deployed.**                                 | The same, found as it was sent.                                                                                                                                                                     |
+| **The file changed on main since you opened it: open it again.**                   | Someone deployed this file meanwhile. Keep a copy of your change, reload the page, and make it again on the file as it is now.                                                                      |
+| **Not saved: the file has errors.**                                                | A draft is not saved with errors either: fix them first.                                                                                                                                            |
+| **This draft is another column's: open the file from main to start this one's.**   | A draft holds one field's file: open this field's file from `main` and save a draft of its own.                                                                                                     |
+| **main changed this dataset since it was proposed: discard it and propose again.** | The field's file (or, for a draft of the dataset, the dataset) changed on `main` after the draft was made, for example by another approved draft. Discard it and make the change again from `main`. |
+| **It conflicts with main: discard it and propose again.**                          | The same remedy.                                                                                                                                                                                    |
+| **The mapping does not read or the rules have errors.**                            | Fix the file on the draft (**Edit**), save, and approve again.                                                                                                                                      |
+| **You may not do this.**                                                           | Your policy does not let you approve, or discard.                                                                                                                                                   |
+| **That draft is no longer there.**                                                 | Someone approved or discarded it meanwhile.                                                                                                                                                         |
+
+## Where next
+
+[See a rule's history and undo a change](../rule-history/), and [Run and
+schedule cuts](../run-cuts/) to measure with what is now on `main`.

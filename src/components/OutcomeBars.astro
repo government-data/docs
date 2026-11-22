@@ -1,0 +1,195 @@
+---
+// How the records of a cut split under each rule: those it does not apply
+// to, those that pass and those that fail, to scale, with the part the rule
+// applies to bracketed, since conformity counts only that part. Plain HTML
+// in Starlight's colours; the bars are drawn for the eye and every figure is
+// also written out as text. The page passes the texts in its language:
+//
+//   <OutcomeBars lang="en" texts={{ …see Texts }}
+//     rows={[{ name: "EML-02", pass: 11550, fail: 150, notApplied: 300 }]} />
+interface Row {
+  name: string;
+  pass: number;
+  fail: number;
+  notApplied: number;
+}
+
+interface Texts {
+  pass: string;
+  fail: string;
+  notApplied: string;
+  /** Said of the records a rule does not apply to. */
+  leftOut: string;
+  appliesTo: string;
+  conformity: string;
+  caption: string;
+}
+
+interface Props {
+  lang: "en" | "es";
+  rows: Row[];
+  texts: Texts;
+}
+
+const { lang, rows, texts } = Astro.props;
+const number = new Intl.NumberFormat(lang);
+const percent = new Intl.NumberFormat(lang, {
+  style: "percent",
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+const n = (v: number) => number.format(v);
+---
+
+<figure class="outcomes not-content">
+  {rows.map((r) => {
+    const total = r.pass + r.fail + r.notApplied;
+    const applied = r.pass + r.fail;
+    const share = (v: number) => `${(100 * v) / total}%`;
+    return (
+      <div class="outcomes__row">
+        <code class="outcomes__name">{r.name}</code>
+        <div class="outcomes__bar" aria-hidden="true">
+          {r.notApplied > 0 && (
+            <span class="outcomes__seg outcomes__seg--na" style={`width: ${share(r.notApplied)}`} />
+          )}
+          <span class="outcomes__applied" style={`width: ${share(applied)}`}>
+            <span class="outcomes__bracket">
+              <span>
+                {texts.appliesTo} {n(applied)}
+              </span>
+            </span>
+            <span class="outcomes__seg outcomes__seg--pass" style={`flex-grow: ${r.pass}`} />
+            <span class="outcomes__seg outcomes__seg--fail" style={`flex-grow: ${r.fail}`} />
+          </span>
+        </div>
+        <ul class="outcomes__figures">
+          {r.notApplied > 0 && (
+            <li>
+              <i class="outcomes__key outcomes__seg--na" />
+              {texts.notApplied} <b>{n(r.notApplied)}</b> · {texts.leftOut}
+            </li>
+          )}
+          <li>
+            <i class="outcomes__key outcomes__seg--pass" />
+            {texts.pass} <b>{n(r.pass)}</b>
+          </li>
+          <li>
+            <i class="outcomes__key outcomes__seg--fail" />
+            {texts.fail} <b>{n(r.fail)}</b>
+          </li>
+          <li class="outcomes__conformity">
+            {texts.conformity}: {n(r.pass)} / {n(applied)} ≈{" "}
+            <b>{percent.format(r.pass / applied)}</b>
+          </li>
+        </ul>
+      </div>
+    );
+  })}
+  <figcaption>{texts.caption}</figcaption>
+</figure>
+
+<style>
+  .outcomes {
+    display: grid;
+    gap: 1.1rem;
+    margin: 1.5rem 0 2rem;
+    padding: 1rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.75rem;
+    font-size: var(--sl-text-sm);
+    line-height: 1.4;
+  }
+
+  .outcomes__name {
+    color: var(--sl-color-white);
+    font-weight: 600;
+  }
+
+  .outcomes__bar {
+    display: flex;
+    height: 1.4rem;
+    margin-top: 1.6rem;
+  }
+
+  .outcomes__applied {
+    position: relative;
+    display: flex;
+  }
+
+  /* A bracket over the records the rule applies to, with their count. */
+  .outcomes__bracket {
+    position: absolute;
+    bottom: calc(100% + 3px);
+    left: 0;
+    right: 0;
+    height: 0.5rem;
+    border: 1.5px solid var(--sl-color-gray-3);
+    border-bottom: 0;
+  }
+
+  .outcomes__bracket > span {
+    position: absolute;
+    bottom: calc(100% + 2px);
+    right: 0;
+    color: var(--sl-color-gray-2);
+    font-size: var(--sl-text-xs);
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  .outcomes__seg {
+    min-width: 4px;
+    height: 100%;
+  }
+
+  .outcomes__seg--na {
+    background: repeating-linear-gradient(
+      135deg,
+      var(--sl-color-gray-4) 0 2px,
+      transparent 2px 6px
+    );
+    outline: 1px solid var(--sl-color-gray-4);
+    outline-offset: -1px;
+  }
+
+  .outcomes__seg--pass {
+    background: var(--sl-color-green);
+  }
+
+  .outcomes__seg--fail {
+    background: var(--sl-color-red);
+  }
+
+  .outcomes__figures {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem 1.1rem;
+    margin: 0.45rem 0 0;
+    padding: 0;
+    list-style: none;
+    color: var(--sl-color-gray-2);
+  }
+
+  .outcomes__figures b {
+    color: var(--sl-color-white);
+  }
+
+  .outcomes__key {
+    display: inline-block;
+    width: 0.75rem;
+    height: 0.75rem;
+    margin-inline-end: 0.35rem;
+    border-radius: 2px;
+    vertical-align: -0.05rem;
+  }
+
+  .outcomes__conformity {
+    flex-basis: 100%;
+  }
+
+  .outcomes figcaption {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-xs);
+  }
+</style>

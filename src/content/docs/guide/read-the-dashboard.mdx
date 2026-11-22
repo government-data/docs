@@ -1,0 +1,143 @@
+---
+title: "Tasks: read the dashboard to answer a question"
+description: Open a dataset's dashboard, choose the cut, and follow a question from whether quality is getting better down to the field, the rule and the group where it fails.
+sidebar:
+  label: Read the dashboard to answer a question
+  order: 2.91
+---
+
+import FlowDiagram from "../../../components/FlowDiagram.astro";
+import { taskFlow } from "../../../components/taskFlows";
+
+**Who does this:** anyone who follows the quality of a dataset. Every
+ready-made policy can read the dashboard: `quality-viewer` and `auditor`
+for managers and compliance readers, `quality-analyst` and
+`quality-steward` for those who act on it. The dashboard shows totals,
+never a record's values. This page is the order to read it in;
+[Reading the dashboard](../charts/) explains each chart on its own.
+
+## To open a dataset's dashboard
+
+1. In the **Explorer** in the side bar, open **Lake**: each dataset is a
+   line marked **◆**.
+2. Open the dataset, **◆ customers**, and choose **Dashboard**.
+
+**You should see** the page **Dashboard of customers**, with the **Cut**
+selector at the top and the charts under it. The same charts are in the
+**Quality** tab of the table the dataset reads, opened from **Sources** in
+the Explorer.
+
+## To choose the cut and the dataset
+
+- **The dataset.** Each dataset has its own dashboard. To compare two
+  datasets, open each one's; there is no dashboard across datasets.
+- **The cut.** **Cut** lists the dataset's evaluated cuts, the latest
+  first. Every chart shows the cut chosen, worked out at that cut's date,
+  never today's, so an old cut keeps saying what it said on its day.
+  Charts that compare (bands, groups that changed, drift, time per stage)
+  compare it with the evaluated cut before it.
+
+To see what changed between two dates, read the trend first, then choose
+each cut in turn and compare the tables under the charts. More in [Before
+you read a chart](../charts/#before-you-read-a-chart).
+
+## Follow a question down
+
+A question about a dataset usually goes from the whole to the detail: is
+it getting better, what kind of problem, where, which rule, which group.
+Each step is one or two charts at the same cut.
+
+<FlowDiagram {...taskFlow("dashboard", "en")} />
+
+## Is quality getting better or worse?
+
+Read **Conformity and IGCD by cut**: the share of rule checks that passed,
+and the IGCD (overall data quality index), the dataset's one figure, from 0
+to 1, over the last twelve cuts. Rising is good. The axis does not start at
+zero, so read the values in the table under it before calling a step a
+change; a jump together with a jump in records usually means a different
+population, not better data. More in [Conformity and IGCD by
+cut](../charts/#conformity-and-igcd-by-cut).
+
+## What kind of problem dominates?
+
+Read **Failures by dimension and severity**: completeness, validity,
+timeliness and the other dimensions, split into blocking, major and minor.
+Start with blocking and major. Many completeness failures point at how the
+data is captured; many timeliness failures at data nobody has updated.
+More in [Failures by dimension and
+severity](../charts/#failures-by-dimension-and-severity).
+
+## Where does it fail?
+
+Read **Fields with the most failures**, then **Fields with the lowest ICD**
+(data reliability index). A
+field with many failures may simply be the most checked: its table says
+how many rules read it. A field low in ICD but with few failures is
+usually old rather than wrong. **Emptiest fields** shows which fields are
+missing most, as shapes, never values. More in [Fields with the most
+failures](../charts/#fields-with-the-most-failures) and [Fields with the
+lowest ICD](../charts/#fields-with-the-lowest-icd).
+
+## Which rule fails, and on what?
+
+1. Read **Rules with the lowest conformity**: each rule with its field,
+   dimension, severity, the records it applies to and its failures. A rule
+   that applies to few records swings a lot from cut to cut.
+2. To see what the rule checks, open it in the Explorer, under its field
+   (**◆ customers**, then `Email`, then `EML-02`): **As read** says it in
+   words.
+3. To see examples, choose **Test**. The **Result** tab shows the rule's
+   counts and a few records of each outcome. It runs on the dataset's
+   latest cut, whatever cut the dashboard shows.
+
+Values in **Result** come masked; if your policy lets you see personal
+data, as `quality-analyst` does, **Show values** shows them with a reason:
+see [Personal data and the audit
+trail](../personal-data-and-audit/). Low conformity means the data is wrong
+or the rule is badly posed: check the rule with its author before anyone
+fixes thousands of records. More in [Rules with the lowest
+conformity](../charts/#rules-with-the-lowest-conformity).
+
+## Which group fails?
+
+When the dataset has a grouping field, such as `Region`, the charts by
+group are drawn once for each grouping field:
+
+- **p′ chart by group**: which groups fail more than normal, and which
+  only look worse by chance. Only dots outside the curves are signals. See
+  [p′ chart by group](../charts/#p-chart-by-group).
+- **Largest groups** and **Groups that changed most**: where most records
+  are, and which groups moved since the cut before.
+- **Remediation queues**: how much is waiting in each group. Working a
+  queue is in [Work a remediation queue](../work-a-queue/).
+
+## What the dashboard does not answer yet
+
+- Which records make up a figure: no chart opens the records behind it.
+  **Test** on a rule gives examples from the latest cut.
+- A chart that needs a field role the mapping does not give, such as a
+  grouping field or an update date: there is no screen yet to change the
+  mapping.
+- A copy to take away: charts cannot be exported or downloaded yet.
+
+## Problems
+
+| What you see                                              | What it means and what to do                                                                                                      |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **No cut of this dataset has been evaluated yet.**        | Nothing to chart yet. Ask your data steward to run a cut ([Run and schedule cuts](../run-cuts/)).                                 |
+| A chart's name followed by **no data for this cut**       | The chart applies to the dataset but this cut gave it nothing, such as a first cut with nothing to compare with. It is not zero.  |
+| A chart you expected is not there                         | The dataset's mapping lacks the field it needs: see [Before you read a chart](../charts/#before-you-read-a-chart).                |
+| **Could not load. Try again.**                            | Reload the page. If it stays, ask your administrator whether your policy lets you view results for this dataset.                  |
+| No **Explorer** in the side bar                           | Your policies let you see neither rules nor sources. Ask your administrator.                                                      |
+| Your group is not in **Remediation queues**               | The chart shows the fifteen groups with the most open findings: see [Work a remediation queue](../work-a-queue/#what-a-queue-is). |
+| **Rules with the lowest conformity** shows "—" for a rule | The rule applied to no record at this cut.                                                                                        |
+
+## Where next
+
+- [Work a remediation queue](../work-a-queue/): from a group's figures to
+  getting its records fixed.
+- [Reading the dashboard](../charts/): every chart, what it answers and
+  its pitfalls; [Formulas](../formulas/) for how each figure is worked out.
+- [Charts](../../charts/evolution/): example reports drawn with made-up
+  data.

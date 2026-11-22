@@ -1,0 +1,160 @@
+---
+title: "Tasks: work a remediation queue"
+description: What a remediation queue is, setting its SLAs, reading its counts, finding what fails, getting it fixed in the source system and confirming the fix at the next cut, with the limits of today's product.
+sidebar:
+  label: Work a remediation queue
+  order: 2.92
+---
+
+import FlowDiagram from "../../../components/FlowDiagram.astro";
+import { taskFlow } from "../../../components/taskFlows";
+
+**Who does this:** an analyst, with the `quality-analyst` policy, works a
+queue: reads it, looks at failing records with their values, and runs a
+cut to check a fix. A data steward, with `quality-steward`, sets each
+queue's SLA. The first time through is in [Getting started:
+analyst](../start-analyst/); this page is the fuller account.
+
+## What a queue is
+
+A **finding** is a record failing a rule at a cut: a customer failing two
+rules is two findings. A **remediation queue** gathers the findings of one
+value of a grouping field: with `Region` as the grouping field, North is
+one queue and South another, and records with no region make the queue
+**(empty)**. A dataset with two grouping fields has two sets of queues, and
+each finding is in one queue of each.
+
+Each queue has a service level agreement (SLA): the days it has to fix a
+finding before the finding is overdue, 30 unless a steward sets another.
+
+A dataset has queues only when its mapping has a grouping field and a
+record key; mapping a table proposes both. The dashboard shows, for each
+grouping field, the fifteen groups with the most open findings, in the
+chart and in its table alike: a group with fewer is not listed.
+
+<FlowDiagram {...taskFlow("queue", "en")} />
+
+## To read your queue
+
+1. Open the dataset's **Dashboard** in the Explorer (**◆ customers**,
+   **Dashboard**) and keep the latest **Cut**.
+2. Scroll to **Remediation queues · Region**: a column of open findings
+   per group, and the table under it.
+3. Find your group's row:
+   - **Open**: its findings at this cut.
+   - **Priority**: the open findings' priority added up. High with few
+     findings means a few costly ones, in important fields with a low data reliability index (ICD)
+     ([Formulas §4](../formulas/#4-priority)).
+   - **SLA**: the queue's days.
+   - **Overdue**, **Resolved at this cut** and **Oldest open**: they read 0
+     today. The product does not yet carry a finding from one cut to the
+     next, so every open finding counts as opened at the cut shown: none
+     is old enough to be overdue, and none is seen to close.
+
+So today the figure to work with is **Open**, and how it changes from one
+cut to the next.
+
+## To set the remediation SLAs
+
+A data steward does this; the form shows only to policies that may edit
+the dataset's pipeline, as `quality-steward` does.
+
+1. On the dataset's **Dashboard**, below the charts, open **Remediation
+   SLAs**. Its note calls the grouping field a "dimension": each box is
+   one grouping field, named after it (`Region`).
+2. In **Every group (days)**, type the days for every group of that field,
+   from 1 to 365. Leave it empty to keep 30.
+3. For a group that needs other days, choose **Add a group** and type the
+   **Group** exactly as the chart shows it, such as `North`, and its
+   **Days**. Leave **Group** empty for the records with no value. **×**
+   removes the line.
+4. Choose **Save**.
+
+**You should see** _SLAs saved: the queues show them._ and the queues'
+chart redrawn with the new **SLA**. No new evaluation is needed. The form
+saves every line at once: a line you removed goes back to the field's
+days. Each save is recorded in the audit trail.
+
+## To find what fails
+
+The dashboard says what fails in the whole dataset; nothing yet narrows it
+to one group's records.
+
+1. On the same cut, read **Fields with the most failures** and **Rules
+   with the lowest conformity**: the fields and rules behind most
+   findings. **Largest groups** gives your group's share of records with a
+   serious failure; **p′ chart by group** says whether that share is
+   unusual or chance ([p′ chart by group](../charts/#p-chart-by-group)).
+2. Open a failing rule in the Explorer, under its field, and read **As
+   read**: what the rule asks, in words.
+3. Choose **Test**. The **Result** tab shows the rule's counts at the
+   dataset's latest cut and up to 10 records of each outcome, from the
+   whole dataset, not only your group, masked. With `quality-analyst`,
+   **Show values** shows them whole with a purpose (such as **Remediation
+   of data**), and each view is recorded in the audit trail.
+
+To look at a record as it is now in the source, open the table under
+**Sources** and choose **Records** ([Connect a
+source](../connect-a-source/#to-look-at-a-tables-records)).
+
+## To get it fixed in the source
+
+Quality Data only reads: no record is fixed inside it. The records are
+corrected where they live, in the source system, by whoever captures or
+owns them. Tell them, for each rule: its id, what **As read** says, the
+field, and the example records **Test** showed, by their record key. Keep
+values out of e-mails and tickets where your organisation's rules ask you
+to.
+
+## To confirm at the next cut
+
+A fix counts when a later cut no longer fails the record.
+
+1. Wait for the dataset's next scheduled cut, or take one now: under the
+   dataset's **Cuts**, choose **Run now**, with **If today's cut is there**
+   on **Replace it (unless running)** when today's cut exists ([Run and
+   schedule cuts](../run-cuts/#to-run-a-cut-now)).
+2. Reload the page until the cut is **Evaluated**, then open the
+   **Dashboard** and choose it in **Cut**.
+3. Compare your group's **Open** with the cut before: choose each in
+   **Cut** in turn.
+
+**You should see** **Open** drop by the findings fixed. What still fails
+stays open: go round the cycle again with what remains.
+
+## What is not there yet
+
+- **A queue's records.** A queue shows counts; it does not list its
+  findings or their records. Use **Test** for examples.
+- **Findings carried from cut to cut.** Until they are, **Overdue**,
+  **Resolved at this cut** and **Oldest open** read 0.
+- **Assigning or closing by hand.** A finding cannot be given to a person
+  or closed from a screen: the next cut is the proof.
+- **Warnings.** Nothing tells you when a queue passes its SLA.
+
+## Refusals and messages
+
+| What you see                                                                                | What it means and what to do                                                                              |
+| ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| No **Remediation queues** chart                                                             | The dataset has no grouping field. Ask your data steward.                                                 |
+| Your group is not in the chart                                                              | It is not among the fifteen with the most open findings at this cut.                                      |
+| No **Remediation SLAs** below the charts                                                    | Your policy may not edit the dataset's pipeline, or there are no queues.                                  |
+| **The dataset's mapping has no field with the dimension role: its findings have no queue.** | The dataset has no grouping field, so there is nothing to set.                                            |
+| **Days are a whole number from 1 to 365.**                                                  | Fix the days on the line marked and save again.                                                           |
+| **A group is set twice in the same dimension.**                                             | Two lines name the same group under one grouping field: remove one.                                       |
+| **A group's value is too long.**                                                            | A group's name is longer than any value can be: check what you typed.                                     |
+| **A dimension is no longer in the dataset's mapping: reload the page.**                     | The mapping changed since you opened the page. Reload it and set the SLAs again.                          |
+| **The dataset has no mapping on main.**                                                     | The dataset is not on `main` any more. Ask your data steward.                                             |
+| **Too many SLAs for one dataset.**                                                          | More group lines than a dataset can hold: keep the groups that really differ.                             |
+| **You do not have permission for this.**                                                    | Your policy may not change the SLAs.                                                                      |
+| **The catalog does not answer: it cannot be checked now.**                                  | The store of mappings and rules is not responding. Try again later; if it lasts, tell your administrator. |
+
+## Where next
+
+- [Read the dashboard to answer a question](../read-the-dashboard/): the
+  charts around the queues.
+- [Reading the dashboard: remediation
+  queues](../charts/#remediation-queues) and [Concepts: remediation
+  queue](../concepts/#remediation-queue).
+- [Write, change and test a rule](../write-a-rule/#to-test-a-rule): what
+  **Test** shows, and why values may be masked.

@@ -1,0 +1,112 @@
+/* The application's colors, so the guide looks like the application. */
+:root {
+  --sl-color-accent-low: #1c2550;
+  --sl-color-accent: #4c6ef5;
+  --sl-color-accent-high: #c5d0fd;
+}
+
+:root[data-theme="light"] {
+  --sl-color-accent-low: #dbe4ff;
+  --sl-color-accent: #4c6ef5;
+  --sl-color-accent-high: #2f44a8;
+}
+
+/* Without social links, their place in the header (and its separator) is
+   hidden: the app's avatar (AppMenu) holds the theme and the language. */
+.social-icons:empty {
+  display: none !important;
+}
+
+/* A formula wider than the column scrolls on its own instead of being cut. */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.25rem 0;
+}
+
+/* Terms (src/terms/): an abbreviation is highlighted, a soft tint of the
+   accent with a dotted underline; a concept, an ordinary word, only gets the
+   dotted underline, so a paragraph does not flood. Either shows its meaning
+   on hover, keyboard focus or a tap, and is stronger while it does. */
+.qd-term {
+  position: relative;
+}
+
+.qd-term-word {
+  color: inherit;
+  text-decoration: underline dotted var(--sl-color-accent);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.2em;
+  cursor: help;
+}
+
+.qd-term--abbreviation > .qd-term-word {
+  padding: 0 0.2em;
+  border-radius: 0.25rem;
+  background-color: var(--sl-color-accent-low);
+  white-space: nowrap;
+}
+
+.qd-term:hover > .qd-term-word,
+.qd-term-word:focus {
+  border-radius: 0.25rem;
+  background-color: var(--sl-color-accent-high);
+  color: var(--sl-color-black);
+  text-decoration-color: currentColor;
+}
+
+.qd-term-word:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 1px;
+}
+
+.qd-term-tip {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 100;
+  width: max-content;
+  max-width: min(22rem, calc(100vw - 1rem));
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.5rem;
+  background-color: var(--sl-color-gray-6);
+  box-shadow: var(--sl-shadow-md);
+  color: var(--sl-color-white);
+  font-size: var(--sl-text-sm);
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1.45;
+  text-align: start;
+  white-space: normal;
+  user-select: none;
+}
+
+/* Bridges the gap to the term, so the pointer can move onto the tooltip. */
+.qd-term-tip::before {
+  content: "";
+  position: absolute;
+  inset: -8px 0;
+  z-index: -1;
+}
+
+.qd-term:is(:hover, :focus-within):not(.is-dismissed) > .qd-term-tip {
+  display: block;
+}
+
+.qd-term-title {
+  display: block;
+  font-weight: 600;
+}
+
+.qd-term-meaning {
+  display: block;
+  margin-top: 0.125rem;
+}
+
+@media print {
+  .qd-term-tip {
+    display: none !important;
+  }
+}

@@ -1,0 +1,136 @@
+---
+title: How quality is measured
+description: Why Quality Data measures quality the way it does, the quality cycle it follows and the quality dimensions it measures.
+sidebar:
+  order: 3
+---
+
+import FlowDiagram from "../../../components/FlowDiagram.astro";
+import { methodFlow } from "../../../components/methodFlows";
+
+This page explains the method behind the product: why quality is measured
+with rules on every record, the cycle the work follows and what each
+quality dimension means. What each word means is in
+[Concepts](../concepts/); how a result becomes an indicator, in [From
+results to indicators](../indicators/); the exact calculations, in
+[Formulas](../formulas/).
+
+## Why measure this way
+
+Quality Data rests on three ideas from the standard frameworks for data
+quality.
+
+- **Quality is measured against written requirements.** ISO 8000, the
+  International Organization for Standardization's standard for data
+  quality, says data is of good quality when it meets requirements stated
+  beforehand. In Quality Data each requirement is a **rule**: a few lines of
+  text with a pattern, a severity and the sentence the person who fixes the
+  record reads. A figure can always be traced back to the rules behind it,
+  and **As read** says each rule in words from the same definition that
+  runs it.
+- **Every record counts, not a sample.** A rule runs on every record of
+  the cut. A rate from a sample hides where the errors are; a rate from
+  every record can be split by field, by group and by severity, and each
+  failure can go to a queue.
+- **A cut can be measured again.** A cut is the data as it was on one
+  date, kept in the product's own copy, and dates are compared with the
+  cut, never with today. Measuring the same cut again with the same rules
+  gives the same figures, so a change in a figure means a change in the
+  data or in the rules, never in the day it was measured.
+
+## The quality cycle
+
+The work follows the quality management cycle of DAMA-DMBOK, the data
+management body of knowledge published by DAMA International (the Data Management Association): define,
+measure, analyse, improve and control.
+
+<FlowDiagram {...methodFlow("cycle", "en")} />
+
+### Define
+
+The people who know the data write what it must meet, field by field, as
+rules. Not every field needs rules: start with the fields whose errors
+cost most, and give them a **critical** or **high** priority in the
+mapping, because priority weights them in every indicator. A rule counts
+only once it is approved on `main`. More in [Write, change and test a
+rule](../write-a-rule/) and [Take a change to main](../rules-to-main/).
+
+### Measure
+
+A cut copies the data, and its evaluation runs every rule on `main` on
+every record. Each record gets one of three results per rule: it fails,
+it passes, or the rule does not apply. More in [Run and schedule
+cuts](../run-cuts/).
+
+### Analyse
+
+The dashboard turns the results into indicators and charts: what kind of
+problem dominates, in which fields, in which groups, and whether it is
+improving. More in [Reading the dashboard](../charts/).
+
+### Improve
+
+Failures go to remediation queues, one per group of a grouping field
+(an office, a region, a channel), each with a service level agreement (SLA). Data is fixed where
+it lives, in the source system: Quality Data only reads. Where many records
+fail for one reason, such as a capture form or a load, fixing the cause
+once is worth more than fixing records one by one. More in [Work a
+remediation queue](../work-a-queue/).
+
+### Control
+
+The next cut shows whether the fixes held. The trend by cut, the movement
+between bands and the p′ chart by group tell a lasting change from noise.
+What the cycle teaches goes back to the first step: a rule that fails
+almost every record may be badly posed, and a field that keeps failing
+may need a stricter rule at the point of capture.
+
+## The quality dimensions
+
+Each rule measures one quality dimension, given by its pattern. The
+dimensions come from ISO/IEC 25012, the data quality model of ISO and the
+International Electrotechnical Commission, and from DAMA-DMBOK. Quality
+Data uses six:
+
+| Dimension    | The data…                               | Patterns                                            | Example on `customers`                                        |
+| ------------ | --------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------- |
+| Completeness | is present when it must be              | `required`                                          | Every customer has an e-mail                                  |
+| Validity     | has the right form and an allowed value | `format`, `length`, `domain`                        | The e-mail has an `@` and a domain; the region is in its list |
+| Consistency  | does not contradict other fields        | `empty`, `sum`, `combination`, `implies`, `differs` | A closed account has a closing date                           |
+| Timeliness   | is recent enough                        | `fresh`                                             | The record was updated within 24 months of the cut            |
+| Uniqueness   | appears once                            | `unique`                                            | One customer per identity document                            |
+| Accuracy     | is believable as a picture of reality   | `range`, `placeholder`                              | A birth date is not in the future; no "N/A" as a name         |
+
+An `expression` declares its own dimension. Two more things a reader may
+look for:
+
+- **Referential integrity**, that a code points to something that exists,
+  is checked with `domain` against a reference column or a catalog table,
+  and counts as validity.
+- **Accuracy** in the strict sense, that the value is true, needs an
+  external source to compare with. Without one, rules approximate it with
+  plausibility: values that are possible but unlikely.
+
+The **Failures by dimension and severity** chart counts failures by these
+dimensions. Each pattern's dimension and default severity are in [Rule
+patterns](../rule-patterns/).
+
+## Beyond rules
+
+Rules say what is wrong with a record. Three more kinds of evidence look at
+the data as a whole, and each has its chart on the dashboard:
+
+1. **Profiling** describes each field before any rule: how often it is
+   empty, how many distinct values it has, and its commonest shape. A code
+   stored as a number that lost its leading zero shows here first.
+2. **Statistical control** asks whether a group fails more than normal
+   variation explains. The p′ chart by group draws limits that are wide for
+   small groups and narrow for large ones, so only real signals stand out.
+3. **Outliers and drift** look at amounts and populations: an amount
+   unusual for its group, measured with a robust z based on the median
+   absolute deviation (MAD), and a population that moved since the
+   previous cut, measured with the population stability index (PSI).
+
+How to read each is in [Reading the dashboard](../charts/); how each is
+calculated, in [Formulas](../formulas/). What the method assumes and does
+not measure is in [Assumptions and limits](../assumptions/).

@@ -1,0 +1,84 @@
+---
+title: "Primeros pasos: indicadores"
+description: Para gerencia y cumplimiento, abrir el dashboard de un dataset, elegir un corte y leer sus primeros indicadores.
+sidebar:
+  label: Indicadores
+  order: 1.9
+---
+
+import FlowDiagram from "../../../../components/FlowDiagram.astro";
+import { startPath } from "../../../../components/startFlows";
+
+**Para** gerencia y cumplimiento, que siguen la calidad de los datos sin
+tocarlos. **Al terminar** habrás leído la cifra global de un dataset en un
+corte, si va mejorando y dónde están sus fallos. El ejemplo es el dataset
+`customers` de [Conceptos](../concepts/).
+
+<FlowDiagram {...startPath("reader", "es")} />
+
+## Antes de empezar
+
+- Una cuenta con la política `quality-viewer`, o `auditor`, que además lee
+  el rastro de auditoría en Grafana, la aplicación de monitoreo de la
+  instalación. Ninguna muestra los valores de un registro: el
+  dashboard muestra solo totales.
+- Un dataset con al menos un corte evaluado, que prepara el responsable de
+  datos.
+
+## 1. Abrir el dashboard
+
+En el **Explorador** de la barra lateral, abre **Lago**: cada dataset es una
+línea marcada con **◆**. Abre **◆ customers** y elige **Dashboard**.
+
+**Deberías ver** la página **Dashboard de customers**. Si dice que aún no se
+ha evaluado ningún corte, pídele al responsable de datos que corra uno.
+
+## 2. Elegir un corte
+
+El selector **Corte**, arriba, lista los cortes evaluados, el más reciente
+primero. Cada gráfica muestra el corte que elijas, y las cifras se calculan
+siempre a la fecha de ese corte, así que un corte viejo sigue diciendo lo
+que decía en su día.
+
+**Deberías ver** las gráficas otra vez, para esa fecha. Una gráfica aparece
+solo si el dataset le da lo que necesita, así que dos datasets pueden
+mostrar gráficas distintas. Más en [Cómo leer el dashboard: antes de leer
+una gráfica](../charts/#antes-de-leer-una-gráfica).
+
+## 3. Leer la tendencia
+
+Empieza por **Conformidad e IGCD por corte**: una línea con la proporción de
+revisiones de reglas que pasaron y otra con el IGCD (índice global de
+calidad de datos), la cifra única del dataset para seguir en el tiempo, de 0
+a 1. Que suba es bueno. Pasa el puntero por un punto para ver su valor; la
+tabla debajo de la gráfica trae todos los cortes. El eje no empieza en cero,
+así que revisa la tabla antes de llamar cambio a un salto. Más en
+[Conformidad e IGCD por corte](../charts/#conformidad-e-igcd-por-corte).
+
+## 4. Ver dónde falla
+
+Después lee, en el mismo corte:
+
+- [Fallos por dimensión y
+  severidad](../charts/#fallos-por-dimensión-y-severidad): qué tipo de
+  calidad falla (completitud, validez, actualidad…) y con qué gravedad.
+- [Campos con más fallos](../charts/#campos-con-más-fallos): por dónde
+  empezar a mirar.
+- [Colas de remediación](../charts/#colas-de-remediación), si el dataset
+  tiene campo de agrupación: cuánto espera en cada grupo.
+
+## A dónde ir después
+
+- [Leer el dashboard para responder una
+  pregunta](../read-the-dashboard/): de si la calidad mejora hasta la
+  regla y el grupo.
+- [Datos personales y el rastro de
+  auditoría](../personal-data-and-audit/): con `auditor`, quién vio valores
+  de las fuentes.
+- [Cómo leer el dashboard](../charts/): cada gráfica, qué responde y qué
+  hacer con ella.
+- [De los resultados a los indicadores](../indicators/) y
+  [Formulaciones](../formulas/): qué significan las cifras y cómo se
+  calculan.
+- [Gráficas](../../charts/evolution/): reportes de ejemplo hechos con datos
+  inventados.

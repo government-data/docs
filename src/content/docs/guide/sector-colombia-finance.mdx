@@ -1,0 +1,162 @@
+---
+title: Regulated financial entities in Colombia
+description: "An optional module: the supervisor's data quality indicator, its comparison with the ICD, and the formats and rules a regulated Colombian financial entity uses."
+sidebar:
+  order: 20
+---
+
+import { Aside } from "@astrojs/starlight/components";
+import Chart from "../../../components/Chart.astro";
+
+<Aside type="note" title="Optional module">
+  This page is only for financial entities supervised in Colombia. Nothing in it is needed to use
+  Quality Data, and the rest of the guide applies to any organisation.
+</Aside>
+
+A financial entity supervised by the Superintendencia Financiera de
+Colombia (SFC), the country's financial supervisor, has to show the
+quality of its customer data in the terms the supervisor measures. Quality
+Data computes that indicator from the same rule results as every other
+figure, and has a few formats for Colombian data.
+
+## The SFC indicator
+
+The supervisor's indicator looks at a list of mandatory fields over the
+**active** customers. Each field is a **cell**:
+
+- A record is **right** in a cell when the field is filled and no rule
+  that reads the field fails. A rule that does not apply leaves it right.
+- The cell is **1** when at least 90 % of the active records are right in
+  it, and **0** otherwise.
+- The **SFC indicator** is the share of cells at 1, for example 7 of 10.
+
+The indicator is all or nothing: a cell at 89.9 % is worth the same as one
+at 10 %. That is why each cell also has two counts:
+
+- **Missing**: how many records must be fixed for a failing cell to pass,
+  the 90 % of the active records, rounded up, minus those right.
+- **Margin**: how many records a passing cell can lose before it fails, the
+  records right minus that same 90 %.
+
+The exact list of fields and what counts as active are set by the
+supervisor's current guide and circular: check them with your compliance
+team before relying on the figure.
+
+### To switch it on
+
+The indicator needs two roles in a dataset's mapping: the **indicator
+field** role on each mandatory field, and the **active record** role on the
+field that says whether a customer is active, with the values that mean
+active. Mapping a table never proposes them, and no screen sets them yet:
+ask whoever supports your installation. Without an active-record field,
+every record counts as active. The **SFC indicator** chart appears on the
+dashboard of a dataset once one field holds the indicator role.
+
+## Reading the SFC indicator chart
+
+**Question:** would we pass what the supervisor measures, and where is it
+cheapest to improve? **What you see:** a dot per cell at its share of
+active records right. The line at **90 %** is the threshold; the shaded
+**80–90 %** band is the _top priority_. Green ✓ dots pass, red ✕ dots fail.
+The note gives the cells that pass. The table adds each cell's **missing**,
+**margin** and **closeness**.
+
+<Chart id="sfc-cells" />
+
+**How to read it.** Red dots inside the band are where the fewest fixes
+turn a cell from 0 to 1: start there, and use _missing_ to size the effort.
+Green dots just above 90 % are at risk: watch their margin. The example
+uses made-up figures.
+
+## The SFC indicator and the ICD
+
+Both come from the same rule results, and they answer different questions.
+The SFC indicator is **binary** and serves to **supervise**: it says
+whether each cell passes the threshold, the way the supervisor compares
+entities. The ICD (data reliability index) is **continuous** and serves to
+**manage**: it says how much each field and each customer's record lacks,
+and where to improve. Follow both: the ICD to plan the work, the indicator
+to know the result before the supervisor's report. How the ICD is built is
+in [From results to indicators](../indicators/).
+
+## Closeness to the threshold and priority
+
+A finding's priority in the remediation queues is the field's weight times
+what its ICD lacks, times its **closeness** to the supervisor's threshold.
+A field that is not a cell gets the lowest closeness, 0.2. For a cell, by its share of
+active records right:
+
+| Share right    | Closeness | Why                                        |
+| -------------- | --------- | ------------------------------------------ |
+| 80 % to 90 %   | 1.0       | The fewest fixes turn the cell from 0 to 1 |
+| 70 % to 80 %   | 0.6       | Within reach with more effort              |
+| Below 70 %     | 0.3       | Far from the threshold                     |
+| 90 % to 92 %   | 0.5       | Passes, at risk of falling                 |
+| 92 % and above | 0.2       | Safe                                       |
+
+So in a dataset with cells, findings on fields close to the threshold go
+first. The rest of the priority is in [Formulas: priority](../formulas/#4-priority).
+
+## Formats for Colombian data
+
+`format` takes three named formats for Colombian data, beside the general
+ones in [Rule patterns](../rule-patterns/#format):
+
+| `named`      | Accepts                                                                                                                                 |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `mobile_co`  | A Colombian mobile number: `3` and nine digits                                                                                          |
+| `divipola`   | A DIVIPOLA code (the national statistics office's political-administrative division): five digits for a municipality, eight for a place |
+| `address_co` | A street address: a road type (`CALLE`, `CRA`, `AV`…) and a number                                                                      |
+
+```yaml
+- id: MOB-01
+  field: Mobile
+  check: format
+  named: mobile_co
+  alert: Not a Colombian mobile number
+```
+
+## Rules for anti-money-laundering data
+
+The anti-money-laundering and counter-terrorist-financing system (SARLAFT)
+makes some fields critical: give them a **critical** priority, so they
+weigh most in the ICD and in the queues. A politically exposed person (PEP)
+is a typical cross-field rule:
+
+```yaml
+- id: PEP-01
+  field: PepPost
+  check: implies
+  if: IsPep = 'YES'
+  then: not is_empty(PepPost)
+  both_ways: true
+  alert: A politically exposed person needs a post, and only they have one
+```
+
+Codes from national catalogs, such as the economic activity code (CIIU,
+the International Standard Industrial Classification as adapted for
+Colombia) or a DIVIPOLA code, are best checked against the catalog itself:
+map the catalog as a dataset, declare it as a reference in the [global
+rules](../share-rules/), and check the field with `domain`. Map such codes
+as text, or they lose their leading zeros (`QR024`).
+
+```yaml
+references:
+  activities: { dataset: ciiu_codes, key: Code }
+```
+
+```yaml
+- id: ACT-01
+  field: ActivityCode
+  check: domain
+  in: { reference: activities.Code }
+  alert: The economic activity is not in the CIIU catalog
+```
+
+## Bands and due diligence
+
+Quality Data puts each customer in a band (good, fair or poor) by their
+ICD. A supervised entity may tie the bands to its own processes, such as
+simplified updates for the good band and enhanced due diligence for the
+poor one. That decision belongs to the entity: the product computes the
+band, and does not act on it.

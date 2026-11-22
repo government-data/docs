@@ -1,0 +1,155 @@
+---
+title: "Tasks: run and schedule cuts"
+description: What a cut is, running one now and the same-day options, schedules, following a run through its stages, what to do when it fails, and where the history is.
+sidebar:
+  label: Run and schedule cuts
+  order: 2.3
+---
+
+import FlowDiagram from "../../../components/FlowDiagram.astro";
+import { taskFlow } from "../../../components/taskFlows";
+
+**Who does this:** a data steward, with the `quality-steward` policy, runs
+cuts and manages schedules. An analyst, with `quality-analyst`, can also
+run a cut now. Mapping a table takes its first cut by itself
+([Map a table into a dataset](../map-a-table/)); this page is about every
+cut after it.
+
+## What a cut is
+
+A **cut** is a dataset's data as it was on one date. Quality Data copies the
+source's table into its own store, the lake, and evaluates that copy with the
+rules on `main` at that moment. A dataset has at most one cut per date.
+
+Results are compared at the cut, never with today: a rule such as "updated
+within 24 months" counts back from the cut's date, and the dashboard
+compares a cut with the evaluated cut before it. So a cut keeps saying what
+it said on its day, and two cuts tell you how the data changed between them.
+A new rule counts from the next cut; earlier cuts stay as they were
+evaluated.
+
+<FlowDiagram {...taskFlow("cut", "en")} />
+
+## To run a cut now
+
+1. In the **Explorer**, under **Lake**, open the dataset (**◆ customers**),
+   then **Cuts**.
+2. Leave **If today's cut is there** on **Do nothing**, or see the next
+   section.
+3. Choose **Run now**.
+
+**You should see** _Cut 2026-11-12 queued: extracted, then evaluated._ and
+today's cut at the top of **Cuts**, **Extracting**. The date is today's in
+the installation's time zone.
+
+## When today's cut is already there
+
+There is one cut per date, so a second run on the same day must say what to
+do with the first. **If today's cut is there** offers:
+
+- **Do nothing**, the default: today's cut is kept as it is, and the notice
+  says _The cut … is there and was not replaced._ Use it when a cut a day is
+  enough, so that nobody replaces it by mistake.
+- **Replace it (unless running)**: today's cut is taken again, with the
+  source's data as it is now and the rules on `main` now; the notice says
+  _Cut … replaced: extracted again._ Use it after deploying a rule you want
+  to see today, after the source's data was fixed, or to retry a cut that
+  failed. A cut still extracting or evaluating is never replaced.
+
+Only today's cut can be taken again. A cut of an earlier date cannot be run
+again.
+
+## To schedule a daily cut
+
+1. Open the dataset in the Explorer and choose **+** beside **Schedules**
+   (**Add a schedule to customers**).
+2. In **New schedule**, keep **Daily** chosen, with **Repeat every** set to 1, and set **Start** and **Time**, such as 06:00, a quiet hour for
+   the source.
+3. Check **Timezone**: it starts on `America/Bogota`; choose your
+   organisation's.
+4. Keep **What it fires** on **Extracts the cut and evaluates it**, and
+   choose **If the cut is there**, as for **Run now**.
+5. Keep **Enabled** ticked. The line beside the buttons says the schedule
+   in words; check it, then choose **Save**.
+
+**You should see** the schedule under **Schedules**, described in words,
+with _next_ and the date and time it fires next. A scheduled cut is dated
+with the day it fires, in the schedule's time zone.
+
+Other frequencies work the same way: **Weekly** (every so many weeks, on
+the days you tick), **Monthly** (the months, then days of the month or,
+with **On**, a day such as the first Monday), **Once**, or **Custom
+(cron)** for a five-field cron expression. **Advanced settings** add a
+random delay, a repetition within the day, and an expiration date.
+
+## To change, pause or remove a schedule
+
+- **Change it:** choose its description under **Schedules**, change the
+  form and choose **Save**.
+- **Pause it:** open it the same way, untick **Enabled** and save. It shows
+  **Disabled** and fires nothing until you tick it again.
+- **Remove it:** choose **×** beside it and confirm. A schedule that has
+  already fired cuts cannot be removed: pause it instead.
+
+## To follow a run
+
+Under the dataset's **Cuts**, each cut shows its date, its state and, once
+evaluated, its records:
+
+- **Extracting:** the cut is waiting for a worker, or a worker is copying
+  the source's table into the lake.
+- **Evaluating:** the copy is complete and the rules on `main` are running
+  on every record.
+- **Evaluated:** done. Its results are on the dataset's **Dashboard**.
+- **Failed:** see the next section.
+
+The list does not refresh by itself: reload the page and open **Cuts**
+again to see the cut move on. A schedule's last outcome shows beside it:
+**Queued**, **Replaced**, **Blocked** (the cut was there and was kept) or
+**Skipped (late)**.
+
+## When a run fails
+
+A cut that fails shows **Failed** and, beside it, **Failed extracting** or
+**Failed evaluating**, followed by a short technical reason, in English,
+that names the step where it stopped. It never holds your data. Before
+failing, Quality Data retries the step by itself, three times in all.
+
+- **Failed extracting:** the source's table could not be copied. Check the
+  source as in [Connect a source](../connect-a-source/#to-check-the-connection):
+  a changed password, an unreachable server, a table renamed or removed.
+  Then run the cut again with **Replace it (unless running)**.
+- **Failed evaluating:** the data was copied but the rules could not run on
+  it. A rule that reads another dataset needs that dataset to have records
+  at the same date, and the reason then names it: take that dataset's cut
+  first. Then run the cut again with **Replace it (unless running)**. If it
+  fails again, tell whoever supports your installation, with the dataset,
+  the date and the reason shown.
+
+Nothing warns you of a failed scheduled cut yet: look at **Cuts** after the
+time it should have run.
+
+## Where the history is
+
+- **Cuts** lists the dataset's 60 most recent cuts, newest first, with
+  their state and records.
+- The **Dashboard**'s **Cut** selector lists every evaluated cut, and
+  **Conformity and IGCD by cut** follows conformity and the IGCD (overall
+  data quality index) over the last twelve; **Time per stage**
+  shows how long each stage of the evaluation took, beside the cut before.
+- Who ran a cut by hand, and every change to a schedule, is in the audit
+  trail, which the `auditor` policy reads in Grafana ([Personal data and
+  the audit trail](../personal-data-and-audit/#to-see-who-viewed-what)).
+
+## Problems
+
+| What you see                                                                                    | What it means and what to do                                                                                                                   |
+| ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| No **Run now** under **Cuts**, or no **+** beside **Schedules**                                 | Your policies do not let you run cuts, or manage schedules. Ask your administrator.                                                            |
+| **The cut … is there and was not replaced.**                                                    | Today's cut exists, or is still running. Choose **Replace it (unless running)**, or wait for it to finish.                                     |
+| **It cannot run: this dataset is read from no source, its data was loaded into the lake.**      | The dataset has no source to copy from, so it cannot be cut.                                                                                   |
+| A cut stays **Extracting** for a long time                                                      | No worker is taking it. Tell your administrator.                                                                                               |
+| **Delete this schedule? …**, then **It has fired cuts: disable it instead of deleting it.**     | Untick **Enabled** instead.                                                                                                                    |
+| **That timezone does not exist.**, **The cron is not valid.**, **That cron never fires again.** | Fix the field named and save again.                                                                                                            |
+| A schedule shows **Skipped (late)**                                                             | It was due while the installation was stopped, longer ago than the installation allows (24 hours by default); it fires again at its next time. |
+| **This dataset has no cut extracted yet: extract one in Cuts to test.**, in the rule editor     | No cut has been copied yet. Run one now.                                                                                                       |

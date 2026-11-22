@@ -1,0 +1,118 @@
+---
+title: "Primeros pasos: administrador"
+description: Dejar instalado Quality Data en un servidor, entrar por primera vez y darle a un colaborador una cuenta y una política hasta que pueda entrar.
+sidebar:
+  label: Administrador
+  order: 1.6
+---
+
+import FlowDiagram from "../../../../components/FlowDiagram.astro";
+import { startPath } from "../../../../components/startFlows";
+
+**Para** quien instala Quality Data y lo mantiene. **Al terminar**, el
+producto corre en tu servidor, puedes entrar y un colaborador ya entró con la
+política que corresponde a su trabajo.
+
+<FlowDiagram {...startPath("admin", "es")} />
+
+## Antes de empezar
+
+- Un servidor Linux (Ubuntu, Debian, Red Hat Enterprise Linux o uno
+  derivado) con Docker y su complemento Compose, los puertos 80 y 443
+  libres y acceso como root (`sudo`) para quien lo instala.
+- Salida a internet desde el servidor por HTTPS, el protocolo web seguro:
+  de ahí descarga sus versiones y actualizaciones. Nada en internet se
+  conecta al servidor.
+- El nombre con el que la gente va a entrar, por ejemplo
+  `calidad.ejemplo.org`, apuntando al servidor en tu red.
+- El servidor de correo de la organización (SMTP, el protocolo estándar de
+  correo, u Office 365), para enviar a los colaboradores su enlace de activación.
+
+## 1. Instalar
+
+Quien da soporte a tu instalación corre el instalador de Quality Data en el
+servidor, como root. Revisa el servidor, lo registra con su certificado (la
+única forma en que el servidor demuestra quién es al descargar una versión),
+descarga la versión a instalar, comprueba su firma, genera las contraseñas
+de la instalación, arranca el producto y lo deja arrancando con el
+servidor. Correrlo otra vez hace solo lo que falta y conserva los datos y
+las contraseñas.
+
+**Deberías recibir** de esa persona la dirección para entrar y un enlace
+para elegir tu contraseña como primer administrador, con tu correo. El
+enlace sirve una sola vez. Si el navegador advierte sobre el certificado
+del sitio, pregúntale qué certificado instalar como confiable en los
+equipos que van a entrar.
+
+## 2. Entrar por primera vez
+
+Abre el enlace. En **Activa tu cuenta**, escribe tu contraseña en
+**Contraseña nueva** y en **Repite la contraseña nueva**, según las reglas
+que aparecen, y elige **Activar la cuenta**. En **Iniciar sesión**, escribe
+tu **Correo** y tu **Contraseña** y elige **Entrar**.
+
+**Deberías ver** el producto abierto con tu sesión. Si el enlace venció,
+pide otro a quien da soporte a tu instalación: lo genera en el servidor.
+
+## 3. Configurar el correo saliente
+
+Las cuentas se activan por correo, así que el correo va primero. En el menú
+de arriba a la derecha elige **Configuración** y luego **Correo saliente**.
+Si la tarjeta dice **Sin configurar**, activa **Enviar correo**, elige el
+**Proveedor de correo**, llena los campos (cada uno trae su ayuda), usa
+**Enviar prueba** y después **Guardar**.
+
+**Deberías ver** que la tarjeta en **Configuración** dice _Activo_ y que el
+correo de prueba llegó a tu bandeja.
+
+## 4. Crear la cuenta de un colaborador
+
+En **Configuración**, abre **Usuarios y acceso**, pestaña **Usuarios**, y
+elige **Registrar usuario**. En **Nuevo usuario**, escribe su **Correo** y,
+si quieres, su nombre, deja el **Rol** en **Usuario** y elige **Crear y
+enviar el enlace**.
+
+**Deberías ver** la cuenta en la lista, **Pendiente de activar**, con
+**Nada** en **Acceso**. El rol **Administrador** puede todo, sin políticas.
+
+## 5. Asignar una política
+
+En la fila de la cuenta, elige **Editar**. En **Políticas asignadas
+directamente**, marca la política lista que corresponde a su trabajo y elige
+**Guardar cambios**:
+
+| Va a…                                           | Política          |
+| ----------------------------------------------- | ----------------- |
+| Conectar fuentes, escribir reglas, tomar cortes | `quality-steward` |
+| Atender una cola de remediación                 | `quality-analyst` |
+| Leer dashboards e indicadores                   | `quality-viewer`  |
+| Leer dashboards y el rastro de auditoría        | `auditor`         |
+
+**Deberías ver** la política en **Acceso**. Para dar las mismas políticas a
+varias personas a la vez, usa la pestaña **Grupos**.
+
+## 6. Entrada del colaborador
+
+Abre el enlace que le llegó al correo, elige su contraseña en **Activa tu
+cuenta** y entra. **Deberías ver** que su cuenta pasa a **Activo**. Si el
+correo se perdió o el enlace venció, usa **Reenviar enlace**.
+
+## Lo que el instalador no deja listo
+
+El instalador monta la aplicación: las pantallas, el inicio de sesión, la
+configuración, las actualizaciones y su propia base de datos. Para mapear tablas y tomar cortes
+hacen falta además el lago, el catálogo de reglas y al menos un worker, que
+corren aparte y que el producto todavía no sabe instalar por su cuenta. Si
+el **Explorador** de la barra lateral queda vacío y dice **No se pudo
+cargar. Intenta de nuevo.**, pide a tu proveedor que los monte antes de que
+empiece el responsable de datos.
+
+## A dónde ir después
+
+- Tu responsable de datos sigue con
+  [Primeros pasos: responsable de datos](../start-steward/).
+- Las cuentas, los grupos y las políticas en detalle: [Administrar usuarios
+  y accesos](../manage-access/).
+- El inicio de sesión con el directorio de la empresa o un proveedor
+  externo, las actualizaciones, las máquinas: [Correo, inicio de sesión y
+  actualizaciones](../administer-the-installation/).

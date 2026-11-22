@@ -1,0 +1,186 @@
+---
+title: Conceptos
+description: La cadena sobre la que está construido Quality Data, de una fuente a una cola de remediación, con un ejemplo que la recorre entera.
+sidebar:
+  order: 1.5
+---
+
+import FlowDiagram from "../../../../components/FlowDiagram.astro";
+import OutcomeBars from "../../../../components/OutcomeBars.astro";
+import { chain } from "../../../../components/flows";
+
+Todo en Quality Data sigue una misma cadena, y cada paso le entrega su
+resultado al siguiente: **fuente → dataset y mapeo → reglas → corte →
+evaluación → resultados e indicadores → dashboard → cola de remediación**.
+
+<FlowDiagram {...chain("es")} />
+
+Esta página la recorre una vez con un ejemplo inventado: la tabla
+`customers` de la base de clientes de la organización, con 12.000 registros
+y las columnas `CustomerId`, `Email`, `Region` y `LastUpdate`.
+
+## Fuente
+
+Una **fuente** es una base de datos que la organización ya tiene. Quality
+Data la lee y nunca escribe en ella; hoy lee PostgreSQL, MySQL y SQL Server.
+Una fuente se agrega en **Fuentes** con su servidor y sus credenciales, que
+se guardan selladas y no se vuelven a mostrar. Sus tablas aparecen entonces
+en el **Explorador**. _Ejemplo:_ la base de clientes queda como fuente, y
+`customers` es una de sus tablas. **Sigue:** se mapea esa tabla. Más en
+[Conectar una fuente](../connect-a-source/).
+
+## Dataset y mapeo
+
+Un **dataset** es una tabla de una fuente tal como Quality Data la lee: un
+nombre, sus campos y las reglas que los revisan. Su **mapeo** dice cómo se
+lee la tabla: qué columna lee cada campo y con qué tipo, la **llave del
+registro** que distingue un registro de otro, la **prioridad** de cada campo
+(crítica, alta, media o baja) y el **rol** de algunos campos, como un
+**campo de agrupación** (una oficina, una región, un canal) por el que el
+dashboard y las colas reparten los resultados.
+
+**Mapear esta tabla**, un botón dentro de una tabla abierta en el
+Explorador, toma una muestra, propone el mapeo y unas primeras reglas, y
+los publica. De la
+muestra se guardan conteos, nunca valores. _Ejemplo:_ el dataset
+`customers`, con `CustomerId` como llave del registro (la llave primaria de
+la tabla) y `Region` propuesto como campo de agrupación por su nombre.
+**Sigue:** las reglas revisan sus campos. Más en [Mapear una tabla en un
+dataset](../map-a-table/).
+
+## Reglas
+
+Una **regla** aplica un **patrón** a un campo: `required` (tiene valor),
+`format` (tiene la forma correcta), `fresh` (una fecha es lo bastante
+reciente) y once más. El patrón le da a la regla su **dimensión**, el tipo de
+calidad que mide (completitud, validez, actualidad…), y una **severidad**
+por defecto (bloqueante, mayor o menor). Una regla son unas pocas líneas de
+texto que se escriben en el editor de reglas, el cual la revisa mientras se
+escribe y la dice en palabras en **Así se lee**.
+
+_Ejemplo:_ tres reglas para `customers`:
+
+```yaml
+dataset: customers
+rules:
+  - { id: EML-01, field: Email, check: required }
+  - { id: EML-02, field: Email, check: format, named: email }
+  - { id: UPD-01, field: LastUpdate, check: fresh, max_age: 24 months }
+```
+
+Las reglas que cuentan son las de **`main`**, la versión aprobada de las
+reglas de un dataset. Quien puede aprobar lleva allí un cambio con
+**Desplegar**; cualquier otra persona usa **Guardar como borrador**, y el
+**borrador** espera a que un aprobador use **Aprobar** o **Descartar**. El
+**Historial** guarda cada cambio, y **Probar** corre un archivo sobre el
+último corte antes de que cuente. **Sigue:** cada corte se mide con las
+reglas de `main`. Más en el [tutorial](../rule-tutorial/), [Patrones de
+reglas](../rule-patterns/) y [Llevar un cambio a
+main](../rules-to-main/).
+
+## Corte
+
+Un **corte** son los datos del dataset tal como estaban en una fecha.
+Quality Data copia la tabla de la fuente a su propio almacenamiento, el
+**lago**, para poder volver a medir el corte después sin tocar la fuente. Un
+dataset tiene a lo sumo un corte por fecha, que se inicia con **Ejecutar
+ahora** en **Cortes** del dataset o con una **programación** (diaria,
+semanal, mensual…). _Ejemplo:_ el corte del 31 de octubre de 2026 guarda los
+12.000 clientes tal como estaban ese día. **Sigue:** cuando la copia
+termina, su evaluación empieza sola. Más en
+[Ejecutar y programar cortes](../run-cuts/).
+
+## Evaluación
+
+La **evaluación** corre cada regla de `main` sobre cada registro del corte.
+Para cada registro, una regla da uno de tres resultados: **falla**,
+**pasa** o **no aplica** (el registro está fuera de la condición de la
+regla, o el valor que revisa está vacío). Un registro al que la regla no
+aplica queda por fuera de las cifras de esa regla: no cuenta como que pasa.
+
+_Ejemplo:_ 300 clientes no tienen correo. `EML-01` falla en esos 300 y pasa
+en los otros 11.700. `EML-02` no aplica a los 300; de los 11.700 a los que
+aplica, fallan 150. `UPD-01` falla en todo cliente cuyo `LastUpdate` sea
+anterior al 31 de octubre de 2024.
+
+<OutcomeBars
+  lang="es"
+  rows={[
+    { name: "EML-01", pass: 11700, fail: 300, notApplied: 0 },
+    { name: "EML-02", pass: 11550, fail: 150, notApplied: 300 },
+  ]}
+  texts={{
+    pass: "Pasa",
+    fail: "Falla",
+    notApplied: "No aplica",
+    leftOut: "por fuera de las cifras de la regla",
+    appliesTo: "Aplica a",
+    conformity: "Conformidad",
+    caption:
+      "Los 12.000 clientes según EML-01 y EML-02, a escala. Los 300 sin correo fallan EML-01 y EML-02 no les aplica, así que un correo faltante se cuenta una vez; la conformidad divide los registros que pasan entre aquellos a los que la regla aplica.",
+  }}
+/>
+
+Debajo de cada cifra hay dos ideas fijas:
+
+- **Vacío** es no tener valor, un texto vacío o solo espacios, incluido el
+  espacio de no separación, que no se ve. Solo `required` (y su contrario,
+  `empty`) mira los valores vacíos; los demás patrones los saltan, así que
+  un dato faltante se cuenta una vez y no una por regla.
+- **Las fechas se comparan con el corte, nunca con hoy.** "En los últimos
+  24 meses" quiere decir 24 meses antes de la fecha del corte, así que medir
+  otra vez el corte de octubre de 2026 el año entrante da lo mismo.
+
+Más, como la forma en que se compara el texto, en
+[Lenguaje de reglas: lo que Quality Data decide](../rule-language/#lo-que-quality-data-decide-para-toda-regla).
+
+## Resultados e indicadores
+
+Los **resultados** son los conteos de cada regla en el corte: a cuántos
+registros aplicó, en cuántos pasó y en cuántos falló. De ellos salen los
+**indicadores**:
+
+- **Conformidad** de una regla: la proporción de los registros a los que
+  aplica en los que pasa. `EML-02`: 1 − 150 / 11.700, cerca de 98,7 %.
+- **ICD** (índice de confiabilidad del dato): un puntaje de 0 a 1 para cada
+  campo de cada registro, que bajan las reglas que fallan en él, según su
+  severidad, y, en los datos que envejecen como un correo, el tiempo desde
+  la última actualización. El ICD de un registro pondera sus campos por
+  prioridad.
+- **IGCD** (índice global de calidad de datos): el ICD promedio del dataset
+  en el corte, la cifra para seguir en el tiempo.
+
+Más en [De los resultados a los indicadores](../indicators/) y
+[Formulaciones](../formulas/).
+
+## Dashboard
+
+Cada dataset tiene un **Dashboard**, bajo el dataset en el Explorador y en
+la pestaña **Calidad** de una tabla. Grafica los resultados del **Corte**
+que se elija: la conformidad y el IGCD por corte, los fallos por dimensión,
+los campos con más fallos y más. Una gráfica aparece solo si el mapeo le da
+lo que necesita; las gráficas por grupo necesitan un campo de agrupación.
+Muestra totales, nunca los valores de un cliente. **Sigue:** los fallos,
+agrupados en colas.
+Más en [Cómo leer el dashboard](../charts/).
+
+## Cola de remediación
+
+Un **hallazgo** es un registro que falla una regla en un corte. Una **cola
+de remediación** reúne los hallazgos de un grupo de un campo de agrupación,
+como la región Norte, con un **acuerdo de nivel de servicio (ANS)**: los
+días que hay para corregirlos, 30 salvo que quien puede editar el dataset
+fije otro en **ANS de remediación**, debajo del dashboard. La gráfica
+**Colas de remediación** muestra por grupo los hallazgos abiertos, los
+vencidos y su prioridad sumada.
+
+El dato se corrige donde vive, en el sistema de origen. Un hallazgo queda
+resuelto cuando un corte posterior ya no lo falla; por eso una corrección se
+ve en el siguiente corte evaluado, y la cadena vuelve a empezar. En el
+ejemplo, los clientes que fallan `EML-01`, `EML-02` o `UPD-01` caen en la
+cola de su región.
+
+Hoy las colas muestran solo conteos: el producto todavía no lista los
+registros de una cola ni pasa los hallazgos de un corte al siguiente, así
+que **Vencidos** y **Resueltos en este corte** marcan 0. Más en [Cómo leer
+el dashboard: colas de remediación](../charts/#colas-de-remediación).

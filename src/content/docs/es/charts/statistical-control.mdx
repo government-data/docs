@@ -1,0 +1,41 @@
+---
+title: Control estadístico
+description: La carta p′ por oficina, los atípicos de ingresos y la deriva con PSI.
+sidebar:
+  order: 4
+---
+
+import { Aside } from "@astrojs/starlight/components";
+import Chart from "../../../../components/Chart.astro";
+
+<Aside type="caution" title="Datos de ejemplo">
+  Las cifras son inventadas para mostrar cómo se lee el reporte.
+</Aside>
+
+## Carta p′ por oficina (nivel 2)
+
+<Chart id="p-chart" />
+
+**Cómo se lee.** Una oficina por encima del límite superior falla más de lo
+que explica la variación normal: hay que buscar la causa en el punto de
+captura (proceso, asesor, formulario). Una por debajo del límite inferior hace
+algo mejor que vale la pena copiar. Los puntos entre las curvas son ruido: no
+hay que actuar.
+
+## Atípicos de ingresos (nivel 3)
+
+<Chart id="outliers" />
+
+**Cómo se lee.** Los puntos grises son normales para su actividad. Un punto
+más allá de ±3,5 es atípico, no un error por sí mismo: revísalo, corrige los
+errores (dígitos de más, egresos muy superiores a los ingresos) y conserva los
+valores legítimos.
+
+## Deriva con PSI
+
+<Chart id="psi" />
+
+**Cómo se lee.** El índice de estabilidad poblacional (PSI) compara cómo se
+reparte este corte frente al anterior. El lote nuevo tiene menos clientes en los deciles bajos y más
+en los altos. Cada registro puede ser válido y el lote aun así ser
+sospechoso: con un PSI moderado, revísalo antes de usarlo.

@@ -1,0 +1,25 @@
+---
+// The print page's contents: the book's parts and pages, nested as in the
+// sidebar, each page a link to its place in the book.
+import type { BookNode } from "../print/order";
+
+interface Props {
+  nodes: BookNode[];
+}
+const { nodes } = Astro.props;
+---
+
+<ol>
+  {nodes.map((node) =>
+    node.kind === "page" ? (
+      <li>
+        <a href={`#${node.anchor}`}>{node.label}</a>
+      </li>
+    ) : (
+      <li class="qd-print-part">
+        <span>{node.label}</span>
+        <Astro.self nodes={node.children} />
+      </li>
+    ),
+  )}
+</ol>

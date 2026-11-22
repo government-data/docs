@@ -1,0 +1,169 @@
+---
+title: "Tareas: atender una cola de remediación"
+description: Qué es una cola de remediación, cómo fijar sus plazos, leer sus conteos, encontrar qué falla, lograr que se corrija en el sistema de origen y confirmarlo en el siguiente corte, con los límites del producto de hoy.
+sidebar:
+  label: Atender una cola de remediación
+  order: 2.92
+---
+
+import FlowDiagram from "../../../../components/FlowDiagram.astro";
+import { taskFlow } from "../../../../components/taskFlows";
+
+**Quién lo hace:** un analista, con la política `quality-analyst`, atiende
+una cola: la lee, mira registros que fallan con sus valores y corre un
+corte para comprobar una corrección. Un responsable de datos, con
+`quality-steward`, fija el plazo de cada cola. La primera vez está en
+[Primeros pasos: analista](../start-analyst/); esta página es el recorrido
+completo.
+
+## Qué es una cola
+
+Un **hallazgo** es un registro que falla una regla en un corte: un cliente
+que falla dos reglas son dos hallazgos. Una **cola de remediación** junta
+los hallazgos de un valor de un campo de agrupación: con `Region` como campo
+de agrupación, Norte es una cola y Sur otra, y los registros sin región
+forman la cola **(vacío)**. Un dataset con dos campos de agrupación tiene
+dos juegos de colas, y cada hallazgo está en una cola de cada uno.
+
+Cada cola tiene un acuerdo de nivel de servicio (ANS): los días que tiene
+para corregir un hallazgo antes de que se venza, 30 salvo que un
+responsable de datos fije otro.
+
+Un dataset tiene colas solo si su mapeo tiene un campo de agrupación y una
+llave del registro; mapear una tabla propone las dos. El dashboard muestra,
+por cada campo de agrupación, los quince grupos con más hallazgos abiertos,
+tanto en la gráfica como en su tabla: un grupo con menos no aparece.
+
+<FlowDiagram {...taskFlow("queue", "es")} />
+
+## Para leer la cola de un grupo
+
+1. Abre el **Dashboard** del dataset en el Explorador (**◆ customers**,
+   **Dashboard**) y deja el último **Corte**.
+2. Baja hasta **Colas de remediación · Region**: una columna de hallazgos
+   abiertos por grupo, y la tabla de abajo.
+3. Busca la fila de tu grupo:
+   - **Abiertos**: sus hallazgos en este corte.
+   - **Prioridad**: la prioridad de los abiertos, sumada. Alta con pocos
+     hallazgos quiere decir pocos pero costosos, en campos importantes con
+     un índice de confiabilidad del dato (ICD) bajo ([Formulaciones §4](../formulas/#4-prioridad)).
+   - **ANS**: los días de la cola.
+   - **Vencidos**, **Resueltos en este corte** y **Abierto más antiguo**:
+     hoy marcan 0. El producto todavía no pasa un hallazgo de un corte al
+     siguiente, así que cada hallazgo abierto cuenta como abierto en el corte
+     que se muestra: ninguno tiene edad para vencerse y ninguno se ve
+     cerrar.
+
+Por eso hoy la cifra con la que se trabaja es **Abiertos**, y cómo cambia
+de un corte al siguiente.
+
+## Para fijar los ANS de remediación
+
+Lo hace un responsable de datos; el formulario aparece solo para las
+políticas que pueden editar el pipeline del dataset, como `quality-steward`.
+
+1. En el **Dashboard** del dataset, debajo de las gráficas, abre **ANS de
+   remediación**. Su nota le dice "dimensión" al campo de agrupación: cada
+   recuadro es un campo de agrupación, con su nombre (`Region`).
+2. En **Todos los grupos (días)**, escribe los días para todos los grupos
+   de ese campo, de 1 a 365. Déjalo vacío para conservar 30.
+3. Para un grupo que necesita otros días, elige **Agregar un grupo** y
+   escribe el **Grupo** tal como lo muestra la gráfica, por ejemplo
+   `North`, y sus **Días**. Deja **Grupo** vacío para los registros sin
+   valor. **×** quita la línea.
+4. Elige **Guardar**.
+
+**Deberías ver** _ANS guardados: las colas ya los muestran._ y la gráfica
+de colas redibujada con el nuevo **ANS**. No hace falta evaluar de nuevo.
+El formulario guarda todas las líneas a la vez: una línea que quitaste
+vuelve a los días del campo. Cada vez que se guarda queda en el rastro de
+auditoría.
+
+## Para encontrar qué falla
+
+El dashboard dice qué falla en todo el dataset; todavía nada lo reduce a
+los registros de un grupo.
+
+1. En el mismo corte, mira **Campos con más fallos** y **Reglas con menor
+   conformidad**: los campos y reglas detrás de la mayoría de los
+   hallazgos. **Grupos más grandes** da la proporción de registros de tu
+   grupo con una falla grave; **Carta p′ por grupo** dice si esa proporción
+   es inusual o azar ([Carta p′ por grupo](../charts/#carta-p-por-grupo)).
+2. Abre en el Explorador una regla que falla, debajo de su campo, y lee
+   **Así se lee**: lo que pide la regla, en palabras.
+3. Elige **Probar**. La pestaña **Resultado** muestra los conteos de la
+   regla en el último corte del dataset y hasta 10 registros de cada
+   resultado, de todo el dataset, no solo de tu grupo, enmascarados. Con
+   `quality-analyst`, **Mostrar valores** los muestra completos con un
+   propósito (como **Corrección de datos**), y cada consulta queda en el
+   rastro de auditoría.
+
+Para ver un registro tal como está ahora en la fuente, abre la tabla en
+**Fuentes** y elige **Registros** ([Conectar una
+fuente](../connect-a-source/#para-ver-los-registros-de-una-tabla)).
+
+## Para que se corrija en el origen
+
+Quality Data solo lee: dentro de él no se corrige ningún registro. Los
+registros se corrigen donde viven, en el sistema de origen, por quien los
+captura o es su dueño. Cuéntale, por cada regla: su id, lo que dice **Así
+se lee**, el campo y los registros de ejemplo que mostró **Probar**, por su
+llave del registro. No pongas valores en correos ni tiquetes si las normas
+de tu organización lo piden así.
+
+## Para confirmar en el siguiente corte
+
+Una corrección cuenta cuando un corte posterior ya no falla el registro.
+
+1. Espera el siguiente corte programado del dataset, o toma uno ahora: en
+   **Cortes** del dataset, elige **Ejecutar ahora**, con **Si el corte de
+   hoy ya existe** en **Reemplazarlo (si no está en curso)** si el corte de
+   hoy ya está ([Ejecutar y programar
+   cortes](../run-cuts/#para-ejecutar-un-corte-ahora)).
+2. Recarga la página hasta que el corte quede **Evaluado**, luego abre el
+   **Dashboard** y elígelo en **Corte**.
+3. Compara los **Abiertos** de tu grupo con los del corte anterior: elige
+   uno y otro en **Corte**.
+
+**Deberías ver** que los **Abiertos** bajan en los hallazgos corregidos.
+Lo que sigue fallando queda abierto: da otra vuelta al ciclo con lo que
+quede.
+
+## Lo que todavía no está
+
+- **Los registros de una cola.** Una cola muestra conteos; no lista sus
+  hallazgos ni sus registros. Usa **Probar** para ver ejemplos.
+- **Hallazgos que pasan de un corte a otro.** Mientras no pasen,
+  **Vencidos**, **Resueltos en este corte** y **Abierto más antiguo**
+  marcan 0.
+- **Asignar o cerrar a mano.** Un hallazgo no se le puede dar a una persona
+  ni cerrar desde una pantalla: la prueba es el siguiente corte.
+- **Avisos.** Nada te avisa cuando una cola pasa su ANS.
+
+## Rechazos y mensajes
+
+| Lo que ves                                                                                            | Qué significa y qué hacer                                                                           |
+| ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| No hay gráfica **Colas de remediación**                                                               | El dataset no tiene campo de agrupación. Pregúntale al responsable de datos.                        |
+| Tu grupo no está en la gráfica                                                                        | No está entre los quince con más hallazgos abiertos en este corte.                                  |
+| No hay **ANS de remediación** debajo de las gráficas                                                  | Tu política no puede editar el pipeline del dataset, o no hay colas.                                |
+| **El mapeo del dataset no tiene ningún campo con el rol de dimensión: sus hallazgos no tienen cola.** | El dataset no tiene campo de agrupación, así que no hay nada que fijar.                             |
+| **Los días son un número entero de 1 a 365.**                                                         | Corrige los días de la línea marcada y guarda otra vez.                                             |
+| **Un grupo está dos veces en la misma dimensión.**                                                    | Dos líneas nombran el mismo grupo bajo un mismo campo de agrupación: quita una.                     |
+| **El valor de un grupo es demasiado largo.**                                                          | El nombre de un grupo es más largo de lo que puede ser un valor: revisa lo que escribiste.          |
+| **Una dimensión ya no está en el mapeo del dataset: recarga la página.**                              | El mapeo cambió desde que abriste la página. Recárgala y fija los ANS de nuevo.                     |
+| **El dataset no tiene mapeo en main.**                                                                | El dataset ya no está en `main`. Pregúntale al responsable de datos.                                |
+| **Demasiados ANS para un dataset.**                                                                   | Más líneas de grupo de las que admite un dataset: deja los grupos que de verdad difieren.           |
+| **No tienes permiso para esto.**                                                                      | Tu política no puede cambiar los ANS.                                                               |
+| **El catálogo no responde: no se puede comprobar ahora.**                                             | El almacén de mapeos y reglas no responde. Intenta más tarde; si sigue, avísale a tu administrador. |
+
+## A dónde ir después
+
+- [Leer el dashboard para responder una
+  pregunta](../read-the-dashboard/): las gráficas alrededor de las colas.
+- [Cómo leer el dashboard: colas de
+  remediación](../charts/#colas-de-remediación) y [Conceptos: cola de
+  remediación](../concepts/#cola-de-remediación).
+- [Escribir, cambiar y probar una regla](../write-a-rule/#para-probar-una-regla):
+  lo que muestra **Probar**, y por qué los valores pueden salir
+  enmascarados.

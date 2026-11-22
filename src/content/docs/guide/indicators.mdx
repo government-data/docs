@@ -1,0 +1,122 @@
+---
+title: From results to indicators
+description: How a rule's result becomes conformity, the ICD, the IGCD and a band, how to read each one, and the decision it supports.
+sidebar:
+  order: 4
+---
+
+import FlowDiagram from "../../../components/FlowDiagram.astro";
+import { methodFlow } from "../../../components/methodFlows";
+
+Every indicator Quality Data shows comes from one source: the result of
+each rule on each record of a cut. This page follows that result up to the
+figures people read, and says what each figure answers and what to do
+about it. The exact formulas are in [Formulas](../formulas/); where each
+figure appears on the dashboard, in [Reading the dashboard](../charts/).
+
+<FlowDiagram {...methodFlow("indicator", "en")} />
+
+## Rule results
+
+For each record, a rule **fails**, **passes** or **does not apply**. A
+record the rule does not apply to is left out of that rule's figures: it is
+neither a pass nor a failure. That keeps a missing value from counting once
+per rule, and keeps a rule written for some records (companies, closed
+accounts) from looking better because of the records it ignores. More in
+[Concepts: evaluation](../concepts/#evaluation).
+
+## Conformity
+
+A rule's **conformity** is the share of the records it applies to that
+pass. It answers how well each requirement is met, and it is the figure to
+review rules with: a rule with very low conformity means either that the
+data is wrong or that the rule is badly posed. Overall conformity, on the
+trend by cut, is the share of all rule checks that passed.
+
+Conformity counts checks, not records, and treats every rule alike. The
+ICD weighs what matters.
+
+## The ICD of a field
+
+The **ICD** (data reliability index) is a score from 0 to 1 for each field
+of each record. It joins up to three components, each telling a different
+reason why a value is not reliable:
+
+| Component           | It comes from                                     | When it is low, the value…                        |
+| ------------------- | ------------------------------------------------- | ------------------------------------------------- |
+| **C** · conformity  | The rules that read only this field               | is wrong by itself: empty, badly formed, repeated |
+| **S** · consistency | The rules that read this field with others        | contradicts another field                         |
+| **A** · timeliness  | The time from the record's update date to the cut | may be right, but is old and trusted less         |
+
+C and S weight each failing rule by its severity: a blocking failure costs
+more than a minor one. A loses half its value for each year without an
+update, and applies only to fields whose value goes out of date, such as an
+e-mail or an address, and only when the dataset has an update date. A
+component with nothing to measure, such as no rule applying, leaves the
+score, and the others share its weight.
+
+## The ICD of a record and of an entity
+
+A record's ICD averages its fields' ICD, weighting each field by its
+**priority**: a critical field weighs four times a low one.
+
+An **entity** is whoever the records are about, such as a customer or a
+company, known by the field holding the entity key. When one entity has
+several records, its ICD takes, for each field, the mean of its records,
+except for critical fields, where it takes the worst: one bad identity
+document is enough to doubt the entity. Without an entity key, the figures
+stop at records.
+
+## The IGCD
+
+The **IGCD** (overall data quality index) is the mean ICD of the dataset at
+a cut: over its entities when it has an entity key, otherwise over its
+records. It is the one figure to follow over time, on the **Conformity and
+IGCD by cut** chart. A rise means the data became more reliable; a fall
+with no new errors usually means data going out of date.
+
+## Bands
+
+Each entity falls into a **band** by its ICD:
+
+| Band | ICD         | What it says                                                  |
+| ---- | ----------- | ------------------------------------------------------------- |
+| Good | ≥ 0.90      | The record can be relied on                                   |
+| Fair | 0.75 – 0.90 | Usable, with some fields to fix or update at the next contact |
+| Poor | < 0.75      | Too many problems to rely on without checking                 |
+
+Bands make the ICD actionable. An organisation decides what each band
+means for its own processes, for example which records an update campaign
+goes to first, or which segment needs its capture form reviewed. A tall
+pile of entities just below a limit is cheap to move: a few fixes per
+entity change their band. Bands need an entity key.
+
+## Priority
+
+A finding's **priority** says which failures cost most: the weight of the
+field it fails (its priority over four) times what the field's ICD lacks
+from 1. A failure on a critical field that is already doubtful comes before
+a minor one on a reliable field. Each remediation queue sums its open
+findings' priority, so a queue with few but costly findings stands out.
+
+## Reading an indicator
+
+| Indicator                 | The question it answers                                                                            | The decision it supports                                              |
+| ------------------------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Conformity of a rule      | How well is each requirement met?                                                                  | Review the rule or the data; tune rules with their authors            |
+| ICD of a field            | Which data elements are least reliable, and why?                                                   | Fix a field with low C or S; update one with low A                    |
+| ICD and band of an entity | How reliable is the whole record of this customer or company?                                      | Where an update campaign or a check goes first                        |
+| IGCD                      | Is the dataset's quality improving?                                                                | Follow the trend cut by cut; confirm that fixes held                  |
+| Priority                  | Which findings cost most?                                                                          | The order in which a queue is worked                                  |
+| p′ chart by group         | Does this group fail more than normal, or is it noise?                                             | Look for a cause at the point of capture only where there is a signal |
+| Outliers by group         | Is this amount unusual for its group?                                                              | Review it: fix the errors, keep the legitimate values                 |
+| PSI by deciles            | Did the population change since the previous cut? The population stability index (PSI) measures it | Review a moved population before using it                             |
+| Time per stage            | Is the evaluation slower for the volume it handles?                                                | Compare per million values, not plain time                            |
+
+Every figure is read at the cut it belongs to, and a chart that compares
+compares with the evaluated cut before it. What the indicators do not
+capture is in [Assumptions and limits](../assumptions/).
+
+Organisations in a regulated sector may also follow an indicator their
+supervisor measures: see the optional [module for regulated financial
+entities in Colombia](../sector-colombia-finance/).

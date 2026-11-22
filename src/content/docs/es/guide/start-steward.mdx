@@ -1,0 +1,109 @@
+---
+title: "Primeros pasos: responsable de datos"
+description: Conectar una fuente, mapear una de sus tablas en un dataset, obtener su primer corte, escribir una primera regla y ver su resultado en el dashboard.
+sidebar:
+  label: Responsable de datos
+  order: 1.7
+---
+
+import FlowDiagram from "../../../../components/FlowDiagram.astro";
+import { startPath } from "../../../../components/startFlows";
+
+**Para** quien prepara los datos y escribe las reglas. **Al terminar**, una
+tabla de una fuente es un dataset, medido en un primer corte, con una regla
+tuya desplegada y su resultado en el dashboard. El ejemplo es la tabla
+`customers` de [Conceptos](../concepts/).
+
+<FlowDiagram {...startPath("steward", "es")} />
+
+## Antes de empezar
+
+- Una cuenta con la política `quality-steward` (ver
+  [Primeros pasos: administrador](../start-admin/)).
+- El **Explorador** de la barra lateral muestra **Fuentes**. Si queda vacío
+  y dice **No se pudo cargar. Intenta de nuevo.**, la instalación todavía no
+  puede medir datos: avísale a tu administrador.
+- El servidor, el puerto y el nombre de la base de datos de la fuente, y un
+  usuario que pueda leer la tabla. Mejor uno de solo lectura: Quality Data
+  nunca escribe en una fuente.
+
+## 1. Agregar la fuente
+
+En el **Explorador**, elige **+** junto a **Fuentes** (**Nueva fuente**).
+Escribe un **Nombre** (minúsculas, números y `_`), elige el tipo de base de
+datos en **Motor**, llena **Servidor**, **Puerto**, **Base de datos**,
+**Usuario** y **Contraseña**, y elige **Guardar**.
+
+**Deberías ver** la fuente en el Explorador. Ábrela: al momento lista sus
+esquemas y tablas, y dice cuántas tablas leyó y cuándo. Si dice que la
+fuente no aceptó la conexión, elige **Editar** en ella y revisa el servidor,
+el puerto y las credenciales. La contraseña se guarda sellada y no se vuelve
+a mostrar.
+
+## 2. Mapear una tabla
+
+Abre la tabla, `customers`, y elige **Mapear esta tabla**. En **Mapear una
+tabla de …**, revisa la **Tabla**, escribe el nombre del **Dataset**, por
+ejemplo `customers`, y elige **Mapear y recolectar**.
+
+**Deberías ver** un aviso de que el mapeo empezó y la tabla marcada mientras
+Quality Data toma una muestra, propone el mapeo y unas primeras reglas, los
+publica, copia los datos y los evalúa. Al terminar, un aviso dice
+_customers está listo_ con la cantidad de registros evaluados. De la muestra
+se guardan conteos, nunca valores.
+
+## 3. Revisar el primer corte
+
+El dataset aparece ahora en **Lago**, en el Explorador, como
+**◆ customers**. Ábrelo: sus campos con las reglas propuestas para cada uno
+y luego **Cortes**, **Programaciones** y **Dashboard**. En **Cortes**, el
+corte de hoy está **Evaluado**, con sus registros. No tuviste que iniciarlo:
+mapear toma el primer corte.
+
+El mapeo también propuso un campo de agrupación a partir de los nombres de
+las columnas, como `Region`. Todavía no hay una pantalla para cambiar el
+mapeo después; si algo quedó mal, pídeselo a quien da soporte a tu
+instalación.
+
+## 4. Escribir una primera regla
+
+Sigue el [tutorial](../rule-tutorial/) sobre tu dataset: elige **+** junto a
+un campo (**Agregar una regla a …**), escribe la regla, léela en **Así se
+lee**, usa **Probar** para correrla sobre el último corte y elige
+**Desplegar** para llevarla a `main`. El dataset del tutorial es distinto
+del tuyo; los pasos son los mismos. Si no puedes aprobar, usa **Guardar como
+borrador**; alguien que pueda aprobar lo revisa desde el **Historial** del
+campo, en **Borradores abiertos** ([Llevar un cambio a
+main](../rules-to-main/#para-revisar-un-borrador)).
+
+## 5. Medir otra vez y ver el resultado
+
+Un corte se mide con las reglas que hay en `main` cuando se toma, así que tu
+regla nueva cuenta desde el siguiente corte. En **Cortes** del dataset, pon
+**Si el corte de hoy ya existe** en **Reemplazarlo (si no está en curso)** y
+elige **Ejecutar ahora**.
+
+**Deberías ver** el corte de hoy de primero en **Cortes**, **Extrayendo**.
+La lista no se actualiza sola: recarga la página y abre **Cortes** otra vez
+hasta que diga **Evaluando** y luego **Evaluado**. Luego abre el **Dashboard**, deja el último **Corte** y busca
+tu regla en **Reglas con menor conformidad**; la
+[guía del dashboard](../charts/#reglas-con-menor-conformidad) la explica.
+
+## A dónde ir después
+
+Las páginas de Tareas llevan cada trabajo más lejos:
+
+- [Conectar una fuente](../connect-a-source/), [Mapear una tabla en un
+  dataset](../map-a-table/) y [Ejecutar y programar
+  cortes](../run-cuts/), incluida una programación que mide según un
+  calendario.
+- [Escribir, cambiar y probar una regla](../write-a-rule/), [Compartir
+  reglas entre campos](../share-rules/), [Llevar un cambio a
+  main](../rules-to-main/), [Ver el historial de una regla y deshacer un
+  cambio](../rule-history/) y [Exportar e importar
+  reglas](../export-import-rules/).
+- Fijar cuántos días tiene cada cola en **ANS de remediación**, debajo del
+  dashboard: [Cómo leer el dashboard: colas de
+  remediación](../charts/#colas-de-remediación).
+- El lenguaje de reglas en sí: [Patrones de reglas](../rule-patterns/) y
+  [Lenguaje de reglas](../rule-language/).

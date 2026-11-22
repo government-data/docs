@@ -1,0 +1,179 @@
+---
+title: Concepts
+description: The chain Quality Data is built around, from a source to a remediation queue, with one example carried through it.
+sidebar:
+  order: 1.5
+---
+
+import FlowDiagram from "../../../components/FlowDiagram.astro";
+import OutcomeBars from "../../../components/OutcomeBars.astro";
+import { chain } from "../../../components/flows";
+
+Everything in Quality Data follows one chain, each step handing its output
+to the next: **source → dataset and mapping → rules → cut → evaluation →
+results and indicators → dashboard → remediation queue**.
+
+<FlowDiagram {...chain("en")} />
+
+This page walks it once with one made-up example: a `customers` table in
+the organisation's customer database, with 12,000 records and the columns
+`CustomerId`, `Email`, `Region` and `LastUpdate`.
+
+## Source
+
+A **source** is a database the organisation already runs. Quality Data reads
+it and never writes to it; today it reads PostgreSQL, MySQL and SQL Server.
+A source is added under **Sources** with its server and credentials, which
+are stored sealed and never shown again; its tables then appear in the
+**Explorer**. _Example:_ the customer database becomes a source, and
+`customers` is one of its tables. **Next:** that table is mapped. More in
+[Connect a source](../connect-a-source/).
+
+## Dataset and mapping
+
+A **dataset** is one table of a source as Quality Data reads it: a name, its
+fields and the rules that check them. Its **mapping** says how the table is
+read: which column each field reads and its type, the **record key** that
+tells one record from another, each field's **priority** (critical, high,
+medium or low), and the **roles** of some fields, such as a **grouping
+field** (an office, a region, a channel) that the dashboard and the queues
+split results by.
+
+**Map this table**, a button inside a table opened in the Explorer,
+samples the table, proposes the mapping and some first rules, and
+publishes them. The sample
+keeps counts, never values. _Example:_ the dataset `customers`, with
+`CustomerId` as its record key (the table's primary key) and `Region`
+proposed as a grouping field from its name. **Next:** rules check its
+fields. More in [Map a table into a
+dataset](../map-a-table/).
+
+## Rules
+
+A **rule** applies a **pattern** to a field: `required` (it has a value),
+`format` (it has the right shape), `fresh` (a date is recent enough) and
+eleven more. The pattern gives the rule its **dimension**, the kind of
+quality it measures (completeness, validity, timeliness…), and a default
+**severity** (blocking, major or minor). A rule is a few lines of text,
+written in the rule editor, which checks it as you type and says it in
+words under **As read**.
+
+_Example:_ three rules for `customers`:
+
+```yaml
+dataset: customers
+rules:
+  - { id: EML-01, field: Email, check: required }
+  - { id: EML-02, field: Email, check: format, named: email }
+  - { id: UPD-01, field: LastUpdate, check: fresh, max_age: 24 months }
+```
+
+The rules that count are the ones on **`main`**, the approved version of a
+dataset's rules. Someone allowed to approve takes a change there with
+**Deploy**; anyone else uses **Save as a draft**, and the **draft** waits
+for an approver to **Approve** or **Discard** it. **History** keeps every
+change, and **Test** runs a file on the latest cut before it counts.
+**Next:** every cut is measured with the rules on `main`. More in the
+[tutorial](../rule-tutorial/), [Rule patterns](../rule-patterns/) and
+[Take a change to main](../rules-to-main/).
+
+## Cut
+
+A **cut** is the dataset's data as it was on one date. Quality Data copies
+the table from the source into its own store, the **lake**, so the cut can
+be measured again later without touching the source. A dataset has at most
+one cut per date, started with **Run now** under the dataset's **Cuts** or
+by a **schedule** (daily, weekly, monthly…). _Example:_ the cut of 31
+October 2026 holds the 12,000 customers as they were that day. **Next:**
+once the copy is complete, its evaluation starts on its own. More in [Run
+and schedule cuts](../run-cuts/).
+
+## Evaluation
+
+The **evaluation** runs every rule on `main` on every record of the cut. For
+each record a rule gives one of three results: it **fails**, it **passes**,
+or it **does not apply** (the record is outside the rule's condition, or the
+value it checks is empty). A record a rule does not apply to is left out of
+that rule's figures: it is not a pass.
+
+_Example:_ 300 customers have no e-mail. `EML-01` fails those 300 and passes
+the other 11,700. `EML-02` does not apply to the 300; of the 11,700 it
+applies to, 150 fail. `UPD-01` fails every customer whose `LastUpdate` is
+before 31 October 2024.
+
+<OutcomeBars
+  lang="en"
+  rows={[
+    { name: "EML-01", pass: 11700, fail: 300, notApplied: 0 },
+    { name: "EML-02", pass: 11550, fail: 150, notApplied: 300 },
+  ]}
+  texts={{
+    pass: "Passes",
+    fail: "Fails",
+    notApplied: "Does not apply",
+    leftOut: "left out of the rule's figures",
+    appliesTo: "Applies to",
+    conformity: "Conformity",
+    caption:
+      "The 12,000 customers under EML-01 and EML-02, to scale. The 300 with no e-mail fail EML-01, and EML-02 does not apply to them, so a missing e-mail counts once; conformity divides the records that pass by those the rule applies to.",
+  }}
+/>
+
+Two fixed ideas lie under every figure:
+
+- **Empty** means no value, an empty text, or only spaces, including the
+  invisible no-break space. Only `required` (and its opposite, `empty`)
+  looks at empty values; every other pattern skips them, so a missing value
+  counts once, not once per rule.
+- **Dates are compared with the cut, never with today.** "Within 24 months"
+  means 24 months before the cut's date, so measuring the October 2026 cut
+  again next year gives the same result.
+
+More, such as how text is compared, in [Rule language: what Quality Data
+decides](../rule-language/#what-quality-data-decides-for-every-rule).
+
+## Results and indicators
+
+The **results** are each rule's counts at the cut: applied, passed, failed.
+From them come the **indicators**:
+
+- **Conformity** of a rule: the share of the records it applies to that
+  pass. `EML-02`: 1 − 150 / 11,700, about 98.7 %.
+- **ICD** (data reliability index): a score from 0 to 1 for each field of
+  each record, lowered by the rules that fail on it, weighted by severity,
+  and, for values that go out of date such as an e-mail, by the time since
+  the last update. A record's ICD weights its fields by priority.
+- **IGCD** (overall data quality index): the mean ICD of the dataset at the
+  cut, the one figure to follow over time.
+
+More in [From results to indicators](../indicators/) and [Formulas](../formulas/).
+
+## Dashboard
+
+Each dataset has a **Dashboard**, under the dataset in the Explorer and in
+the **Quality** tab of a table. It charts the results of the **Cut** you
+choose: conformity and IGCD by cut, failures by dimension, the fields with
+the most failures and more. A chart appears only when the mapping gives it
+what it needs; charts by group need a grouping field. It shows totals,
+never a customer's values. **Next:** the failures, grouped into queues.
+More in [Reading the dashboard](../charts/).
+
+## Remediation queue
+
+A **finding** is a record that fails a rule at a cut. A **remediation
+queue** gathers the findings of one group of a grouping field, such as
+`Region` North, with a **service level agreement (SLA)**: the days allowed
+to fix them, 30 unless someone who may edit the dataset sets another under
+**Remediation SLAs**, below the dashboard. The **Remediation queues** chart
+shows each group's open findings, the overdue ones and their summed
+priority.
+
+Data is fixed where it lives, in the source system. A finding is resolved
+when a later cut no longer fails it, so a fix shows at the next evaluated
+cut, and the chain starts again. In the example, the customers failing
+`EML-01`, `EML-02` or `UPD-01` fall into the queue of their region.
+
+Today the queues show counts only: the product does not yet list a queue's
+records, nor carry findings from one cut to the next, so **Overdue** and
+**Resolved at this cut** read 0. More in [Reading the dashboard: remediation
+queues](../charts/#remediation-queues).

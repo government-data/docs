@@ -1,0 +1,168 @@
+---
+title: Entidades financieras vigiladas en Colombia
+description: "Un módulo opcional: el indicador de calidad de datos del supervisor, su comparación con el ICD, y los formatos y reglas que usa una entidad financiera vigilada en Colombia."
+sidebar:
+  order: 20
+---
+
+import { Aside } from "@astrojs/starlight/components";
+import Chart from "../../../../components/Chart.astro";
+
+<Aside type="note" title="Módulo opcional">
+  Esta página es solo para entidades financieras vigiladas en Colombia. Nada de lo que dice hace
+  falta para usar Quality Data, y el resto de la guía aplica a cualquier organización.
+</Aside>
+
+Una entidad financiera vigilada por la Superintendencia Financiera de
+Colombia (SFC), el supervisor financiero del país, tiene que mostrar la
+calidad de los datos de sus clientes en los términos que mide el
+supervisor. Quality Data calcula ese indicador con los mismos resultados de
+reglas que cualquier otra cifra, y trae algunos formatos para datos
+colombianos.
+
+## El indicador SFC
+
+El indicador del supervisor mira una lista de campos obligatorios sobre los
+clientes **activos**. Cada campo es una **celda**:
+
+- Un registro está **correcto** en una celda cuando el campo está
+  diligenciado y ninguna regla que lo lee falla. Una regla que no aplica lo
+  deja correcto.
+- La celda vale **1** cuando al menos el 90 % de los registros activos está
+  correcto en ella, y **0** si no.
+- El **indicador SFC** es la proporción de celdas en 1, por ejemplo 7 de 10.
+
+El indicador es todo o nada: una celda en 89,9 % vale lo mismo que una en
+10 %. Por eso cada celda tiene además dos conteos:
+
+- **Faltan para cumplir**: cuántos registros hay que corregir para que una
+  celda que no cumple pase, el 90 % de los registros activos, redondeado
+  hacia arriba, menos los correctos.
+- **Margen**: cuántos registros puede perder una celda que cumple antes de
+  caer, los correctos menos ese mismo 90 %.
+
+La lista exacta de campos y qué cuenta como activo los fijan la guía y la
+circular vigentes del supervisor: revísalos con tu equipo de cumplimiento
+antes de confiar en la cifra.
+
+### Para activarlo
+
+El indicador necesita dos roles en el mapeo de un dataset: el rol de
+**campo del indicador** en cada campo obligatorio, y el de **registro
+activo** en el campo que dice si un cliente está activo, con los valores que
+significan activo. Mapear una tabla nunca los propone, y todavía ninguna
+pantalla los fija: pídeselo a quien da soporte a tu instalación. Sin un
+campo de registro activo, todo registro cuenta como activo. La gráfica
+**Indicador SFC** sale en el dashboard de un dataset en cuanto un campo
+tiene el rol del indicador.
+
+## Cómo leer la gráfica del indicador SFC
+
+**Pregunta:** ¿pasaríamos lo que mide el supervisor, y dónde sale más
+barato mejorar? **Qué se ve:** un punto por celda en su proporción de
+registros activos correctos. La línea del **90 %** es el umbral; la franja
+sombreada **80–90 %** es la _máxima prioridad_. Los puntos verdes ✓
+cumplen, los rojos ✕ no. La nota da las celdas que cumplen. La tabla
+agrega, por celda, **faltan para cumplir**, **margen** y **cercanía**.
+
+<Chart id="sfc-cells" />
+
+**Cómo leerla.** Los puntos rojos dentro de la franja son donde menos
+correcciones cambian la celda de 0 a 1: empieza por ahí y dimensiona el
+esfuerzo con _faltan_. Los verdes apenas por encima del 90 % están en
+riesgo: vigila su margen. El ejemplo usa cifras inventadas.
+
+## El indicador SFC y el ICD
+
+Los dos salen de los mismos resultados de reglas, y responden preguntas
+distintas. El indicador SFC es **binario** y sirve para **supervisar**: dice
+si cada celda pasa el umbral, como el supervisor compara entidades. El ICD
+(índice de confiabilidad del dato) es **continuo** y sirve para
+**gestionar**: dice cuánto le falta a cada campo y al registro de cada
+cliente, y dónde mejorar. Conviene seguir ambos: el ICD para planear el
+trabajo, el indicador para conocer el resultado antes del reporte al
+supervisor. Cómo se construye el ICD está en [De los resultados a los
+indicadores](../indicators/).
+
+## Cercanía al umbral y prioridad
+
+La prioridad de un hallazgo en las colas de remediación es el peso del
+campo por lo que le falta a su ICD, por su **cercanía** al umbral del
+supervisor. Un campo que no es celda recibe la cercanía más baja, 0,2. Para
+una celda, según su proporción de registros activos correctos:
+
+| Proporción correcta | Cercanía | Por qué                                      |
+| ------------------- | -------- | -------------------------------------------- |
+| 80 % a 90 %         | 1,0      | Menos correcciones cambian la celda de 0 a 1 |
+| 70 % a 80 %         | 0,6      | Al alcance con más esfuerzo                  |
+| Menos de 70 %       | 0,3      | Lejos del umbral                             |
+| 90 % a 92 %         | 0,5      | Cumple, con riesgo de caer                   |
+| 92 % o más          | 0,2      | Segura                                       |
+
+Así, en un dataset con celdas, los hallazgos en campos cerca del umbral van
+primero. El resto de la prioridad está en [Formulaciones:
+prioridad](../formulas/#4-prioridad).
+
+## Formatos para datos colombianos
+
+`format` toma tres formatos con nombre para datos colombianos, además de los
+generales de [Patrones de reglas](../rule-patterns/#format):
+
+| `named`      | Acepta                                                                                                                                                                               |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `mobile_co`  | Un celular colombiano: `3` y nueve dígitos                                                                                                                                           |
+| `divipola`   | Un código DIVIPOLA (la división político-administrativa del Departamento Administrativo Nacional de Estadística, DANE): cinco dígitos para un municipio, ocho para un centro poblado |
+| `address_co` | Una nomenclatura: un tipo de vía (`CALLE`, `CRA`, `AV`…) y un número                                                                                                                 |
+
+```yaml
+- id: MOB-01
+  field: Mobile
+  check: format
+  named: mobile_co
+  alert: No es un celular colombiano
+```
+
+## Reglas para datos de prevención de lavado de activos
+
+El sistema de administración del riesgo de lavado de activos y financiación
+del terrorismo (SARLAFT) vuelve críticos algunos campos: dales prioridad
+**crítica**, para que pesen más en el ICD y en las colas. Una persona
+expuesta políticamente (PEP) es una regla entre campos típica:
+
+```yaml
+- id: PEP-01
+  field: PepPost
+  check: implies
+  if: IsPep = 'YES'
+  then: not is_empty(PepPost)
+  both_ways: true
+  alert: Una persona expuesta políticamente necesita un cargo, y solo ella lo tiene
+```
+
+Los códigos de catálogos nacionales, como el de actividad económica (CIIU,
+la Clasificación Industrial Internacional Uniforme adaptada para Colombia)
+o un código DIVIPOLA, se revisan mejor contra el propio catálogo: mapea el
+catálogo como un dataset, decláralo como referencia en las [reglas
+globales](../share-rules/) y revisa el campo con `domain`. Mapea esos
+códigos como texto, o pierden sus ceros iniciales (`QR024`).
+
+```yaml
+references:
+  activities: { dataset: ciiu_codes, key: Code }
+```
+
+```yaml
+- id: ACT-01
+  field: ActivityCode
+  check: domain
+  in: { reference: activities.Code }
+  alert: La actividad económica no está en el catálogo CIIU
+```
+
+## Bandas y debida diligencia
+
+Quality Data pone a cada cliente en una banda (buen estado, regular o
+malo) según su ICD. Una entidad vigilada puede atar las bandas a sus
+propios procesos, como una actualización simplificada para la banda de buen
+estado y una debida diligencia intensificada para la de malo. Esa decisión
+es de la entidad: el producto calcula la banda y no actúa sobre ella.

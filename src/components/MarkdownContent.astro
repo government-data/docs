@@ -1,0 +1,14 @@
+---
+// Starlight's page content, plus the script that places the tooltips of the
+// terms (src/terms/) so they stay inside the window and are
+// not cut by a table that scrolls.
+import Default from "@astrojs/starlight/components/MarkdownContent.astro";
+---
+
+<Default>
+  <slot />
+</Default>
+
+<script>
+  import "../terms/tooltip";
+</script>

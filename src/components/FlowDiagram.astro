@@ -1,0 +1,299 @@
+---
+// A flow of steps in order, drawn from data at build time: each step a card
+// with a label, a few words and an optional link, consecutive steps of the
+// same group framed together under the group's name (who acts there). Plain
+// HTML and CSS in Starlight's colours, so it follows the theme, its text is
+// real text, and it stacks in a narrow column. The page passes the texts in
+// its own language; see flows.ts for the chain on Concepts.
+//
+//   <FlowDiagram
+//     caption="From a draft to main."
+//     groups={[{ id: "author", label: "Rule author", tone: "green" }]}
+//     steps={[{ label: "Draft", caption: "saved, not counted", group: "author" }, …]}
+//   />
+import type { Flow, Step, Tone } from "./flows";
+
+type Props = Flow;
+
+const { steps, groups = [], caption, loop, perRow = 4 } = Astro.props;
+
+interface Run {
+  label?: string;
+  tone: Tone;
+  steps: (Step & { n: number })[];
+  rowStart: boolean;
+  joined: boolean;
+}
+
+// Consecutive steps of one group make a run.
+const runs: Run[] = [];
+steps.forEach((step, k) => {
+  const last = runs[runs.length - 1];
+  if (last && step.group && last.steps[0].group === step.group) {
+    last.steps.push({ ...step, n: k + 1 });
+    return;
+  }
+  const group = groups.find((g) => g.id === step.group);
+  const tone = group?.tone ?? "gray";
+  runs.push({
+    label: group?.label,
+    tone,
+    steps: [{ ...step, n: k + 1 }],
+    rowStart: false,
+    joined: false,
+  });
+});
+
+// On a wide screen the runs fill rows of `perRow` steps; a run that would not
+// fit starts a new row, and every other run but the first gets a chevron.
+let used = 0;
+runs.forEach((run, k) => {
+  run.rowStart = used > 0 && used + run.steps.length > perRow;
+  run.joined = k > 0 && !run.rowStart;
+  used = (run.rowStart ? 0 : used) + run.steps.length;
+});
+
+// A tone sets the run's three colours from Starlight's theme; gray is the default.
+const toneVars = (tone: Tone) =>
+  tone === "gray"
+    ? ""
+    : ["low", "", "high"]
+        .map((v) => `--tone${v && "-" + v}: var(--sl-color-${tone}${v && "-" + v})`)
+        .join("; ");
+---
+
+<figure class="flow not-content">
+  <ol class="flow__runs">
+    {runs.map((run) => (
+      <>
+        {run.rowStart && <li class="flow__break" aria-hidden="true" />}
+        <li
+          class:list={["flow__run", { "flow__run--joined": run.joined }]}
+          style={`flex-grow: ${run.steps.length}; ${toneVars(run.tone)}`}
+        >
+          {run.label && <p class="flow__actor">{run.label}</p>}
+          <ol class="flow__steps" start={run.steps[0].n}>
+            {run.steps.map((s) => {
+              const body = (
+                <>
+                  <span class="flow__num">{s.n}</span>
+                  <strong class="flow__label">{s.label}</strong>
+                  {s.caption && <span class="flow__caption">{s.caption}</span>}
+                </>
+              );
+              return (
+                <li class="flow__step">
+                  {s.href ? (
+                    <a class="flow__card" href={s.href}>
+                      {body}
+                    </a>
+                  ) : (
+                    <div class="flow__card">{body}</div>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </li>
+      </>
+    ))}
+  </ol>
+  {loop && <p class="flow__loop">{loop}</p>}
+  <figcaption class="flow__figcaption">{caption}</figcaption>
+</figure>
+
+<style>
+  .flow {
+    --flow-gap: 1.6rem;
+    --flow-arrow: var(--sl-color-gray-3);
+
+    container-type: inline-size;
+    margin: 1.5rem 0 2rem;
+    font-size: var(--sl-text-sm);
+    line-height: 1.35;
+  }
+
+  .flow ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .flow__runs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem var(--flow-gap);
+  }
+
+  .flow__break {
+    flex-basis: 100%;
+    height: 0;
+  }
+
+  .flow__run {
+    --tone-low: var(--sl-color-gray-6);
+    --tone: var(--sl-color-gray-3);
+    --tone-high: var(--sl-color-gray-1);
+
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex-basis: 0;
+    min-width: 0;
+    margin: 0;
+    padding: 0.5rem;
+    border: 1px solid var(--tone);
+    border-radius: 0.75rem;
+    background: var(--tone-low);
+  }
+
+  .flow__actor {
+    margin: 0 0 0.45rem 0.15rem;
+    color: var(--tone-high);
+    font-size: var(--sl-text-xs);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .flow__steps {
+    display: flex;
+    flex: 1;
+    gap: var(--flow-gap);
+  }
+
+  .flow__step {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    margin: 0 !important;
+  }
+
+  /* A chevron in the gap before every step but a row's first: inside a run,
+     and before a run that continues the row. */
+  .flow__step + .flow__step::before,
+  .flow__run--joined::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: calc(var(--flow-gap) * -0.5 - 0.45rem);
+    width: 0.9rem;
+    height: 0.9rem;
+    background: var(--flow-arrow);
+    clip-path: polygon(0 35%, 50% 35%, 50% 0, 100% 50%, 50% 100%, 50% 65%, 0 65%);
+    transform: translateY(-50%);
+  }
+
+  .flow__run--joined::before {
+    left: calc(var(--flow-gap) * -0.5 - 0.5rem);
+  }
+
+  .flow__card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    height: 100%;
+    padding: 0.55rem 0.6rem 0.6rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+    background: var(--sl-color-bg);
+    color: var(--sl-color-gray-2);
+    text-decoration: none;
+  }
+
+  a.flow__card:hover {
+    border-color: var(--tone);
+  }
+
+  a.flow__card:focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 2px;
+  }
+
+  .flow__num {
+    display: inline-grid;
+    place-items: center;
+    width: 1.35rem;
+    height: 1.35rem;
+    border-radius: 50%;
+    background: var(--tone-low);
+    color: var(--tone-high);
+    font-size: var(--sl-text-xs);
+    font-weight: 700;
+  }
+
+  .flow__label {
+    color: var(--sl-color-white);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+    hyphens: auto;
+  }
+
+  .flow__caption {
+    color: var(--sl-color-gray-2);
+    font-size: var(--sl-text-xs);
+  }
+
+  .flow__loop {
+    margin: 0.75rem 0 0;
+    padding: 0.45rem 0.7rem;
+    border: 1px dashed var(--sl-color-gray-4);
+    border-radius: 0.5rem;
+    color: var(--sl-color-gray-2);
+    font-size: var(--sl-text-xs);
+  }
+
+  .flow__loop::before {
+    content: "↻ ";
+    color: var(--sl-color-white);
+    font-weight: 700;
+  }
+
+  .flow__figcaption {
+    margin-top: 0.5rem;
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-xs);
+  }
+
+  /* A narrow column: one step under the other, the chevrons pointing down. */
+  @container (max-width: 34rem) {
+    .flow__runs,
+    .flow__steps {
+      flex-direction: column;
+    }
+
+    .flow__break {
+      display: none;
+    }
+
+    .flow__run--joined::before,
+    .flow__run + .flow__run::before,
+    .flow__break + .flow__run::before,
+    .flow__step + .flow__step::before {
+      content: "";
+      position: absolute;
+      top: calc(var(--flow-gap) * -0.5 - 0.45rem);
+      left: 50%;
+      width: 0.9rem;
+      height: 0.9rem;
+      background: var(--flow-arrow);
+      clip-path: polygon(0 35%, 50% 35%, 50% 0, 100% 50%, 50% 100%, 50% 65%, 0 65%);
+      transform: translateX(-50%) rotate(90deg);
+    }
+
+    .flow__runs {
+      row-gap: var(--flow-gap);
+    }
+
+    .flow__card {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      column-gap: 0.5rem;
+      align-items: baseline;
+    }
+
+    .flow__caption {
+      grid-column: 2;
+    }
+  }
+</style>

@@ -1,0 +1,79 @@
+---
+title: "Getting started: indicators"
+description: For managers and compliance readers, open a dataset's dashboard, pick a cut and read its first indicators.
+sidebar:
+  label: Indicators
+  order: 1.9
+---
+
+import FlowDiagram from "../../../components/FlowDiagram.astro";
+import { startPath } from "../../../components/startFlows";
+
+**For** managers and compliance readers, who follow the quality of the data
+without touching it. **At the end** you have read a dataset's overall figure
+at a cut, whether it is getting better, and where its failures are. The
+example is the `customers` dataset of [Concepts](../concepts/).
+
+<FlowDiagram {...startPath("reader", "en")} />
+
+## Before you start
+
+- An account with the `quality-viewer` policy, or `auditor`, which also
+  reads the audit trail in Grafana, the installation's monitoring
+  application. Neither shows a record's values: the dashboard shows
+  totals only.
+- A dataset with at least one evaluated cut, from your data steward.
+
+## 1. Open the dashboard
+
+In the **Explorer** in the side bar, open **Lake**: each dataset is a line
+marked **◆**. Open **◆ customers** and choose **Dashboard**.
+
+**You should see** the page **Dashboard of customers**. If it says that no
+cut has been evaluated yet, ask your data steward to run one.
+
+## 2. Pick a cut
+
+The **Cut** selector at the top lists the evaluated cuts, the latest first.
+Every chart shows the cut you choose, and figures are always worked out at
+that cut's date, so an old cut keeps saying what it said on its day.
+
+**You should see** the charts redrawn for that date. A chart appears only
+when the dataset gives it what it needs, so two datasets may show different
+charts. More in [Reading the dashboard: before you read a
+chart](../charts/#before-you-read-a-chart).
+
+## 3. Read the trend
+
+Start with **Conformity and IGCD by cut**: a line for the share of rule
+checks that passed, and one for the IGCD (overall data quality index), the
+dataset's one figure to follow over time, from 0 to 1. Rising is good. Point
+at a dot to see its value; the table under the chart has every cut. The axis
+does not start at zero, so check the table before calling a step a change.
+More in [Conformity and IGCD by
+cut](../charts/#conformity-and-igcd-by-cut).
+
+## 4. See where it fails
+
+Then read, at the same cut:
+
+- [Failures by dimension and
+  severity](../charts/#failures-by-dimension-and-severity): which kind of
+  quality fails (completeness, validity, timeliness…) and how seriously.
+- [Fields with the most failures](../charts/#fields-with-the-most-failures):
+  where to look first.
+- [Remediation queues](../charts/#remediation-queues), when the dataset
+  has a grouping field: how much is waiting in each group.
+
+## Where next
+
+- [Read the dashboard to answer a question](../read-the-dashboard/): from
+  whether quality is getting better down to the rule and the group.
+- [Personal data and the audit trail](../personal-data-and-audit/): with
+  `auditor`, who saw values from sources.
+- [Reading the dashboard](../charts/): every chart, what it answers and
+  what to do about it.
+- [From results to indicators](../indicators/) and [Formulas](../formulas/): what the
+  figures mean and how they are worked out.
+- [Charts](../../charts/evolution/): example reports drawn with made-up
+  data.

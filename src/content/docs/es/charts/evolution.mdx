@@ -1,0 +1,39 @@
+---
+title: Evolución, corte a corte
+description: Cómo se mueven el índice global y las bandas de los clientes entre cortes.
+sidebar:
+  order: 1
+---
+
+import { Aside } from "@astrojs/starlight/components";
+import Chart from "../../../../components/Chart.astro";
+
+<Aside type="caution" title="Datos de ejemplo">
+  Las cifras de esta sección son inventadas. Muestran cómo se lee un reporte de calidad y qué
+  responde cada gráfica; no son datos de ninguna organización.
+</Aside>
+
+La primera pregunta de un reporte es si la calidad mejora. Cada ejecución es un
+corte; al comparar cortes se ve la tendencia, hacia dónde se movieron los
+clientes y qué oficinas subieron o bajaron.
+
+<Chart id="igcd-trend" />
+
+**Cómo se lee.** La conformidad cuenta revisiones de reglas; el IGCD (índice global
+de calidad de datos) es el promedio del índice de confiabilidad del dato (ICD)
+de todos los clientes, que pondera la severidad, la
+prioridad del campo y la antigüedad del dato. Que ambos suban es bueno. Una
+conformidad estable con un IGCD que baja suele ser desactualización: una
+campaña de actualización, y no correcciones caso a caso.
+
+<Chart id="band-transitions" />
+
+**Cómo se lee.** Los clientes por encima de la diagonal mejoraron de banda;
+por debajo, empeoraron. Un flujo grande de buen estado a regular suele ser
+desactualización (actualidad), no errores nuevos.
+
+<Chart id="office-change" />
+
+**Cómo se lee.** El cambio del ICD promedio de los clientes de cada oficina.
+Señala dónde mirar, no a quién culpar: una oficina puede bajar porque recibió
+clientes de otra.

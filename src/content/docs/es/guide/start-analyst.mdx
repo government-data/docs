@@ -1,0 +1,106 @@
+---
+title: "Primeros pasos: analista"
+description: Encontrar las colas de remediación de un dataset, leer lo que muestra una cola y qué hacer con ella con el producto tal como está hoy.
+sidebar:
+  label: Analista
+  order: 1.8
+---
+
+import FlowDiagram from "../../../../components/FlowDiagram.astro";
+import { startPath } from "../../../../components/startFlows";
+
+**Para** quien gestiona que se corrijan los datos que fallan, de una
+oficina, una región o un canal. **Al terminar** sabes dónde está la cola de
+tu grupo, cuánto hay abierto en ella, qué campos y reglas la forman y cómo
+ver que una corrección cuenta. El ejemplo es el dataset `customers` de
+[Conceptos](../concepts/), cuyas colas se reparten por `Region`.
+
+<FlowDiagram {...startPath("analyst", "es")} />
+
+## Antes de empezar
+
+- Una cuenta con la política `quality-analyst`.
+- Un dataset con al menos un corte evaluado y un campo de agrupación, que
+  prepara el responsable de datos. Sin campo de agrupación, un dataset no
+  tiene colas.
+
+## 1. Abrir el dashboard
+
+En el **Explorador** de la barra lateral, abre **Lago**, luego el dataset,
+**◆ customers**, y elige **Dashboard**.
+
+**Deberías ver** la página **Dashboard de customers**, con el selector
+**Corte** arriba, en el último corte evaluado. Si dice que aún no se ha
+evaluado ningún corte, pídele al responsable de datos que corra uno.
+
+## 2. Encontrar la cola del grupo
+
+Baja hasta **Colas de remediación**: una gráfica por cada campo de
+agrupación, como **Colas de remediación · Region**, con una columna por
+grupo. Su tabla trae, por grupo:
+
+- **Abiertos**: los hallazgos pendientes; cada uno es un registro que falla
+  una regla en este corte.
+- **Prioridad**: la prioridad sumada de los abiertos; alta con pocos
+  hallazgos quiere decir pocos pero costosos.
+- **ANS** (acuerdo de nivel de servicio): los días que tiene la cola para
+  corregir un hallazgo, 30 salvo que el responsable de datos fije otro en
+  **ANS de remediación**, debajo de las gráficas.
+- **Vencidos**, **Resueltos en este corte** y **Abierto más antiguo**: abajo
+  se explica lo que muestran hoy.
+
+Más en [Cómo leer el dashboard: colas de
+remediación](../charts/#colas-de-remediación).
+
+## 3. Ver qué falla
+
+En el mismo dashboard, **Campos con más fallos** y **Reglas con menor
+conformidad** dicen qué campos y qué reglas producen los hallazgos. Para ver
+ejemplos de registros que fallan, abre la regla en el Explorador, debajo de
+su campo, y elige **Probar**: la pestaña **Resultado** muestra sus conteos
+en el último corte y unos pocos registros de cada resultado. Son registros
+de todo el dataset, no solo de tu grupo, enmascarados. Tu política te
+deja mostrar sus valores completos con **Mostrar valores** y un propósito,
+y cada consulta queda en el rastro de auditoría.
+
+## 4. Hacer que se corrija en el origen
+
+Quality Data solo lee. Los registros se corrigen donde viven, en el sistema
+de origen, por quien los captura o es su dueño; cuéntale qué regla falla y
+por qué, tal como lo dice **Así se lee**.
+
+## 5. Comprobar la corrección
+
+Un hallazgo queda resuelto cuando un corte posterior ya no lo falla. Espera
+el siguiente corte programado, o en **Cortes** del dataset elige **Ejecutar
+ahora** (con **Reemplazarlo (si no está en curso)** si el corte de hoy ya
+existe). Cuando quede **Evaluado**, elígelo en **Corte**: los **Abiertos**
+de tu grupo deberían bajar.
+
+## Lo que todavía no está
+
+El producto todavía no lista los registros de una cola ni pasa un hallazgo
+de un corte al siguiente. Por eso hoy una cola muestra solo conteos, y
+**Vencidos**, **Resueltos en este corte** y **Abierto más antiguo** marcan
+0: cada hallazgo abierto cuenta desde el corte que se muestra. Apóyate en
+**Abiertos**, en cómo cambia de un corte a otro y en los ejemplos de
+**Probar**.
+
+## A dónde ir después
+
+- [Atender una cola de remediación](../work-a-queue/): este camino
+  completo, incluido cómo se fijan los ANS de las colas.
+- [Leer el dashboard para responder una
+  pregunta](../read-the-dashboard/): las gráficas alrededor de las colas,
+  en el orden para leerlas.
+- [Datos personales y el rastro de
+  auditoría](../personal-data-and-audit/): cómo mostrar los valores
+  completos y qué queda registrado cuando lo haces.
+- [Cómo leer el dashboard](../charts/): todas las gráficas, incluidas las
+  de grupos, que muestran qué grupos se destacan.
+- [Conceptos: cola de remediación](../concepts/#cola-de-remediación).
+- [Escribir, cambiar y probar una regla: para probar una
+  regla](../write-a-rule/#para-probar-una-regla): lo que muestra
+  **Probar**, y por qué los valores pueden salir enmascarados.
+- [Ejecutar y programar cortes](../run-cuts/): tomar un corte ahora y
+  seguirlo hasta que se evalúe.

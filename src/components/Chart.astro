@@ -1,0 +1,55 @@
+---
+// A chart of the guide, by name (src/charts/examples.ts), in the page's
+// language. Drawn at build time; the script only adds the tooltip.
+import { chart } from "../charts/examples";
+import { figure } from "../chart-kit/index";
+
+interface Props {
+  id: string;
+}
+
+const lang = Astro.url.pathname.startsWith("/docs/es/") ? "es" : "en";
+const html = figure(lang, chart(Astro.props.id, lang));
+---
+
+<Fragment set:html={html} />
+
+<script>
+  // One tooltip for every chart on the page: the value first, then what it is.
+  // On hover and on keyboard focus alike; the table under each chart has the
+  // same values.
+  const tip = document.createElement("div");
+  tip.className = "viz-tip";
+  tip.hidden = true;
+  const value = document.createElement("strong");
+  const label = document.createElement("span");
+  tip.append(value, label);
+  document.body.append(tip);
+
+  function show(el: Element, x: number, y: number) {
+    const data = (el as HTMLElement | SVGElement).dataset;
+    value.textContent = data.v ?? "";
+    label.textContent = data.l ?? "";
+    tip.hidden = false;
+    const box = tip.getBoundingClientRect();
+    let left = x + 14;
+    if (left + box.width > innerWidth - 8) left = x - box.width - 14;
+    tip.style.left = `${Math.max(8, left)}px`;
+    tip.style.top = `${Math.max(8, y - box.height - 12)}px`;
+  }
+
+  const target = (e: Event) => (e.target instanceof Element ? e.target.closest(".viz-hit") : null);
+
+  document.addEventListener("pointermove", (e) => {
+    const el = target(e);
+    if (el) show(el, e.clientX, e.clientY);
+    else tip.hidden = true;
+  });
+  document.addEventListener("focusin", (e) => {
+    const el = target(e);
+    if (!el) return;
+    const box = el.getBoundingClientRect();
+    show(el, box.left + box.width / 2, box.top);
+  });
+  document.addEventListener("focusout", () => (tip.hidden = true));
+</script>

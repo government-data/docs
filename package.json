@@ -1,0 +1,33 @@
+{
+  "name": "quality-data-docs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Quality Data user guide: the docs module",
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@astrojs/markdown-remark": "7.3.5",
+    "@astrojs/starlight": "0.42.5",
+    "astro": "7.3.8",
+    "katex": "0.19.1",
+    "rehype-katex": "7.0.1",
+    "remark-math": "6.0.0"
+  },
+  "devDependencies": {
+    "vitest": "4.1.12"
+  },
+  "engines": {
+    "node": ">=22.12"
+  },
+  "pnpm": {
+    "overrides": {
+      "postcss-nested": "^7.0.2"
+    }
+  }
+}

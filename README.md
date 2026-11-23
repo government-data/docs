@@ -45,6 +45,13 @@ pnpm dev      # a local server at http://localhost:4321/docs/
   docker load -i qd-docs.tar
   ```
 
+- Release (`.github/workflows/release.yml`): a `v*` tag that is `v` +
+  `module.yaml`'s `version` builds the image and pushes it to ECR as
+  `quality-data/docs/web:<version>`, through the module's AWS role
+  (repository variables `AWS_PUBLISH_ROLE` and `AWS_REGION`), and prints
+  its digest. A version already in ECR is not built again; its digest is
+  printed.
+
 ```sh
 docker build -t quality-data-docs .
 docker run --rm -p 8080:8080 quality-data-docs   # http://localhost:8080/docs/

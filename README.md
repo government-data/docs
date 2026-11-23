@@ -32,10 +32,17 @@ pnpm dev      # a local server at http://localhost:4321/docs/
 ## The image and the module
 
 - `Dockerfile`: builds the site and serves it with an unprivileged nginx
-  (`infra/nginx.conf`) under `/docs/` on port 8080; both bases are pinned
-  by digest. `/docs/healthz` answers `ok`, for the image's healthcheck.
+  (`infra/nginx.conf`, its headers and CSP in `infra/headers.inc`) under
+  `/docs/` on port 8080; both bases are pinned by digest. `/docs/healthz`
+  answers `ok`, for the image's healthcheck.
 - `module.yaml`: the module's manifest for quality-sdk: its name (`docs`),
-  its version and its health. It has no data and requires nothing.
+  its version, its health, its route (`/docs`, service `web`, port 8080)
+  behind the installation's sign-in (`auth: forward`) and its entry in the
+  apps menu. It has no data and requires nothing.
+- `compose.yml`: how an installation runs it (the project `docs`, the image
+  from `IMAGE_WEB`), on the core's `data-quality-edge` network as
+  `docs-web`, read-only, with no port of its own. `qd module add docs`
+  starts it and writes its route; `qd module remove docs` takes both away.
 - CI (`.github/workflows/ci.yml`) tests and builds the site, builds the
   image, checks that it serves the guide, and keeps it as the workflow
   artifact `image-docs` for a week:

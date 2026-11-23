@@ -1,0 +1,33 @@
+# The docs module's compose for installations, run by quality-sdk's update
+# agent as the project `docs`:
+#
+#   docker compose --project-name docs \
+#     --project-directory /opt/quality-data/docs/current \
+#     --file /opt/quality-data/docs/current/compose.yml \
+#     --env-file /opt/quality-data/docs/.env up -d --no-build --wait
+#
+# The image is the agent's IMAGE_WEB (the signed index's digest). The site
+# joins the core's edge network, where Traefik reaches it by the alias
+# docs-web (module.yaml's route: service `web`, port 8080); it publishes no
+# port and keeps no data.
+name: docs
+
+networks:
+  edge:
+    name: data-quality-edge
+    external: true
+
+services:
+  web:
+    image: ${IMAGE_WEB:?set IMAGE_WEB to the image by digest}
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      edge:
+        aliases:
+          - docs-web

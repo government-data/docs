@@ -21,6 +21,7 @@ RUN pnpm run build
 FROM nginxinc/nginx-unprivileged:1.28-alpine@sha256:7377697a821c131a924a7105fafbe7414db4e9fcc77a6f08f776f33f141ec3f8 AS runtime
 # Owned by the image's non-root user (uid 101), which reads them.
 COPY --chown=nginx:nginx infra/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --chown=nginx:nginx infra/headers.inc /etc/nginx/conf.d/headers.inc
 COPY --chown=nginx:nginx --from=build /site/dist /usr/share/nginx/html/docs
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \

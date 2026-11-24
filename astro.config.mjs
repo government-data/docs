@@ -249,6 +249,16 @@ export default defineConfig({
               translations: { es: "Procesamiento" },
               items: ["guide/stack/trino", "guide/stack/orchestrator"],
             },
+            {
+              label: "Indicators",
+              translations: { es: "Indicadores" },
+              items: ["guide/stack/superset", "guide/stack/valkey"],
+            },
+            {
+              label: "Operations",
+              translations: { es: "Operación" },
+              items: ["guide/stack/grafana", "guide/stack/loki"],
+            },
           ],
         },
         // The whole documentation on one page, to print or save as a PDF

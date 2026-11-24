@@ -3,12 +3,13 @@
 // language. Drawn at build time; the script only adds the tooltip.
 import { chart } from "../charts/examples";
 import { figure } from "../chart-kit/index";
+import { langOf } from "../print/texts";
 
 interface Props {
   id: string;
 }
 
-const lang = Astro.url.pathname.startsWith("/docs/es/") ? "es" : "en";
+const lang = langOf(Astro.url.pathname, import.meta.env.BASE_URL);
 const html = figure(lang, chart(Astro.props.id, lang));
 ---
 

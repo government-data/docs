@@ -18,7 +18,7 @@ import logo from "../assets/logo.svg?raw";
 import "../print/print.css";
 
 const base = import.meta.env.BASE_URL;
-const lang = langOf(Astro.url.pathname);
+const lang = langOf(Astro.url.pathname, base);
 const t = TEXTS[lang];
 const route = Astro.locals.starlightRoute;
 // Every entry of this build but this page, in either language. A page not

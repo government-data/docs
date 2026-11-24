@@ -1,7 +1,8 @@
 name: CI
 
-# The site (tests and build) and the image, on every pull request and on a
-# manual run. The image is built, not pushed, and kept as a workflow
+# The site (tests, and the build of both targets: the installation's and the
+# public site's, with its checks) and the image, on every pull request and on
+# a manual run. The image is built, not pushed, and kept as a workflow
 # artifact for a week: `gh run download -n image-docs`, then
 # `docker load -i qd-docs.tar`.
 
@@ -32,8 +33,18 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Test
         run: pnpm run test
-      - name: Build
+      - name: Build (installation)
         run: pnpm run build
+      # The public site at a placeholder URL: pages.yml builds it at
+      # DOCS_PUBLIC_URL. Its checks include that no file names the domain.
+      - name: Build (public)
+        env:
+          DOCS_TARGET: public
+          DOCS_PUBLIC_URL: https://guide.example.org
+        run: |
+          rm -rf dist
+          pnpm run build
+          scripts/check-public.sh dist "$DOCS_PUBLIC_URL"
 
   image:
     runs-on: ubuntu-latest

@@ -7,6 +7,14 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeTerms from "./src/terms/rehype.ts";
 import { terminology } from "./src/terms/index.ts";
+import rehypeUnlink from "./src/target/unlink.ts";
+import {
+  EXCLUDED_FROM_PUBLIC,
+  PUBLIC_CSP,
+  publicUrlOf,
+  sidebarWithout,
+  targetOf,
+} from "./src/target/index.ts";
 
 // The terms plugin's sources and data (src/terms/, without its tests and
 // tooltip.ts, which runs in the browser). Astro caches the rendered pages
@@ -24,12 +32,28 @@ const termsDigest = termsSources
   .reduce((hash, url) => hash.update(readFileSync(url)), createHash("sha256"))
   .digest("hex");
 
-// The user guide inside every installation, at /docs/, seen only by
-// signed-in users: the installation's edge asks the core before it forwards
-// a request (the module's `auth: forward`). The image in Dockerfile serves
-// the built site.
+// Two outputs of the same pages (src/target/index.ts), by DOCS_TARGET:
+// - installation (the default): the user guide inside every installation,
+//   at /docs/, seen only by signed-in users: the installation's edge asks
+//   the core before it forwards a request (the module's `auth: forward`).
+//   The image in Dockerfile serves the built site.
+// - public: the public site at the root of DOCS_PUBLIC_URL (pages.yml),
+//   with Starlight's own selectors, a CSP in a <meta> tag (GitHub Pages sends
+//   no headers of ours), a sitemap and canonical links (from `site`), and
+//   without the pages EXCLUDED_FROM_PUBLIC.
+const target = targetOf(process.env.DOCS_TARGET);
+const isPublic = target === "public";
+const root = isPublic ? "/" : "/docs/";
+const excluded = isPublic ? EXCLUDED_FROM_PUBLIC : [];
+// As the terms plugin's digest below: the unlink plugin's source goes with
+// its options, so a change to it renders the pages again.
+const unlinkDigest = createHash("sha256")
+  .update(readFileSync(new URL("./src/target/unlink.ts", import.meta.url)))
+  .digest("hex");
+
 export default defineConfig({
-  base: "/docs",
+  base: isPublic ? "/" : "/docs",
+  site: isPublic ? publicUrlOf(process.env.DOCS_PUBLIC_URL) : undefined,
   trailingSlash: "always",
   build: { format: "directory" },
   // No telemetry nor anything external: the installation may have no internet.
@@ -42,14 +66,20 @@ export default defineConfig({
   markdown: {
     processor: unified({
       remarkPlugins: [remarkMath],
-      rehypePlugins: [rehypeKatex, [rehypeTerms, terminology, termsDigest]],
+      rehypePlugins: [
+        rehypeKatex,
+        [rehypeTerms, terminology, termsDigest],
+        ...(excluded.length ? [[rehypeUnlink, excluded, unlinkDigest]] : []),
+      ],
     }),
   },
 
   // There is no home page: the documentation starts at the guide's overview.
+  // A static build writes each as a page with a meta refresh and a canonical
+  // link (no server-side redirects on GitHub Pages).
   redirects: {
-    "/": "/docs/guide/overview/",
-    "/es/": "/docs/es/guide/overview/",
+    "/": `${root}guide/overview/`,
+    "/es/": `${root}es/guide/overview/`,
   },
   integrations: [
     {
@@ -64,8 +94,9 @@ export default defineConfig({
       // Only the icon in the header: the title stays for the tab and readers.
       logo: { src: "./src/assets/logo.svg", replacesTitle: true },
       favicon: "/favicon.ico",
-      // English at the root (/docs/) and Spanish at /docs/es/: the app's menu
-      // links to the language chosen there.
+      // English at the root (/docs/, or / in public) and Spanish at es/: the
+      // app's menu (or, in public, Starlight's selector) links to the
+      // language chosen there.
       defaultLocale: "root",
       locales: {
         root: { label: "English", lang: "en" },
@@ -76,19 +107,28 @@ export default defineConfig({
         "./src/chart-kit/charts.css",
         "./src/styles.css",
       ],
-      // In the header, the app's avatar with its menu (go back, where else to
-      // go with the account, the theme, the language, sign out) in place of
-      // Starlight's theme and language selectors: the documentation is not
-      // apart.
+      // In the installation's header, the app's avatar with its menu (go
+      // back, where else to go with the account, the theme, the language,
+      // sign out) in place of Starlight's theme and language selectors: the
+      // documentation is not apart. The public site has no app nor session:
+      // Starlight's own selectors.
       components: {
-        ThemeSelect: "./src/components/AppMenu.astro",
-        LanguageSelect: "./src/components/Nothing.astro",
+        ...(isPublic
+          ? {}
+          : {
+              ThemeSelect: "./src/components/AppMenu.astro",
+              LanguageSelect: "./src/components/Nothing.astro",
+            }),
         MarkdownContent: "./src/components/MarkdownContent.astro",
       },
+      head: isPublic
+        ? [{ tag: "meta", attrs: { "http-equiv": "Content-Security-Policy", content: PUBLIC_CSP } }]
+        : [],
       // The guide in the sections its readers look for: listed here, not
       // by folders, so every page keeps its URL. A page left out of this
-      // list does not show in the sidebar.
-      sidebar: [
+      // list does not show in the sidebar. The public site drops the pages
+      // it leaves out.
+      sidebar: sidebarWithout([
         "guide/overview",
         "guide/concepts",
         {
@@ -178,7 +218,7 @@ export default defineConfig({
           translations: { es: "Descargar PDF" },
           link: "/print/",
         },
-      ],
+      ], excluded),
       lastUpdated: false,
       pagination: true,
     }),

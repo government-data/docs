@@ -1,0 +1,360 @@
+/* The platform simulation (PlatformSimulation.astro). Global, as the player
+   adds packets, trails and log entries in the browser. Every colour is one
+   of Starlight's, so it follows the light and dark themes. */
+
+.sim {
+  --sim-web: var(--sl-color-blue);
+  --sim-mtls: var(--sl-color-purple);
+  --sim-data: var(--sl-color-orange);
+  --sim-pull: var(--sl-color-green);
+  --sim-health: var(--sl-color-gray-3);
+  --sim-lit: var(--sl-color-accent);
+  --sim-good: var(--sl-color-green);
+  --sim-warn: var(--sl-color-orange);
+  --sim-bad: var(--sl-color-red);
+  --sim-ink: var(--sl-color-white);
+  --sim-ink2: var(--sl-color-gray-2);
+  --sim-muted: var(--sl-color-gray-3);
+  --sim-line: var(--sl-color-gray-4);
+  --sim-hair: var(--sl-color-gray-5);
+  --sim-paper: var(--sl-color-bg);
+  --sim-sunk: var(--sl-color-gray-6);
+  --sim-shadow: rgb(0 0 0 / 0.45);
+  --sim-bevel: rgb(255 255 255 / 0.1);
+
+  margin: 1.5rem 0 2rem;
+  font-size: var(--sl-text-sm);
+}
+
+:root[data-theme="light"] .sim {
+  --sim-shadow: rgb(0 0 0 / 0.14);
+  --sim-bevel: rgb(255 255 255 / 0.9);
+}
+
+/* The page that holds the simulation uses the whole width. */
+.sl-container:has(.sim) {
+  max-width: 80rem;
+}
+
+/* The card: a label and the title above, the hint and the live readout
+   below, the drawing between them. */
+.sim__card {
+  position: relative;
+  padding: 2.4rem 1rem 2.4rem;
+  border: 1px solid var(--sim-hair);
+  border-radius: 0.75rem;
+  background: var(--sim-paper);
+}
+
+.sim__corner {
+  position: absolute;
+  margin: 0;
+  color: var(--sim-muted);
+  font-family: var(--sl-font-mono);
+  font-size: 0.7rem;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.sim__corner--fig {
+  top: 1rem;
+  left: 1rem;
+  color: var(--sim-ink);
+}
+
+.sim__corner--title {
+  top: 1rem;
+  right: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.sim__corner--hint {
+  bottom: 1rem;
+  left: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.sim__corner--readout {
+  right: 1rem;
+  bottom: 1rem;
+  color: var(--sim-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 40rem) {
+  .sim__corner--title {
+    display: none;
+  }
+
+  .sim__corner--hint {
+    bottom: 2.1rem;
+  }
+}
+
+.sim__stage {
+  overflow-x: auto;
+}
+
+.sim__stage > svg {
+  display: block;
+  width: 100%;
+  min-width: 44rem;
+  height: auto;
+}
+
+.sim__installation {
+  fill: none;
+  stroke: var(--sim-line);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+
+.sim__frame-label {
+  fill: var(--sim-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.sim__zone rect {
+  fill: var(--tone-low);
+  fill-opacity: 0.55;
+  stroke: var(--tone);
+  stroke-opacity: 0.55;
+}
+
+.sim__zone-label {
+  fill: var(--tone-high);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.sim__screw {
+  fill: var(--tone);
+  fill-opacity: 0.6;
+}
+
+/* Links: their kind in the stroke, as the architecture diagram draws them,
+   ending on a dot at each node's edge. */
+.sim__link path {
+  fill: none;
+  stroke: var(--sim-line);
+  stroke-width: 1.3;
+  stroke-linejoin: round;
+}
+
+.sim__link circle {
+  fill: var(--sim-line);
+}
+
+.sim__link--mtls path {
+  stroke-dasharray: 5 3.5;
+}
+
+.sim__link--data path {
+  stroke-width: 2.6;
+}
+
+.sim__link--pull path {
+  stroke-dasharray: 1.5 3.5;
+  stroke-linecap: round;
+  stroke-width: 2.2;
+}
+
+/* A node: a face over a darker lip, a soft halo under it, a hairline of
+   light on its top edge. Its state is in its border and its badge. */
+.sim__halo {
+  fill: var(--sim-shadow);
+  opacity: 0.6;
+}
+
+.sim__lip {
+  fill: var(--sim-sunk);
+  stroke: var(--sim-line);
+  stroke-width: 0.8;
+}
+
+.sim__face {
+  fill: var(--sim-paper);
+  stroke: var(--sim-line);
+  stroke-width: 1;
+  transition:
+    stroke 0.35s ease,
+    fill 0.35s ease;
+}
+
+.sim__bevel {
+  stroke: var(--sim-bevel);
+  stroke-width: 1;
+}
+
+.sim__tile {
+  fill: var(--sim-sunk);
+  stroke: var(--sim-hair);
+  stroke-width: 0.8;
+}
+
+.sim__kind {
+  fill: none;
+  stroke: var(--sim-ink2);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sim__kind .fill {
+  fill: var(--sim-ink2);
+  stroke: none;
+}
+
+.sim__title {
+  fill: var(--sim-ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sim__line {
+  fill: var(--sim-ink2);
+  font-size: 10.5px;
+}
+
+.sim__badge {
+  fill: var(--sim-lit);
+  font-size: 12px;
+  font-weight: 700;
+  paint-order: stroke;
+  stroke: var(--sim-paper);
+  stroke-width: 4px;
+}
+
+.sim__node {
+  transition: opacity 0.35s ease;
+}
+
+.sim__node[data-state="busy"] .sim__face {
+  stroke: var(--sim-lit);
+  stroke-width: 2;
+}
+
+.sim__node[data-state="busy"] .sim__kind {
+  stroke: var(--sim-lit);
+}
+
+.sim__node[data-state="added"] .sim__face {
+  stroke: var(--sim-good);
+  stroke-width: 2;
+}
+
+.sim__node[data-state="added"] .sim__badge {
+  fill: var(--sim-good);
+}
+
+.sim__node[data-state="maint"] .sim__face,
+.sim__node[data-state="fail"] .sim__face {
+  stroke: var(--sim-warn);
+  stroke-width: 2;
+}
+
+.sim__node[data-state="maint"] .sim__badge,
+.sim__node[data-state="fail"] .sim__badge {
+  fill: var(--sim-warn);
+}
+
+.sim__node[data-state="standby"] {
+  opacity: 0.75;
+}
+
+.sim__node[data-state="standby"] .sim__face {
+  fill: transparent;
+  stroke-dasharray: 5 4;
+}
+
+.sim__node[data-state="standby"] .sim__lip,
+.sim__node[data-state="standby"] .sim__halo {
+  display: none;
+}
+
+.sim__node[data-state="down"] {
+  opacity: 0.75;
+}
+
+.sim__node[data-state="down"] .sim__face {
+  fill: var(--sl-color-red-low);
+  stroke: var(--sim-bad);
+  stroke-width: 2;
+  stroke-dasharray: 6 4;
+}
+
+.sim__node[data-state="down"] .sim__kind,
+.sim__node[data-state="down"] .sim__badge {
+  stroke: var(--sim-bad);
+}
+
+.sim__node[data-state="down"] .sim__badge {
+  fill: var(--sim-bad);
+  stroke: var(--sim-paper);
+}
+
+/* The legends under the card. */
+.sim__legend ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.1rem;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  color: var(--sim-ink2);
+  font-size: var(--sl-text-xs);
+  list-style: none;
+}
+
+.sim__legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.sim__legend svg {
+  width: 2.1rem;
+  height: 0.65rem;
+}
+
+.sim__swatch {
+  display: inline-grid;
+  place-items: center;
+  width: 1.4rem;
+  height: 1rem;
+  border: 1.5px solid var(--sim-line);
+  border-radius: 0.3rem;
+  color: var(--sim-lit);
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+.sim__swatch[data-state="busy"] {
+  border-color: var(--sim-lit);
+}
+
+.sim__swatch[data-state="down"] {
+  border-color: var(--sim-bad);
+  border-style: dashed;
+  background: var(--sl-color-red-low);
+  color: var(--sim-bad);
+}
+
+.sim__swatch[data-state="maint"] {
+  border-color: var(--sim-warn);
+  color: var(--sim-warn);
+}
+
+.sim__swatch[data-state="standby"] {
+  border-style: dashed;
+}
+
+.sim__swatch[data-state="added"] {
+  border-color: var(--sim-good);
+  color: var(--sim-good);
+}

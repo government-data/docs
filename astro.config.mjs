@@ -10,6 +10,7 @@ import { terminology } from "./src/terms/index.ts";
 import rehypeUnlink from "./src/target/unlink.ts";
 import {
   EXCLUDED_FROM_PUBLIC,
+  orgUrlOf,
   PUBLIC_CSP,
   publicUrlOf,
   sidebarWithout,
@@ -121,6 +122,12 @@ export default defineConfig({
             }),
         MarkdownContent: "./src/components/MarkdownContent.astro",
       },
+      // The public site's header links to the GitHub organisation, from the
+      // repository variable DOCS_ORG_URL (pages.yml): its name is in no file.
+      // The installation's header keeps the app's menu alone.
+      social: isPublic
+        ? [{ icon: "github", label: "GitHub", href: orgUrlOf(process.env.DOCS_ORG_URL) }]
+        : [],
       head: isPublic
         ? [{ tag: "meta", attrs: { "http-equiv": "Content-Security-Policy", content: PUBLIC_CSP } }]
         : [],

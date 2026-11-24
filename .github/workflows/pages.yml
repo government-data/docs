@@ -57,6 +57,8 @@ jobs:
         env:
           DOCS_TARGET: public
           DOCS_PUBLIC_URL: ${{ vars.DOCS_PUBLIC_URL }}
+          # The GitHub organisation the header links to.
+          DOCS_ORG_URL: ${{ vars.DOCS_ORG_URL }}
         run: |
           pnpm run build
           scripts/check-public.sh dist "$DOCS_PUBLIC_URL"

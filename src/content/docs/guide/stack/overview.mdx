@@ -5,6 +5,8 @@ sidebar:
   label: Overview
 ---
 
+import ArchitectureDiagram from "../../../../components/ArchitectureDiagram.astro";
+
 **For whom:** administrators and technical staff who run an installation
 or review it: what runs on its servers, what each part is for, and where
 its data lives. You do not need any of this to write rules or read a
@@ -45,6 +47,21 @@ Modules depend on **capabilities**, not on each other: the lake module
 provides the capability "lake" (the S3 protocol and the Iceberg catalog),
 and the query module provides "SQL query". Another module that provides the
 same capability, with the same protocols, could take its place.
+
+## Architecture
+
+How the modules fit together on an installation's servers. Each box is a
+part of a module; each line, a connection and its kind.
+
+<ArchitectureDiagram lang="en" />
+
+A quality cut goes this way: the operator fires it on
+its schedule; the core compiles the cut's statements from the rules on the
+catalog's main line and signs them; a worker fetches them, checks the
+signature and sends each one to Trino with a token that is valid for that
+job only; Trino reads the source, writes the copy to bronze, derives
+silver, evaluates the rules and writes the results to gold. The worker
+reports only names and counts back to the core.
 
 ## The technologies
 

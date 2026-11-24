@@ -11,7 +11,8 @@
 #   base and the application's API);
 # - every page has a canonical link under <site>;
 # - no page of EXCLUDED_FROM_PUBLIC (src/target/index.ts) is built;
-# - the header links to a GitHub organisation (DOCS_ORG_URL).
+# - the header links to a GitHub organisation (DOCS_ORG_URL);
+# - the footer shows module.yaml's version.
 set -euo pipefail
 
 dist=${1:?usage: $0 <dist> <site>}
@@ -56,6 +57,10 @@ done
 
 grep -qE 'href="https://github\.com/[A-Za-z0-9-]+"' "$dist/404.html" ||
   fail "the header does not link to the GitHub organisation (DOCS_ORG_URL)"
+
+version=$(sed -nE 's/^version:[[:space:]]*"?([0-9.]+)"?[[:space:]]*$/\1/p' module.yaml)
+grep -q "data-qd-version=\"$version\"" "$dist/404.html" ||
+  fail "the footer does not show module.yaml's version ($version)"
 
 [ "$failed" = 0 ] && echo "public site checks passed ($dist, $site)"
 exit "$failed"

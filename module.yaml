@@ -1,7 +1,7 @@
 # The docs module's manifest for quality-sdk: the user guide, a static site
 # with no data of its own and nothing it requires.
 name: docs
-version: 0.4.1
+version: 0.4.2
 
 # Served at /docs on the installation's web entry point (quality-sdk
 # decision 0002): the agent writes Traefik's route to the `web` service,

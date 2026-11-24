@@ -20,6 +20,8 @@ comments and this README are in English.
   `src/terms/`: the site's components, the chart drawing primitives and
   examples (made-up data), the printable book and the glossary tooltips.
 - `astro.config.mjs`: the site and its sidebar (the order of the guide).
+- `src/version/`: the guide's version, read from `module.yaml` at build time,
+  shown in every page's footer and on the printed book's cover.
 - `src/target/`: the two outputs (`DOCS_TARGET`), the pages the public site
   leaves out (`EXCLUDED_FROM_PUBLIC`) and its CSP.
 

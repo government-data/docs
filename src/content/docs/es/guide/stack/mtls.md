@@ -41,8 +41,11 @@ otro: esto es **TLS mutuo** (mTLS).
    hasta que un administrador lo aprueba. Desde entonces su agente de nodo
    renueva su certificado por sí solo.
 
-**Retirar** saca a un servidor: no recibe un certificado nuevo, así que ya
-no puede llegar al resto.
+**Retirar** saca a un servidor para siempre. Desde ese momento el núcleo
+rechaza su certificado, aunque todavía no haya vencido: el servidor ya no
+puede renovarlo, ni obtener un token para su trabajo, ni pasar la puerta
+del lago, y sus sesiones en la cola de trabajos se cierran. Su agente de
+nodo se detiene.
 
 ## Dónde se usa
 

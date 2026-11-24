@@ -8,6 +8,8 @@
 // session.
 // The texts go in the page's language; the names of the list of applications
 // (in Spanish from the account) are translated by their `kind`.
+import { pathIn } from "../print/texts";
+
 const TEXTS = {
   es: {
     account: "Mi cuenta",
@@ -42,12 +44,12 @@ const TEXTS = {
 };
 const lang = Astro.locals.starlightRoute?.lang === "en" ? "en" : "es";
 const t = TEXTS[lang];
-// This page in each language: English at /docs/…, Spanish at /docs/es/….
+// This page in each language: English at <base>…, Spanish at <base>es/….
 const path = Astro.url.pathname;
-const english = path.replace(/^\/docs\/es(\/|$)/, "/docs/");
+const base = import.meta.env.BASE_URL;
 const languages = [
-  { label: "Español", code: "es", href: english.replace(/^\/docs\//, "/docs/es/") },
-  { label: "English", code: "en", href: english },
+  { label: "Español", code: "es", href: pathIn("es", path, base) },
+  { label: "English", code: "en", href: pathIn("en", path, base) },
 ];
 // The app's line icons (18 px, stroke 1.5); the gear is the side menu's.
 const ICONS = {

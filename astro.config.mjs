@@ -257,7 +257,17 @@ export default defineConfig({
             {
               label: "Operations",
               translations: { es: "Operación" },
-              items: ["guide/stack/grafana", "guide/stack/loki"],
+              items: [
+                "guide/stack/grafana",
+                "guide/stack/loki",
+                "guide/stack/mimir",
+                "guide/stack/alloy",
+              ],
+            },
+            {
+              label: "Updates",
+              translations: { es: "Actualizaciones" },
+              items: ["guide/stack/agent", "guide/stack/aws"],
             },
           ],
         },

@@ -78,10 +78,10 @@ trae, cómo se comunica con el resto y dónde quedan sus datos.
   la autoridad certificadora propia de la instalación.
 - **Datos:** [PostgreSQL](../postgresql/), la base de datos de la
   plataforma; [Dolt](../dolt/), el catálogo de reglas versionado;
-  [RustFS](../rustfs/), el almacenamiento del lago; Apache
-  Iceberg, el formato de tablas del lago.
-- **Procesamiento:** Trino, el único motor SQL; el orquestador y sus
-  workers.
+  [RustFS](../rustfs/), el almacenamiento del lago; [Apache
+  Iceberg](../iceberg/), el formato de tablas del lago.
+- **Procesamiento:** [Trino](../trino/), el único motor SQL; [el
+  orquestador y sus workers](../orchestrator/).
 - **Indicadores:** Apache Superset, con Valkey como caché.
 - **Operación:** Grafana, Loki, Mimir y Alloy.
 - **Actualizaciones:** el agente de la instalación, `qd`; el índice de

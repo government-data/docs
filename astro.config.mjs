@@ -121,6 +121,8 @@ export default defineConfig({
               LanguageSelect: "./src/components/Nothing.astro",
             }),
         MarkdownContent: "./src/components/MarkdownContent.astro",
+        // The guide's version under every page, from module.yaml.
+        Footer: "./src/components/Footer.astro",
       },
       // The public site's header links to the GitHub organisation, from the
       // repository variable DOCS_ORG_URL (pages.yml): its name is in no file.

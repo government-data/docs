@@ -15,6 +15,8 @@ import { TEXTS, langOf } from "../print/texts";
 import PrintContents from "./PrintContents.astro";
 import PrintPage from "./PrintPage.astro";
 import logo from "../assets/logo.svg?raw";
+import { footerLine } from "../version";
+import { GUIDE_VERSION } from "../version/guide";
 import "../print/print.css";
 
 const base = import.meta.env.BASE_URL;
@@ -57,7 +59,7 @@ const anchors = new Map(pages.map((p) => [p.href, p.anchor]));
 <div class="qd-book">
   <section class="qd-print-cover">
     <span class="qd-print-logo" aria-hidden="true" set:html={logo} />
-    <p class="qd-print-product">Government Data</p>
+    <p class="qd-print-product">{footerLine(lang === "es" ? "es" : "en", GUIDE_VERSION)}</p>
     <h1>{t.cover}</h1>
     <p>{t.coverNote}</p>
     <p class="qd-print-built">

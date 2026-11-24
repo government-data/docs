@@ -1,0 +1,21 @@
+---
+// Starlight's footer (edit link, pagination), then the guide's version in
+// the page's language, read from module.yaml at build time (src/version/).
+import Default from "@astrojs/starlight/components/Footer.astro";
+import { footerLine } from "../version";
+import { GUIDE_VERSION } from "../version/guide";
+
+const lang = Astro.locals.starlightRoute?.lang === "es" ? "es" : "en";
+---
+
+<Default />
+<p class="qd-version" data-qd-version={GUIDE_VERSION}>{footerLine(lang, GUIDE_VERSION)}</p>
+
+<style>
+  .qd-version {
+    margin: 1.5rem 0 0;
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-xs);
+    text-align: center;
+  }
+</style>

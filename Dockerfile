@@ -13,7 +13,8 @@ WORKDIR /site
 # Dependencies first, so a change to the pages reuses this layer.
 COPY package.json pnpm-lock.yaml .npmrc ./
 RUN pnpm install --frozen-lockfile
-COPY astro.config.mjs tsconfig.json ./
+# module.yaml: the version the footer shows (src/version/).
+COPY astro.config.mjs tsconfig.json module.yaml ./
 COPY public ./public
 COPY src ./src
 RUN pnpm run build

@@ -12,6 +12,7 @@ import { SCENARIOS } from "./simulation/scenarios";
 import { SECTIONS } from "./simulation/story";
 import { CONTROLS, FRAME, STATES, TRAFFIC, say } from "./simulation/texts";
 import "./simulation/simulation.css";
+import "./simulation/player.css";
 
 const lang = langOf(Astro.url.pathname, import.meta.env.BASE_URL);
 const t = (words: { en: string; es: string }) => say(lang, words);

@@ -74,10 +74,11 @@ trae, cómo se comunica con el resto y dónde quedan sus datos.
   Compose](../docker-compose/), que corre cada módulo.
 - **Entrada e identidad:** [Traefik](../traefik/), la única puerta de
   entrada; el [proveedor de identidad OpenID Connect](../identity/) del
-  núcleo; TLS mutuo con la
-  autoridad certificadora propia de la instalación.
-- **Datos:** PostgreSQL, la base de datos de la plataforma; Dolt, el
-  catálogo de reglas versionado; RustFS, el almacenamiento del lago; Apache
+  núcleo; [TLS mutuo](../mtls/) con
+  la autoridad certificadora propia de la instalación.
+- **Datos:** [PostgreSQL](../postgresql/), la base de datos de la
+  plataforma; [Dolt](../dolt/), el catálogo de reglas versionado;
+  [RustFS](../rustfs/), el almacenamiento del lago; Apache
   Iceberg, el formato de tablas del lago.
 - **Procesamiento:** Trino, el único motor SQL; el orquestador y sus
   workers.

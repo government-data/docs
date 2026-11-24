@@ -75,10 +75,10 @@ brings it, how it talks to the rest and where its data lives.
   certificate authority.
 - **Data:** [PostgreSQL](../postgresql/), the platform's database;
   [Dolt](../dolt/), the versioned rules catalog; [RustFS](../rustfs/), the
-  lake's storage; Apache Iceberg, the lake's table
+  lake's storage; [Apache Iceberg](../iceberg/), the lake's table
   format.
-- **Processing:** Trino, the one SQL engine; the orchestrator and its
-  workers.
+- **Processing:** [Trino](../trino/), the one SQL engine; [the
+  orchestrator and its workers](../orchestrator/).
 - **Indicators:** Apache Superset, with Valkey as its cache.
 - **Operations:** Grafana, Loki, Mimir and Alloy.
 - **Updates:** the installation's agent, `qd`; the signed version index

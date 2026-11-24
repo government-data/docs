@@ -218,7 +218,17 @@ export default defineConfig({
             {
               label: "Data",
               translations: { es: "Datos" },
-              items: ["guide/stack/postgresql", "guide/stack/dolt", "guide/stack/rustfs"],
+              items: [
+                "guide/stack/postgresql",
+                "guide/stack/dolt",
+                "guide/stack/rustfs",
+                "guide/stack/iceberg",
+              ],
+            },
+            {
+              label: "Processing",
+              translations: { es: "Procesamiento" },
+              items: ["guide/stack/trino", "guide/stack/orchestrator"],
             },
           ],
         },

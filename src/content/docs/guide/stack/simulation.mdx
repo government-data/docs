@@ -1,0 +1,53 @@
+---
+title: Simulation
+description: One installation played out step by step, its machines by module and the traffic between them, in the quality flow, a third-party batch, a big-data job, an update from AWS and the failures.
+sidebar:
+  label: Simulation
+tableOfContents: false
+---
+
+import PlatformSimulation from "../../../../components/PlatformSimulation.astro";
+
+**For whom:** administrators and technical reviewers who want to see the
+[architecture](../overview/#architecture) at work.
+
+How an installation behaves, played out: its machines grouped by module,
+the traffic between them, the quality flow of a dataset and a third-party
+batch stage by stage, a big-data job on Trino, an update pulled from AWS,
+and what happens, step by step, when something fails. Pick a scenario;
+pause it, change its speed, go step by step, or start another.
+
+<PlatformSimulation />
+
+## The scenarios
+
+- **Quality flow:** the core compiles the approved rules on the catalog's
+  main line into SQL and signs it; a worker of the
+  [orchestrator](../orchestrator/) runs it on [Trino](../trino/), which
+  reads the source into bronze, derives silver, evaluates the rules and
+  writes the results to gold. See [Apache Iceberg](../iceberg/) for the
+  three layers and [Formulas](../../formulas/) for the indicators.
+- **Third-party batch:** a provider's batch through five gates, from
+  quarantine to the owner's approval and a load that can be undone.
+- **Normal run** and **big-data job:** every part doing its own job, and
+  Trino spreading a very large job over its workers, with one added.
+- **Update from AWS:** the [agent](../agent/) pulls a signed version,
+  backs up and applies it in steps. See [Updates from AWS](../aws/).
+- **Failures:** a worker of the orchestrator, a source, a worker of Trino,
+  a server of the lake, and an update that does not come up.
+
+## How to read it
+
+The lines carry the kind of traffic, as in the architecture diagram, and
+each packet names what it carries. A machine's state is in its border and
+its badge: ⟳ working, ✕ down, ⚙ being updated, + just added; a dashed
+machine can be added. The stages of a flow show ✓ passed, ! warned or ✕
+failed, with their result. While a scenario plays, Space pauses it and the
+right arrow goes to the next step.
+
+:::note
+It is an illustration of the design, not a measurement: the times and
+figures in the log are the story's, invented for it. Some parts are still
+being rolled out; see [Implementation
+status](../overview/#implementation-status).
+:::

@@ -21,6 +21,13 @@ Trino es un motor de consultas SQL distribuido. En Government Data es **el
 - responde a los **dashboards**: [Superset](../superset/) lee gold a través
   de él, como la persona que está mirando.
 
+Ser distribuido es lo que hace a Trino apto para grandes volúmenes. Un
+coordinador planea cada consulta y la parte en tareas, y sus workers las
+ejecutan en paralelo, cada uno sobre su parte de los datos; así una fuente
+o una tabla grande del lago la leen varias máquinas a la vez y no una
+sola. Una instalación que necesita más capacidad añade workers. La
+[simulación](../simulation/) lo muestra en su trabajo de big data.
+
 Trino nunca decide qué ejecutar. El [núcleo](../core/) escribe cada
 sentencia, compilada a partir de las reglas, y la firma; los
 [workers](../orchestrator/) envían esas sentencias a Trino. Mientras se

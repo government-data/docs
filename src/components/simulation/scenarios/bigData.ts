@@ -18,11 +18,11 @@ export const bigData: Scenario = {
         "Toca el corte de «transacciones»: años de movimientos, mucho más de lo que una máquina tiene en memoria.",
       ),
     );
-    state("operator", "busy", T("fires a cut", "dispara un corte"));
+    state("operator", "busy", T("firing a cut", "dispara corte"));
     await along(sim, ["operator", "traefik", "core"], T("cut due", "corte pendiente"));
     state("operator", "up", T("waiting", "en espera"));
     await packet("w2", "operator", T("lease", "préstamo"));
-    state("w2", "busy", T("«transactions»", "«transacciones»"));
+    state("w2", "busy", T("big cut", "corte grande"));
     await along(sim, ["core", "traefik", "w2"], T("bundle + token", "paquete + token"));
 
     log(

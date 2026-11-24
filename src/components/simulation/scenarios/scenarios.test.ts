@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { NODES, linkOf, type Lang } from "../scene";
+import { NODES, linkOf, nodeById, type Lang } from "../scene";
 import type { Sim } from "../story";
 import { SCENARIOS } from ".";
 
@@ -17,6 +17,13 @@ function fake(lang: Lang): { sim: Sim; record: Record } {
   const record: Record = { packets: [], logs: [], texts: [], problems: [] };
   let steps = 0;
   const known = (id: string) => ids.has(id) || record.problems.push(`no node ${id}`);
+  // A machine's line fits its card: about 5.6 units a letter at its size.
+  const fits = (id: string, text: string) => {
+    if (!ids.has(id)) return;
+    const n = nodeById(id);
+    const room = Math.floor((n.h >= 90 ? n.w - 14 : n.w - 44) / 5.6);
+    if (text.length > room) record.problems.push(`"${text}" is too long for ${id} (${room})`);
+  };
   const sim: Sim = {
     lang,
     T(en, es) {
@@ -30,10 +37,14 @@ function fake(lang: Lang): { sim: Sim; record: Record } {
     },
     state(id, _state, sub) {
       known(id);
-      if (sub) record.texts.push(sub);
+      if (sub) {
+        fits(id, sub);
+        record.texts.push(sub);
+      }
     },
     line(id, _key, text) {
       known(id);
+      fits(id, text);
       record.texts.push(text);
     },
     async packet(from, to, label) {

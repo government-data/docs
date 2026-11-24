@@ -16,7 +16,7 @@ export const normal: Scenario = {
         "El operador dispara el corte programado de «clientes» y le avisa al núcleo.",
       ),
     );
-    state("operator", "busy", T("fires a cut", "dispara un corte"));
+    state("operator", "busy", T("firing a cut", "dispara corte"));
     await along(sim, ["operator", "traefik", "core"], T("cut due", "corte pendiente"));
     state("operator", "up", T("waiting", "en espera"));
 

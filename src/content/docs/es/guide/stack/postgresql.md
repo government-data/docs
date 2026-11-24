@@ -23,8 +23,8 @@ PostgreSQL es la base de datos de la plataforma. El núcleo guarda en ella:
   él;
 - el **log de auditoría**.
 
-Los módulos que necesitan una base de datos relacional, como Grafana,
-Superset o el orquestador, reciben **una base de datos y un usuario
+Los módulos que necesitan una base de datos relacional, como Grafana o
+Superset, reciben **una base de datos y un usuario
 propios** cuando se añaden. Un módulo no puede leer la base de otro.
 
 ## El log de auditoría

@@ -47,7 +47,6 @@ the same cut.
 | ----------- | -------------------------------------------------------------------------- |
 | The core    | HTTPS on Traefik's internal entry point, with mutual TLS                   |
 | Trino       | Trino's client protocol, with a token valid for one job                    |
-| People      | The orchestrator's screens, through Traefik, after signing in at the core  |
 
 Before an update, the core asks the orchestrator how much work is running
 and due soon, and the update waits for it. While Trino restarts, the
@@ -55,5 +54,5 @@ operator holds the jobs that need it and lets the running ones finish.
 
 ## Where its data lives
 
-The operator keeps the jobs' state, leases and attempts in its own
-database in [PostgreSQL](../postgresql/). The workers keep nothing.
+The operator keeps the jobs' state, leases and attempts. The workers keep
+nothing.

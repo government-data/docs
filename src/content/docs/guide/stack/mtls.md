@@ -40,8 +40,10 @@ TLS** (mTLS).
    administrator approves it. From then on its node agent renews its
    certificate by itself.
 
-**Retire** takes a server out: it gets no new certificate, so it can no
-longer reach the rest.
+**Retire** takes a server out for good. From that moment the core refuses
+its certificate, even before the certificate runs out: the server can no
+longer renew it, get a token for its work, or pass the lake's gate, and
+its sessions on the job queue are ended. Its node agent stops.
 
 ## Where it is used
 

@@ -21,8 +21,7 @@ PostgreSQL is the platform's database. The core keeps in it:
   gold wins and the index is rebuilt from it;
 - the **audit log**.
 
-Modules that need a relational database, such as Grafana, Superset or the
-orchestrator, get **a database and a user of their own** when they are
+Modules that need a relational database, such as Grafana or Superset, get **a database and a user of their own** when they are
 added. One module cannot read another's database.
 
 ## The audit log

@@ -50,7 +50,6 @@ intentos nunca escriben el mismo corte.
 | --------------- | ----------------------------------------------------------------------------- |
 | El núcleo       | HTTPS en la entrada interna de Traefik, con TLS mutuo                         |
 | Trino           | El protocolo de cliente de Trino, con un token que vale para un trabajo       |
-| Las personas    | Las pantallas del orquestador, a través de Traefik, tras iniciar sesión en el núcleo |
 
 Antes de una actualización, el núcleo le pregunta al orquestador cuánto
 trabajo está corriendo y cuánto está por empezar, y la actualización lo
@@ -59,6 +58,5 @@ necesitan y deja terminar los que corren.
 
 ## Dónde quedan sus datos
 
-El operador guarda el estado, los préstamos y los intentos de los trabajos
-en su propia base de datos en [PostgreSQL](../postgresql/). Los workers no
-guardan nada.
+El operador guarda el estado, los préstamos y los intentos de los
+trabajos. Los workers no guardan nada.

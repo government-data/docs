@@ -1,0 +1,79 @@
+name: Pages
+
+# A `v*` tag also publishes the guide as the public site on GitHub Pages
+# (quality-sdk decision 0010), beside release.yml's image: the same tagged
+# pages, built with DOCS_TARGET=public at the root of the repository
+# variable DOCS_PUBLIC_URL, the one place that names the site's address.
+# workflow_dispatch re-runs it for a tag. The tag must be `v` + module.yaml's
+# version, as for the image.
+#
+# The deploy runs in the `github-pages` environment, which a person sets to
+# allow `v*` tags only and to require a reviewer: a version is public once
+# that person approves. No secret: Pages deploys with GitHub's own OIDC
+# token. A failed deploy does not stop release.yml, nor the other way round.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+# One deploy at a time; a second run waits instead of racing.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: The tag matches module.yaml's version
+        env:
+          TAG: ${{ github.ref_name }}
+          REF_TYPE: ${{ github.ref_type }}
+        run: |
+          if [ "$REF_TYPE" != tag ]; then
+            echo "::error::run on a v* tag, not the branch $TAG"; exit 1
+          fi
+          version=$(yq -r '.version' module.yaml)
+          if [ "$TAG" != "v$version" ]; then
+            echo "::error::tag $TAG is not v + module.yaml's version ($version)"; exit 1
+          fi
+      # action-setup reads pnpm's version from package.json (packageManager)
+      # and runs before setup-node so the pnpm store cache resolves.
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Test
+        run: pnpm run test
+      - name: Build the public site
+        env:
+          DOCS_TARGET: public
+          DOCS_PUBLIC_URL: ${{ vars.DOCS_PUBLIC_URL }}
+        run: |
+          pnpm run build
+          scripts/check-public.sh dist "$DOCS_PUBLIC_URL"
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

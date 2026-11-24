@@ -15,6 +15,21 @@ export const FRAME = {
   },
 } satisfies Record<string, Words>;
 
+/** The player's controls and panels. */
+export const CONTROLS = {
+  pause: { en: "Pause", es: "Pausa" },
+  reset: { en: "Reset", es: "Reiniciar" },
+  speed: { en: "Speed", es: "Velocidad" },
+  step: { en: "Step by step", es: "Paso a paso" },
+  next: { en: "Next ›", es: "Siguiente ›" },
+  log: { en: "What is happening", es: "Qué está pasando" },
+  pick: { en: "Pick a scenario to start.", es: "Elige un escenario para empezar." },
+  keys: {
+    en: "The simulation. While a scenario plays, Space pauses it and the right arrow goes to the next step.",
+    es: "La simulación. Mientras corre un escenario, Espacio lo pausa y la flecha derecha pasa al siguiente paso.",
+  },
+} satisfies Record<string, Words>;
+
 /** The legend of the traffic, by the kind of link it travels on. */
 export const TRAFFIC: [Traffic, Words][] = [
   ["web", { en: "People and routes (HTTPS)", es: "Personas y rutas (HTTPS)" }],

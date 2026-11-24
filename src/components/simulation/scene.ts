@@ -228,6 +228,9 @@ export const LINKS: Link[] = [
   { a: "traefik", b: "operator", kind: "mtls" },
   { a: "traefik", b: "w1", kind: "mtls" },
   { a: "traefik", b: "w2", kind: "mtls" },
+  // The operator hands jobs to its workers, over their heads.
+  { a: "operator", b: "w1", kind: "mtls", via: [[746, 201], [806, 201]] },
+  { a: "operator", b: "w2", kind: "mtls", via: [[758, 194], [898, 194]] },
   { a: "core", b: "signin", kind: "mtls" },
   { a: "core", b: "pg", kind: "mtls" },
   { a: "core", b: "dolt", kind: "mtls" },

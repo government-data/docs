@@ -41,6 +41,7 @@ jobs:
         env:
           DOCS_TARGET: public
           DOCS_PUBLIC_URL: https://guide.example.org
+          DOCS_ORG_URL: https://github.com/example-org
         run: |
           rm -rf dist
           pnpm run build

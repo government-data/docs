@@ -27,6 +27,19 @@ export function publicUrlOf(value: string | undefined): string {
 }
 
 /**
+ * The GitHub organisation the public site's header links to, from
+ * DOCS_ORG_URL: required, and only `https://github.com/<org>`. The
+ * organisation's name lives in that repository variable alone, so a rename
+ * of the organisation changes no file.
+ */
+export function orgUrlOf(value: string | undefined): string {
+  if (!value) throw new Error("DOCS_TARGET=public needs DOCS_ORG_URL (https://github.com/<org>)");
+  const match = /^https:\/\/github\.com\/([A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?)\/?$/.exec(value);
+  if (!match) throw new Error(`DOCS_ORG_URL must be https://github.com/<org>, not "${value}"`);
+  return `https://github.com/${match[1]}`;
+}
+
+/**
  * The pages the public site leaves out, by id in the default locale; their
  * translations go with them. The installation keeps every page. A page
  * listed here leaves the sidebar, the printed book and the sitemap, and

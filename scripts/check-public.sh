@@ -10,7 +10,8 @@
 # - no page or script links or fetches /docs/ or /api/ (the installation's
 #   base and the application's API);
 # - every page has a canonical link under <site>;
-# - no page of EXCLUDED_FROM_PUBLIC (src/target/index.ts) is built.
+# - no page of EXCLUDED_FROM_PUBLIC (src/target/index.ts) is built;
+# - the header links to a GitHub organisation (DOCS_ORG_URL).
 set -euo pipefail
 
 dist=${1:?usage: $0 <dist> <site>}
@@ -52,6 +53,9 @@ for id in $excluded; do
     fail "a page or the sitemap links $id, which the public site leaves out"
   fi
 done
+
+grep -qE 'href="https://github\.com/[A-Za-z0-9-]+"' "$dist/404.html" ||
+  fail "the header does not link to the GitHub organisation (DOCS_ORG_URL)"
 
 [ "$failed" = 0 ] && echo "public site checks passed ($dist, $site)"
 exit "$failed"

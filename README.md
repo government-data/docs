@@ -42,17 +42,21 @@ One build of the same pages, chosen by `DOCS_TARGET`:
   installation, at `/docs/`, with the application's menu in the header and
   nginx's headers.
 - `public`: the public site, at the root of `DOCS_PUBLIC_URL` (an https
-  origin), with Starlight's theme and language selectors, its CSP in a
+  origin), with Starlight's theme and language selectors, a GitHub link
+  to the organisation at `DOCS_ORG_URL` (`https://github.com/<org>`), its CSP in a
   `<meta>` tag, a sitemap and canonical links, and without the pages in
   `EXCLUDED_FROM_PUBLIC`; links to those pages become plain text.
 
 ```sh
-DOCS_TARGET=public DOCS_PUBLIC_URL=https://guide.example.org pnpm build
+DOCS_TARGET=public DOCS_PUBLIC_URL=https://guide.example.org \
+  DOCS_ORG_URL=https://github.com/example-org pnpm build
 scripts/check-public.sh dist https://guide.example.org
 ```
 
 The site's address lives only in the repository variable `DOCS_PUBLIC_URL`:
-no file names it, and `scripts/check-public.sh` fails if one does.
+no file names it, and `scripts/check-public.sh` fails if one does. The
+organisation's address lives only in `DOCS_ORG_URL`, so renaming the
+organisation is a change of that variable.
 
 ## The image and the module
 

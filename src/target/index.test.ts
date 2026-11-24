@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isExcluded, publicUrlOf, sidebarWithout, targetOf, type SidebarItem } from "./index";
+import { isExcluded, orgUrlOf, publicUrlOf, sidebarWithout, targetOf, type SidebarItem } from "./index";
 import rehypeUnlink, { pagePathOf, targetIdOf } from "./unlink";
 
 describe("targetOf", () => {
@@ -19,6 +19,20 @@ describe("publicUrlOf", () => {
     expect(() => publicUrlOf(undefined)).toThrow();
     expect(() => publicUrlOf("http://guide.example.org")).toThrow();
     expect(() => publicUrlOf("https://example.org/docs/")).toThrow();
+  });
+});
+
+describe("orgUrlOf", () => {
+  it("takes a GitHub organisation's URL only", () => {
+    expect(orgUrlOf("https://github.com/example-org")).toBe("https://github.com/example-org");
+    expect(orgUrlOf("https://github.com/example-org/")).toBe("https://github.com/example-org");
+    expect(() => orgUrlOf(undefined)).toThrow();
+    expect(() => orgUrlOf("")).toThrow();
+    expect(() => orgUrlOf("http://github.com/example-org")).toThrow();
+    expect(() => orgUrlOf("https://github.com/")).toThrow();
+    expect(() => orgUrlOf("https://github.com/example-org/docs")).toThrow();
+    expect(() => orgUrlOf("https://gitlab.com/example-org")).toThrow();
+    expect(() => orgUrlOf("https://github.com/-org")).toThrow();
   });
 });
 

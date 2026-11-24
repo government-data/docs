@@ -213,7 +213,12 @@ export default defineConfig({
             {
               label: "Edge and identity",
               translations: { es: "Entrada e identidad" },
-              items: ["guide/stack/traefik", "guide/stack/identity"],
+              items: ["guide/stack/traefik", "guide/stack/identity", "guide/stack/mtls"],
+            },
+            {
+              label: "Data",
+              translations: { es: "Datos" },
+              items: ["guide/stack/postgresql", "guide/stack/dolt", "guide/stack/rustfs"],
             },
           ],
         },

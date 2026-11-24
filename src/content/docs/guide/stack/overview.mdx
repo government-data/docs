@@ -71,10 +71,11 @@ brings it, how it talks to the rest and where its data lives.
 - **Platform:** the [Quality Data core](../core/), and [Docker
   Compose](../docker-compose/), which runs every module.
 - **Edge and identity:** [Traefik](../traefik/), the one entry point; the
-  core's [OpenID Connect identity provider](../identity/); mutual TLS with the installation's own
+  core's [OpenID Connect identity provider](../identity/); [mutual TLS](../mtls/) with the installation's own
   certificate authority.
-- **Data:** PostgreSQL, the platform's database; Dolt, the versioned rules
-  catalog; RustFS, the lake's storage; Apache Iceberg, the lake's table
+- **Data:** [PostgreSQL](../postgresql/), the platform's database;
+  [Dolt](../dolt/), the versioned rules catalog; [RustFS](../rustfs/), the
+  lake's storage; Apache Iceberg, the lake's table
   format.
 - **Processing:** Trino, the one SQL engine; the orchestrator and its
   workers.

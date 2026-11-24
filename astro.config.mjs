@@ -199,6 +199,13 @@ export default defineConfig({
           ],
         },
         {
+          // What an installation runs, one technology per page, for its
+          // administrators and technical reviewers.
+          label: "Technology stack",
+          translations: { es: "Stack tecnológico" },
+          items: ["guide/stack/overview"],
+        },
+        {
           label: "Method",
           translations: { es: "Método" },
           items: ["guide/methodology", "guide/indicators", "guide/assumptions"],

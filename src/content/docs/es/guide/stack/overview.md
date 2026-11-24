@@ -1,0 +1,88 @@
+---
+title: Stack tecnológico
+description: Cada tecnología sobre la que está construido Quality Data, qué hace cada una, qué módulo la trae y cómo se comunican las partes.
+sidebar:
+  label: Visión general
+---
+
+**Para quién:** administradores y personal técnico que operan una
+instalación o la revisan: qué corre en sus servidores, para qué sirve cada
+parte y dónde quedan sus datos. Nada de esto hace falta para escribir
+reglas o leer un dashboard.
+
+Esta sección describe la arquitectura de Quality Data tal como está
+diseñada. Algunas partes todavía se están desplegando; [Estado de la
+implementación](#estado-de-la-implementación), al final de esta página,
+dice cuáles.
+
+## Una instalación, una organización
+
+Una instalación es el conjunto de servidores donde una organización corre
+Quality Data. Sirve solo a esa organización: una instalación no se
+comparte entre organizaciones y ningún dato sale de ella, salvo lo que la
+propia organización exporte. Todo corre como contenedores en servidores que
+la organización controla, en su centro de datos o en su propia cuenta de
+nube.
+
+## Módulos
+
+Una instalación está hecha de **módulos**. Un módulo es un conjunto de
+contenedores con un manifiesto que dice qué ofrece a los demás, qué
+necesita de ellos, por dónde entran las personas y cuáles son sus datos. El
+núcleo nunca nombra un módulo: lee lo que cada uno declara. Quitar un
+módulo conserva sus datos; solo una purga explícita los borra, después de
+una copia de seguridad.
+
+| Módulo          | Qué es                                                                                          | Tecnologías principales              |
+| --------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------ |
+| `quality-data`  | El núcleo: la aplicación, el inicio de sesión, los permisos, la auditoría, la configuración y el catálogo de reglas | Rust, Traefik, PostgreSQL, Dolt      |
+| `lake-rustfs`   | El lago de datos, donde los datos copiados y los resultados de calidad se guardan como tablas   | RustFS, Apache Iceberg               |
+| `query-trino`   | El motor SQL que lee las fuentes y el lago y ejecuta las reglas de calidad                      | Trino                                |
+| `orchestrator`  | El operador que programa los trabajos, y los workers que los ejecutan                           | El orquestador y sus workers         |
+| `bi-superset`   | Los dashboards de los indicadores de calidad, leídos del lago                                   | Apache Superset, Valkey              |
+| `observability` | La operación: logs técnicos, métricas y los dashboards de auditoría                             | Grafana, Loki, Mimir, Alloy          |
+| `docs`          | Esta guía, servida dentro de la instalación                                                     | Un sitio estático                    |
+
+Los módulos dependen de **capacidades**, no unos de otros: el módulo del
+lago ofrece la capacidad "lago" (el protocolo S3 y el catálogo Iceberg), y
+el de consultas ofrece "consulta SQL". Otro módulo que ofrezca la misma
+capacidad, con los mismos protocolos, podría tomar su lugar.
+
+## Las tecnologías
+
+Cada página dice qué hace la tecnología en Quality Data, qué módulo la
+trae, cómo se comunica con el resto y dónde quedan sus datos.
+
+- **Plataforma:** el núcleo de Quality Data, y Docker Compose, que corre
+  cada módulo.
+- **Entrada e identidad:** Traefik, la única puerta de entrada; el
+  proveedor de identidad OpenID Connect del núcleo; TLS mutuo con la
+  autoridad certificadora propia de la instalación.
+- **Datos:** PostgreSQL, la base de datos de la plataforma; Dolt, el
+  catálogo de reglas versionado; RustFS, el almacenamiento del lago; Apache
+  Iceberg, el formato de tablas del lago.
+- **Procesamiento:** Trino, el único motor SQL; el orquestador y sus
+  workers.
+- **Indicadores:** Apache Superset, con Valkey como caché.
+- **Operación:** Grafana, Loki, Mimir y Alloy.
+- **Actualizaciones:** el agente de la instalación, `qd`; el índice de
+  versiones firmado y los servicios de AWS con que se publica.
+
+## Estado de la implementación
+
+La versión actual corre parte de esta arquitectura. Estas partes todavía se
+están desplegando:
+
+- **Trino como único motor.** Trino está reemplazando al motor que ejecuta
+  la extracción y las reglas en la versión actual. Durante un tiempo ambos
+  corren lado a lado sobre los mismos cortes y se comparan sus resultados;
+  Trino toma el relevo cuando coinciden.
+- **Workers aparte del orquestador.** El orquestador pasa a ser el operador
+  que programa y sigue los trabajos; los workers que los ejecutan pasan a
+  ser una parte aparte que escala por sí sola.
+- **Gold como registro de los resultados.** Los resultados de calidad pasan
+  a las tablas gold del lago. Hasta entonces los guarda la base de datos de
+  la plataforma.
+- **Apache Superset y Valkey.** Los dashboards de indicadores en Superset
+  están diseñados y todavía no se entregan; mientras tanto, la aplicación
+  dibuja sus propias gráficas.

@@ -1,6 +1,6 @@
 ---
 title: Stack tecnológico
-description: Cada tecnología sobre la que está construido Quality Data, qué hace cada una, qué módulo la trae y cómo se comunican las partes.
+description: Cada tecnología sobre la que está construida la plataforma Government Data, qué hace cada una, qué módulo la trae y cómo se comunican las partes.
 sidebar:
   label: Visión general
 ---
@@ -12,15 +12,16 @@ instalación o la revisan: qué corre en sus servidores, para qué sirve cada
 parte y dónde quedan sus datos. Nada de esto hace falta para escribir
 reglas o leer un dashboard.
 
-Esta sección describe la arquitectura de Quality Data tal como está
-diseñada. Algunas partes todavía se están desplegando; [Estado de la
+Esta sección describe el stack de la plataforma Government Data: su
+arquitectura tal como está diseñada, para cada aplicación que corre en
+ella. Algunas partes todavía se están desplegando; [Estado de la
 implementación](#estado-de-la-implementación), al final de esta página,
 dice cuáles.
 
 ## Una instalación, una organización
 
 Una instalación es el conjunto de servidores donde una organización corre
-Quality Data. Sirve solo a esa organización: una instalación no se
+Government Data. Sirve solo a esa organización: una instalación no se
 comparte entre organizaciones y ningún dato sale de ella, salvo lo que la
 propia organización exporte. Todo corre como contenedores en servidores que
 la organización controla, en su centro de datos o en su propia cuenta de
@@ -37,7 +38,7 @@ una copia de seguridad.
 
 | Módulo          | Qué es                                                                                          | Tecnologías principales              |
 | --------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------ |
-| `quality-data`  | El núcleo: la aplicación, el inicio de sesión, los permisos, la auditoría, la configuración y el catálogo de reglas | Rust, Traefik, PostgreSQL, Dolt      |
+| `quality-data`  | El núcleo: el inicio de sesión, los permisos, la auditoría, la configuración, y la aplicación Quality Data con su catálogo de reglas | Rust, Traefik, PostgreSQL, Dolt      |
 | `lake-rustfs`   | El lago de datos, donde los datos copiados y los resultados de calidad se guardan como tablas   | RustFS, Apache Iceberg               |
 | `query-trino`   | El motor SQL que lee las fuentes y el lago y ejecuta las reglas de calidad                      | Trino                                |
 | `orchestrator`  | El operador que programa los trabajos, y los workers que los ejecutan                           | El orquestador y sus workers         |
@@ -67,10 +68,10 @@ le reporta al núcleo nombres y conteos.
 
 ## Las tecnologías
 
-Cada página dice qué hace la tecnología en Quality Data, qué módulo la
+Cada página dice qué hace la tecnología en Government Data, qué módulo la
 trae, cómo se comunica con el resto y dónde quedan sus datos.
 
-- **Plataforma:** el [núcleo de Quality Data](../core/), y [Docker
+- **Plataforma:** el [núcleo de la plataforma](../core/), cuyo paquete es Quality Data, y [Docker
   Compose](../docker-compose/), que corre cada módulo.
 - **Entrada e identidad:** [Traefik](../traefik/), la única puerta de
   entrada; el [proveedor de identidad OpenID Connect](../identity/) del

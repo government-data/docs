@@ -1,8 +1,8 @@
 ---
-title: El núcleo de Quality Data
-description: La aplicación central, escrita en Rust con una aplicación web en SolidJS, dueña de los objetos de calidad, que compila cada trabajo y lleva el inicio de sesión, los permisos y la auditoría.
+title: El núcleo de la plataforma (Quality Data)
+description: El núcleo de Government Data, cuyo paquete es Quality Data, escrita en Rust con una aplicación web en SolidJS, dueña de los objetos de calidad, que compila cada trabajo y lleva el inicio de sesión, los permisos y la auditoría.
 sidebar:
-  label: Núcleo de Quality Data
+  label: Núcleo de la plataforma
 ---
 
 **Módulo:** `quality-data`. Toda instalación lo tiene; todos los demás
@@ -10,8 +10,9 @@ módulos lo necesitan.
 
 ## Qué hace
 
-El núcleo es la aplicación que usan las personas. Es dueño de los objetos
-de negocio de la calidad de datos: fuentes, datasets y sus mapeos, las
+El núcleo es la base de la plataforma Government Data. Su paquete se llama
+Quality Data, por la aplicación de calidad de datos que lleva, que es
+dueña de los objetos de negocio de la calidad de datos: fuentes, datasets y sus mapeos, las
 reglas y su historial, programaciones, cortes y las colas de remediación.
 Alrededor de ellos lleva lo que comparte toda la plataforma:
 

@@ -1,6 +1,8 @@
 # docs
 
-The Quality Data user guide, as the `docs` module: a static site built with
+The Government Data user guide, as the `docs` module: the platform, its
+technology stack, and Quality Data, its data quality application. A static
+site built with
 [Astro Starlight](https://starlight.astro.build/) and served by every
 installation at `/docs/`, behind the installation's sign-in. The same pages
 are also published as a public site on GitHub Pages (see "Two outputs").

@@ -1,8 +1,8 @@
 ---
-title: The Quality Data core
-description: The core application, written in Rust with a SolidJS web app, that owns the quality objects, compiles every job and holds sign-in, permissions and audit.
+title: The platform core (Quality Data)
+description: The core of Government Data, whose package is Quality Data, written in Rust with a SolidJS web app, that owns the quality objects, compiles every job and holds sign-in, permissions and audit.
 sidebar:
-  label: Quality Data core
+  label: Platform core
 ---
 
 **Module:** `quality-data`. Every installation has it; every other module
@@ -10,8 +10,9 @@ needs it.
 
 ## What it does
 
-The core is the application people use. It owns the business objects of
-data quality: sources, datasets and their mappings, the rules and their
+The core is the base of the Government Data platform. Its package is
+called Quality Data, after the data quality application it carries, which
+owns the business objects of data quality: sources, datasets and their mappings, the rules and their
 history, schedules, cuts and the remediation queues. Around them it holds
 what the whole platform shares:
 

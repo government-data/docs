@@ -1,7 +1,8 @@
 ---
-title: Introducción
-description: Qué es Quality Data, por qué existe, quién lo usa, sus partes y a dónde ir después según quién lee.
+title: Quality Data
+description: Qué es Quality Data, la aplicación de calidad de datos de Government Data, por qué existe, quién lo usa, sus partes y a dónde ir después según quién lee.
 sidebar:
+  label: Introducción
   order: 1
 ---
 
@@ -10,7 +11,8 @@ tablas de las bases de datos que la organización ya tiene, revisa cada
 registro con reglas que escriben quienes conocen los datos y convierte los
 resultados en indicadores que se pueden seguir y en colas de datos por
 corregir. Solo lee: el dato se corrige donde vive, y la medición siguiente
-muestra la corrección.
+muestra la corrección. Es una de las aplicaciones de la plataforma
+[Government Data](../platform/).
 
 ## Por qué existe
 
@@ -66,8 +68,8 @@ auditoría con su motivo.
   actualizaciones.
 
 Los indicadores que solo tienen sentido en un sector regulado son una parte
-opcional del producto; esta guía describe el núcleo, que sirve a cualquier
-organización, y un [módulo opcional](../sector-colombia-finance/) al final
+opcional del producto; esta parte de la guía describe Quality Data tal como
+sirve a cualquier organización, y un [módulo opcional](../sector-colombia-finance/) al final
 cubre las entidades financieras vigiladas en Colombia.
 
 ## A dónde ir después

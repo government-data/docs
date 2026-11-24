@@ -74,12 +74,12 @@ export default defineConfig({
     }),
   },
 
-  // There is no home page: the documentation starts at the guide's overview.
+  // There is no home page: the documentation starts at the platform's page.
   // A static build writes each as a page with a meta refresh and a canonical
   // link (no server-side redirects on GitHub Pages).
   redirects: {
-    "/": `${root}guide/overview/`,
-    "/es/": `${root}es/guide/overview/`,
+    "/": `${root}guide/platform/`,
+    "/es/": `${root}es/guide/platform/`,
   },
   integrations: [
     {
@@ -90,9 +90,9 @@ export default defineConfig({
       },
     },
     starlight({
-      title: "Quality Data",
-      // Only the icon in the header: the title stays for the tab and readers.
-      logo: { src: "./src/assets/logo.svg", replacesTitle: true },
+      // The platform's name, beside its icon in the header and in the tab.
+      title: "Government Data",
+      logo: { src: "./src/assets/logo.svg" },
       favicon: "/favicon.ico",
       // English at the root (/docs/, or / in public) and Spanish at es/: the
       // app's menu (or, in public, Starlight's selector) links to the
@@ -129,73 +129,92 @@ export default defineConfig({
       // list does not show in the sidebar. The public site drops the pages
       // it leaves out.
       sidebar: sidebarWithout([
-        "guide/overview",
-        "guide/concepts",
+        "guide/platform",
         {
-          label: "Getting started",
-          translations: { es: "Primeros pasos" },
+          // Quality Data, the data quality application: its own guide.
+          label: "Quality Data",
           items: [
-            "guide/start-admin",
-            "guide/start-steward",
-            "guide/start-analyst",
-            "guide/start-reader",
-            "guide/rule-tutorial",
-          ],
-        },
-        {
-          label: "Tasks",
-          translations: { es: "Tareas" },
-          items: [
+            "guide/overview",
+            "guide/concepts",
             {
-              label: "Data",
-              translations: { es: "Datos" },
-              items: ["guide/connect-a-source", "guide/map-a-table", "guide/run-cuts"],
-            },
-            {
-              label: "Rules",
-              translations: { es: "Reglas" },
+              label: "Getting started",
+              translations: { es: "Primeros pasos" },
               items: [
-                "guide/write-a-rule",
-                "guide/share-rules",
-                "guide/rules-to-main",
-                "guide/rule-history",
-                "guide/export-import-rules",
+                "guide/start-admin",
+                "guide/start-steward",
+                "guide/start-analyst",
+                "guide/start-reader",
+                "guide/rule-tutorial",
               ],
             },
             {
-              label: "Results",
-              translations: { es: "Resultados" },
-              items: ["guide/read-the-dashboard", "guide/work-a-queue"],
-            },
-            {
-              label: "Administration",
-              translations: { es: "Administración" },
+              label: "Tasks",
+              translations: { es: "Tareas" },
               items: [
-                "guide/manage-access",
-                "guide/personal-data-and-audit",
-                "guide/administer-the-installation",
+                {
+                  label: "Data",
+                  translations: { es: "Datos" },
+                  items: ["guide/connect-a-source", "guide/map-a-table", "guide/run-cuts"],
+                },
+                {
+                  label: "Rules",
+                  translations: { es: "Reglas" },
+                  items: [
+                    "guide/write-a-rule",
+                    "guide/share-rules",
+                    "guide/rules-to-main",
+                    "guide/rule-history",
+                    "guide/export-import-rules",
+                  ],
+                },
+                {
+                  label: "Results",
+                  translations: { es: "Resultados" },
+                  items: ["guide/read-the-dashboard", "guide/work-a-queue"],
+                },
+                {
+                  label: "Administration",
+                  translations: { es: "Administración" },
+                  items: [
+                    "guide/manage-access",
+                    "guide/personal-data-and-audit",
+                    "guide/administer-the-installation",
+                  ],
+                },
               ],
             },
-          ],
-        },
-        {
-          label: "Reference",
-          translations: { es: "Referencia" },
-          items: [
-            "guide/rule-language",
-            "guide/rule-patterns",
-            "guide/rule-files",
-            "guide/formulas",
-            "guide/charts",
             {
-              // Each dashboard chart drawn with made-up data, beside the
-              // page that defines them.
-              label: "Chart examples",
-              translations: { es: "Gráficas de ejemplo" },
-              collapsed: true,
-              items: [{ autogenerate: { directory: "charts" } }],
+              label: "Reference",
+              translations: { es: "Referencia" },
+              items: [
+                "guide/rule-language",
+                "guide/rule-patterns",
+                "guide/rule-files",
+                "guide/formulas",
+                "guide/charts",
+                {
+                  // Each dashboard chart drawn with made-up data, beside the
+                  // page that defines them.
+                  label: "Chart examples",
+                  translations: { es: "Gráficas de ejemplo" },
+                  collapsed: true,
+                  items: [{ autogenerate: { directory: "charts" } }],
+                },
+                "guide/permissions",
+              ],
             },
-            "guide/permissions",
+            {
+              label: "Method",
+              translations: { es: "Método" },
+              items: ["guide/methodology", "guide/indicators", "guide/assumptions"],
+            },
+            {
+              // A sector's own material, apart from the rest of the guide, which
+              // applies to any organisation.
+              label: "Optional module",
+              translations: { es: "Módulo opcional" },
+              items: ["guide/sector-colombia-finance"],
+            },
           ],
         },
         {
@@ -231,18 +250,6 @@ export default defineConfig({
               items: ["guide/stack/trino", "guide/stack/orchestrator"],
             },
           ],
-        },
-        {
-          label: "Method",
-          translations: { es: "Método" },
-          items: ["guide/methodology", "guide/indicators", "guide/assumptions"],
-        },
-        {
-          // A sector's own material, apart from the rest of the guide, which
-          // applies to any organisation.
-          label: "Optional module",
-          translations: { es: "Módulo opcional" },
-          items: ["guide/sector-colombia-finance"],
         },
         // The whole documentation on one page, to print or save as a PDF
         // (print.mdx, src/components/PrintBook.astro): the pages above in this

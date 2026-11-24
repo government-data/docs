@@ -257,6 +257,7 @@ export function mount(root: HTMLElement, scenarios: Scenario[]) {
       pauseBtn.disabled = true;
       nextBtn.disabled = true;
       readout.textContent = `${scenario.label[lang]} · ${T("done", "terminado")}`;
+      hint.textContent = words.hint;
     } catch (e) {
       if (!(e instanceof Cancelled)) throw e;
     }

@@ -5,6 +5,8 @@ sidebar:
   label: Visión general
 ---
 
+import ArchitectureDiagram from "../../../../../components/ArchitectureDiagram.astro";
+
 **Para quién:** administradores y personal técnico que operan una
 instalación o la revisan: qué corre en sus servidores, para qué sirve cada
 parte y dónde quedan sus datos. Nada de esto hace falta para escribir
@@ -47,6 +49,21 @@ Los módulos dependen de **capacidades**, no unos de otros: el módulo del
 lago ofrece la capacidad "lago" (el protocolo S3 y el catálogo Iceberg), y
 el de consultas ofrece "consulta SQL". Otro módulo que ofrezca la misma
 capacidad, con los mismos protocolos, podría tomar su lugar.
+
+## Arquitectura
+
+Cómo encajan los módulos en los servidores de una instalación. Cada caja
+es una parte de un módulo; cada línea, una conexión y su tipo.
+
+<ArchitectureDiagram lang="es" />
+
+Un corte de calidad va así: el operador lo dispara
+según su programación; el núcleo compila las sentencias del corte a partir
+de las reglas de la línea principal del catálogo y las firma; un worker las
+trae, verifica la firma y envía cada una a Trino con un token que solo vale
+para ese trabajo; Trino lee la fuente, escribe la copia en bronze, deriva
+silver, evalúa las reglas y escribe los resultados en gold. El worker solo
+le reporta al núcleo nombres y conteos.
 
 ## Las tecnologías
 

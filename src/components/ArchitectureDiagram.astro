@@ -1,0 +1,271 @@
+---
+// The architecture of one installation, drawn as an inline SVG at build time:
+// the modules with their main parts, Traefik in front, the lake below, the
+// organisation's databases read by Trino, and the agent that pulls updates
+// from AWS. Its colours are Starlight's, so it follows the light and dark
+// themes, and its text is real text. A narrow column scrolls it sideways
+// inside its own frame. The page passes its language: `lang="es"`.
+//
+// Only what an administrator needs: no addresses, ports or names of a real
+// installation.
+import { architectureTexts, type Lang } from "./architecture";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = architectureTexts[lang];
+const head = `arch-head-${lang}`;
+
+// A box: x, y, width, height, title, an optional second line, a tone class.
+type Box = [number, number, number, number, string, string?, string?];
+const parts: Box[] = [
+  [32, 225, 143, 44, t.app, t.appSub],
+  [185, 225, 133, 44, t.identity, t.identitySub],
+  [32, 282, 143, 44, "PostgreSQL", t.postgresSub],
+  [185, 282, 133, 44, "Dolt", t.doltSub],
+  [357, 225, 191, 44, t.operator, t.operatorSub],
+  [357, 282, 191, 44, t.workers, t.workersSub],
+  [32, 405, 171, 42, "Apache Superset", t.supersetSub],
+  [32, 455, 171, 42, "Valkey", t.valkeySub],
+  [242, 405, 171, 42, "Grafana", t.grafanaSub],
+  [242, 455, 171, 42, "Loki · Mimir", t.lokiSub],
+  [32, 690, 325, 44, "RustFS", t.rustfsSub],
+  [370, 690, 318, 44, t.catalog, t.catalogSub],
+  [32, 748, 210, 46, "bronze", t.bronzeSub],
+  [255, 748, 210, 46, "silver", t.silverSub],
+  [478, 748, 210, 46, "gold", t.goldSub, "arch__part--gold"],
+];
+
+// A module's frame: x, y, width, height, name, a tone (Starlight's colour).
+type Frame = [number, number, number, number, string, string];
+const frames: Frame[] = [
+  [20, 195, 310, 150, t.core, "accent"],
+  [345, 195, 215, 150, "orchestrator", "orange"],
+  [575, 195, 125, 60, "docs", "gray"],
+  [20, 375, 195, 145, "bi-superset", "purple"],
+  [230, 375, 195, 145, "observability", "blue"],
+  [20, 550, 680, 70, "query-trino", "green"],
+  [20, 660, 680, 150, "lake-rustfs", "red"],
+];
+const tone = (name: string) =>
+  name === "gray"
+    ? "--tone: var(--sl-color-gray-4); --tone-low: var(--sl-color-gray-6); --tone-high: var(--sl-color-gray-2)"
+    : `--tone: var(--sl-color-${name}); --tone-low: var(--sl-color-${name}-low); --tone-high: var(--sl-color-${name}-high)`;
+
+// A connection: its path, its kind (a class), its label and where it goes.
+type Line = [string, "web" | "mtls" | "data" | "pull", string?, number?, number?, string?];
+const lines: Line[] = [
+  ["M95 75 V115", "web", t.https, 102, 100],
+  ["M380 45 H480", "pull", t.pulls, 430, 37, "middle"],
+  ["M285 75 V115", "mtls", t.mtls, 292, 100],
+  ["M175 161 V195", "web"],
+  ["M452 161 V195", "web"],
+  ["M637 161 V195", "web"],
+  ["M337 161 V375", "web"],
+  ["M20 150 H11 V447 H20", "web"],
+  ["M357 304 H330", "mtls"],
+  ["M440 326 V550", "mtls", t.perJob, 447, 538],
+  ["M117 520 V550", "mtls", t.readsGold, 124, 538],
+  ["M585 550 V475", "mtls", t.reads, 592, 520],
+  ["M360 620 V660", "data", t.readsWrites, 372, 645],
+];
+const legend: [Line[1], string][] = [
+  ["web", t.legendWeb],
+  ["mtls", t.legendMtls],
+  ["data", t.legendData],
+  ["pull", t.legendPull],
+];
+---
+
+<figure class="arch not-content">
+  <div class="arch__scroll">
+    <svg
+      viewBox="0 0 720 910"
+      role="img"
+      aria-labelledby={`arch-title-${lang} arch-desc-${lang}`}
+      font-family="var(--sl-font)"
+    >
+      <title id={`arch-title-${lang}`}>{t.title}</title>
+      <desc id={`arch-desc-${lang}`}>{t.caption}</desc>
+      <defs>
+        <marker id={head} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+          <path class="arch__head" d="M0 0 L10 5 L0 10 z" />
+        </marker>
+      </defs>
+
+      <rect class="arch__outside" x="20" y="15" width="150" height="60" rx="8" />
+      <text class="arch__title" x="95" y="41" text-anchor="middle">{t.people}</text>
+      <text class="arch__sub" x="95" y="58" text-anchor="middle">{t.peopleSub}</text>
+
+      <rect class="arch__outside" x="190" y="15" width="190" height="60" rx="8" />
+      <text class="arch__title" x="285" y="41" text-anchor="middle">{t.agent}</text>
+      <text class="arch__sub" x="285" y="58" text-anchor="middle">{t.agentSub}</text>
+
+      <rect class="arch__aws" x="480" y="15" width="220" height="60" rx="8" />
+      <text class="arch__title" x="590" y="35" text-anchor="middle">{t.aws}</text>
+      <text class="arch__sub" x="590" y="51" text-anchor="middle">{t.awsSub}</text>
+      <text class="arch__sub" x="590" y="66" text-anchor="middle">{t.awsSub2}</text>
+
+      <path class="arch__installation" d="M5 90 H180 V5 H470 V90 H715 V840 H5 Z" />
+      <text class="arch__frame-label" x="700" y="832" text-anchor="end">{t.installation}</text>
+
+      <rect class="arch__edge" x="20" y="115" width="680" height="46" rx="8" />
+      <text class="arch__title" x="34" y="143">Traefik</text>
+      <text class="arch__sub" x="96" y="143">{t.traefikSub}</text>
+
+      {frames.map(([x, y, w, h, name, c]) => (
+        <g style={tone(c)}>
+          <rect class="arch__frame" x={x} y={y} width={w} height={h} rx="10" />
+          <text class="arch__frame-label" x={x + 12} y={y + 20}>{name}</text>
+        </g>
+      ))}
+      <text class="arch__title" x="360" y="582" text-anchor="middle">Trino</text>
+      <text class="arch__sub" x="360" y="600" text-anchor="middle">{t.trinoSub}</text>
+      <text class="arch__sub" x="637" y="245" text-anchor="middle">{t.docsSub}</text>
+      <text class="arch__note" x="327" y="512" text-anchor="middle">{t.alloy}</text>
+
+      <rect class="arch__outside" x="470" y="405" width="230" height="70" rx="8" />
+      <text class="arch__title" x="585" y="435" text-anchor="middle">{t.sources}</text>
+      <text class="arch__sub" x="585" y="453" text-anchor="middle">{t.sourcesSub}</text>
+
+      {parts.map(([x, y, w, h, title, sub, extra]) => (
+        <g>
+          <rect class:list={["arch__part", extra]} x={x} y={y} width={w} height={h} rx="6" />
+          <text class="arch__title" x={x + w / 2} y={y + (sub ? h / 2 - 2 : h / 2 + 5)} text-anchor="middle">{title}</text>
+          {sub && <text class="arch__sub" x={x + w / 2} y={y + h / 2 + 13} text-anchor="middle">{sub}</text>}
+        </g>
+      ))}
+
+      {lines.map(([d, kind, label, lx, ly, anchor]) => (
+        <g>
+          <path class={`arch__line arch__line--${kind}`} d={d} marker-end={`url(#${head})`} />
+          {label && <text class="arch__label" x={lx} y={ly} text-anchor={anchor ?? "start"}>{label}</text>}
+        </g>
+      ))}
+      <path class="arch__line arch__line--data" d="M360 660 V620" marker-end={`url(#${head})`} />
+
+      {legend.map(([kind, text], k) => (
+        <g transform={`translate(${20 + (k % 2) * 350} ${868 + Math.floor(k / 2) * 26})`}>
+          <path class={`arch__line arch__line--${kind}`} d="M0 0 H40" marker-end={`url(#${head})`} />
+          <text class="arch__label" x="50" y="4">{text}</text>
+        </g>
+      ))}
+    </svg>
+  </div>
+  <figcaption class="arch__caption">{t.caption}</figcaption>
+</figure>
+
+<style>
+  .arch {
+    margin: 1.5rem 0 2rem;
+  }
+
+  .arch__scroll {
+    overflow-x: auto;
+  }
+
+  .arch svg {
+    display: block;
+    width: 100%;
+    min-width: 34rem;
+    height: auto;
+  }
+
+  .arch__installation {
+    fill: none;
+    stroke-linejoin: round;
+    stroke: var(--sl-color-gray-4);
+    stroke-width: 1.5;
+  }
+
+  .arch__outside,
+  .arch__aws {
+    fill: var(--sl-color-gray-6);
+    stroke: var(--sl-color-gray-4);
+  }
+
+  .arch__aws {
+    stroke-dasharray: 5 4;
+  }
+
+  .arch__edge {
+    fill: var(--sl-color-gray-6);
+    stroke: var(--sl-color-gray-3);
+  }
+
+  .arch__frame {
+    fill: var(--tone-low);
+    stroke: var(--tone);
+    stroke-width: 1.5;
+  }
+
+  .arch__frame-label {
+    fill: var(--tone-high, var(--sl-color-gray-2));
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+
+  .arch__part {
+    fill: var(--sl-color-bg);
+    stroke: var(--sl-color-gray-5);
+  }
+
+  .arch__part--gold {
+    stroke: var(--sl-color-orange);
+    stroke-width: 2.5;
+  }
+
+  .arch__title {
+    fill: var(--sl-color-white);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .arch__sub,
+  .arch__note {
+    fill: var(--sl-color-gray-2);
+    font-size: 11px;
+  }
+
+  .arch__note {
+    font-style: italic;
+  }
+
+  .arch__label {
+    fill: var(--sl-color-gray-2);
+    font-size: 11px;
+  }
+
+  .arch__line {
+    fill: none;
+    stroke: var(--sl-color-gray-3);
+    stroke-width: 1.5;
+  }
+
+  .arch__line--mtls {
+    stroke-dasharray: 6 4;
+  }
+
+  .arch__line--data {
+    stroke-width: 3.5;
+  }
+
+  .arch__line--pull {
+    stroke-dasharray: 1.5 4;
+    stroke-linecap: round;
+    stroke-width: 2.5;
+  }
+
+  .arch__head {
+    fill: var(--sl-color-gray-3);
+  }
+
+  .arch__caption {
+    margin-top: 0.5rem;
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-xs);
+  }
+</style>

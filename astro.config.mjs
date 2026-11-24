@@ -203,7 +203,19 @@ export default defineConfig({
           // administrators and technical reviewers.
           label: "Technology stack",
           translations: { es: "Stack tecnológico" },
-          items: ["guide/stack/overview"],
+          items: [
+            "guide/stack/overview",
+            {
+              label: "Platform",
+              translations: { es: "Plataforma" },
+              items: ["guide/stack/core", "guide/stack/docker-compose"],
+            },
+            {
+              label: "Edge and identity",
+              translations: { es: "Entrada e identidad" },
+              items: ["guide/stack/traefik", "guide/stack/identity"],
+            },
+          ],
         },
         {
           label: "Method",

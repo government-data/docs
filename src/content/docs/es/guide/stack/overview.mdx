@@ -70,10 +70,11 @@ le reporta al núcleo nombres y conteos.
 Cada página dice qué hace la tecnología en Quality Data, qué módulo la
 trae, cómo se comunica con el resto y dónde quedan sus datos.
 
-- **Plataforma:** el núcleo de Quality Data, y Docker Compose, que corre
-  cada módulo.
-- **Entrada e identidad:** Traefik, la única puerta de entrada; el
-  proveedor de identidad OpenID Connect del núcleo; TLS mutuo con la
+- **Plataforma:** el [núcleo de Quality Data](../core/), y [Docker
+  Compose](../docker-compose/), que corre cada módulo.
+- **Entrada e identidad:** [Traefik](../traefik/), la única puerta de
+  entrada; el [proveedor de identidad OpenID Connect](../identity/) del
+  núcleo; TLS mutuo con la
   autoridad certificadora propia de la instalación.
 - **Datos:** PostgreSQL, la base de datos de la plataforma; Dolt, el
   catálogo de reglas versionado; RustFS, el almacenamiento del lago; Apache

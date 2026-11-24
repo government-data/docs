@@ -9,7 +9,7 @@ sidebar:
 
 ## What it does
 
-Every part of Quality Data runs as a container. Each module ships one
+Every part of Government Data runs as a container. Each module ships one
 Compose file that says which containers it runs, from which images, on
 which networks and with which volumes. The installation's agent,
 [`qd`](../agent/), runs Docker Compose with that file to start, update or

@@ -9,7 +9,7 @@ sidebar:
 
 ## Qué hace
 
-Cada parte de Quality Data corre como un contenedor. Cada módulo trae un
+Cada parte de Government Data corre como un contenedor. Cada módulo trae un
 archivo Compose que dice qué contenedores corre, de qué imágenes, en qué
 redes y con qué volúmenes. El agente de la instalación, [`qd`](../agent/),
 ejecuta Docker Compose con ese archivo para arrancar, actualizar o detener

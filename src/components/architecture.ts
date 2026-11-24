@@ -4,7 +4,7 @@
 export type Lang = "en" | "es";
 
 const en = {
-  title: "The architecture of a Quality Data installation",
+  title: "The architecture of a Government Data installation",
   people: "People",
   peopleSub: "a browser",
   agent: "qd agent",
@@ -14,8 +14,8 @@ const en = {
   awsSub2: "S3 · ECR · KMS · Roles Anywhere",
   installation: "One installation, one organisation",
   traefikSub: "web entry (HTTPS) · internal entry (mutual TLS) · a route per module",
-  core: "quality-data (core)",
-  app: "Application",
+  core: "core: quality-data",
+  app: "Quality Data",
   appSub: "API and web, rules",
   identity: "Sign-in",
   identitySub: "OIDC, permissions, CA",
@@ -58,7 +58,7 @@ const en = {
 type Texts = typeof en;
 
 const es: Texts = {
-  title: "La arquitectura de una instalación de Quality Data",
+  title: "La arquitectura de una instalación de Government Data",
   people: "Personas",
   peopleSub: "un navegador",
   agent: "agente qd",
@@ -68,8 +68,8 @@ const es: Texts = {
   awsSub2: "S3 · ECR · KMS · Roles Anywhere",
   installation: "Una instalación, una organización",
   traefikSub: "entrada web (HTTPS) · entrada interna (TLS mutuo) · una ruta por módulo",
-  core: "quality-data (núcleo)",
-  app: "Aplicación",
+  core: "núcleo: quality-data",
+  app: "Quality Data",
   appSub: "API y web, reglas",
   identity: "Inicio de sesión",
   identitySub: "OIDC, permisos, CA",

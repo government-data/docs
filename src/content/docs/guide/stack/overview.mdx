@@ -1,6 +1,6 @@
 ---
 title: Technology stack
-description: Every technology Quality Data is built on, what each one does, which module brings it, and how the parts talk to each other.
+description: Every technology the Government Data platform is built on, what each one does, which module brings it, and how the parts talk to each other.
 sidebar:
   label: Overview
 ---
@@ -12,13 +12,14 @@ or review it: what runs on its servers, what each part is for, and where
 its data lives. You do not need any of this to write rules or read a
 dashboard.
 
-This section describes Quality Data's architecture as it is designed. Some
+This section describes the stack of the Government Data platform: its
+architecture as it is designed, for every application on it. Some
 parts are still being rolled out; [Implementation
 status](#implementation-status), at the end of this page, says which.
 
 ## One installation, one organisation
 
-An installation is the set of servers where one organisation runs Quality
+An installation is the set of servers where one organisation runs Government
 Data. It serves that organisation alone: there is no sharing of an
 installation between organisations, and no data leaves it except what the
 organisation itself exports. Everything in it runs as containers on
@@ -35,7 +36,7 @@ only an explicit purge deletes it, after a backup.
 
 | Module         | What it is                                                                                | Main technologies                    |
 | -------------- | ----------------------------------------------------------------------------------------- | ------------------------------------ |
-| `quality-data` | The core: the application, sign-in, permissions, audit, settings and the rules catalog    | Rust, Traefik, PostgreSQL, Dolt      |
+| `quality-data` | The core: sign-in, permissions, audit, settings, and the Quality Data application with its rules catalog | Rust, Traefik, PostgreSQL, Dolt      |
 | `lake-rustfs`  | The data lake, where the copied data and the quality results are kept as tables           | RustFS, Apache Iceberg               |
 | `query-trino`  | The SQL engine that reads the sources and the lake and runs the quality rules             | Trino                                |
 | `orchestrator` | The operator that schedules jobs, and the workers that run them                           | The orchestrator and its workers     |
@@ -65,10 +66,10 @@ reports only names and counts back to the core.
 
 ## The technologies
 
-Each page says what the technology does in Quality Data, which module
+Each page says what the technology does in Government Data, which module
 brings it, how it talks to the rest and where its data lives.
 
-- **Platform:** the [Quality Data core](../core/), and [Docker
+- **Platform:** the [platform core](../core/), whose package is Quality Data, and [Docker
   Compose](../docker-compose/), which runs every module.
 - **Edge and identity:** [Traefik](../traefik/), the one entry point; the
   core's [OpenID Connect identity provider](../identity/); [mutual TLS](../mtls/) with the installation's own

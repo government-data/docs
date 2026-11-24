@@ -53,8 +53,8 @@ async function prepare(sim: Sim) {
   state("pg", "maint", T("backup", "respaldo"));
   state("dolt", "maint", T("backup", "respaldo"));
   await wait(1000);
-  state("pg", "up", T("backup checked", "respaldo revisado"));
-  state("dolt", "up", T("backup checked", "respaldo revisado"));
+  state("pg", "up", T("backup checked", "respaldo listo"));
+  state("dolt", "up", T("backup checked", "respaldo listo"));
   log(
     "22:08:00",
     T(

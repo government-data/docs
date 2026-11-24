@@ -30,7 +30,7 @@ export const quality: Scenario = {
         "El operador dispara el corte mensual de «clientes».",
       ),
     );
-    state("operator", "busy", T("fires a cut", "dispara un corte"));
+    state("operator", "busy", T("firing a cut", "dispara corte"));
     await along(sim, ["operator", "traefik", "core"], T("cut due", "corte pendiente"));
     state("operator", "up", T("waiting", "en espera"));
     log(
@@ -46,7 +46,7 @@ export const quality: Scenario = {
     await packet("core", "pg", T("signed bundle", "paquete firmado"));
     state("core", "up", T("compiles SQL", "compila SQL"));
     await packet("w1", "operator", T("lease", "préstamo"));
-    state("w1", "busy", T("job 1 of 3", "trabajo 1 de 3"));
+    state("w1", "busy", T("job 1 of 3", "trabajo 1/3"));
     await along(sim, ["core", "traefik", "w1"], T("bundle + token", "paquete + token"));
 
     stage(0, "active");
@@ -81,7 +81,7 @@ export const quality: Scenario = {
     stage(1, "ok", "snapshot 2026-06");
 
     stage(2, "active");
-    state("w1", "busy", T("job 2 of 3", "trabajo 2 de 3"));
+    state("w1", "busy", T("job 2 of 3", "trabajo 2/3"));
     log(
       "02:03:30",
       T(
@@ -113,7 +113,7 @@ export const quality: Scenario = {
     stage(3, "ok", T("no drift", "sin cambios"));
 
     stage(4, "active");
-    state("w1", "busy", T("job 3 of 3", "trabajo 3 de 3"));
+    state("w1", "busy", T("job 3 of 3", "trabajo 3/3"));
     readers.forEach((t) => state(t, "busy", T("rules", "reglas")));
     log(
       "02:03:33",

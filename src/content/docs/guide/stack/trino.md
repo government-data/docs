@@ -21,6 +21,13 @@ engine** that touches data:
 - it answers the **dashboards**: [Superset](../superset/) reads gold through
   it, as the person who is looking.
 
+Being distributed is what fits Trino to large volumes. A coordinator plans
+each query and splits it into tasks, and its workers run them in parallel,
+each on its own part of the data, so a large source or lake table is read
+by several machines at once rather than by one. An installation that needs
+more capacity adds workers. The [simulation](../simulation/) shows it in
+its big-data job.
+
 Trino never decides what to run. The [core](../core/) writes every
 statement, compiled from the rules, and signs it; the
 [workers](../orchestrator/) send those statements to Trino. While a rule is

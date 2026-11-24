@@ -233,6 +233,8 @@ export default defineConfig({
           translations: { es: "Stack tecnológico" },
           items: [
             "guide/stack/overview",
+            // The architecture played out, step by step.
+            "guide/stack/simulation",
             {
               label: "Platform",
               translations: { es: "Plataforma" },

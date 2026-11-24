@@ -85,6 +85,10 @@
 }
 
 @media (max-width: 40rem) {
+  .sim__card {
+    padding-bottom: 3.8rem;
+  }
+
   .sim__corner--title {
     display: none;
   }

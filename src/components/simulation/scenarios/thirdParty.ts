@@ -39,7 +39,7 @@ export const thirdParty: Scenario = {
     await packet("core", "pg", T("batch · audit", "lote · auditoría"));
     await along(sim, ["core", "traefik", "operator"], T("intake job", "trabajo de ingreso"));
     await packet("w2", "operator", T("lease", "préstamo"));
-    state("w2", "busy", T("batch intake", "ingreso del lote"));
+    state("w2", "busy", T("batch intake", "ingreso lote"));
     await along(sim, ["core", "traefik", "w2"], T("bundle + token", "paquete + token"));
     log(
       "08:00:20",

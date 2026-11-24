@@ -64,6 +64,10 @@ job only; Trino reads the source, writes the copy to bronze, derives
 silver, evaluates the rules and writes the results to gold. The worker
 reports only names and counts back to the core.
 
+The [simulation](../simulation/) plays this out step by step, with the
+traffic between the parts: the quality flow, a big-data job, an update
+from AWS and what happens when a part fails.
+
 ## The technologies
 
 Each page says what the technology does in Government Data, which module

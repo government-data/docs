@@ -52,6 +52,25 @@ const unlinkDigest = createHash("sha256")
   .update(readFileSync(new URL("./src/target/unlink.ts", import.meta.url)))
   .digest("hex");
 
+// The chart example pages (charts/*) moved into the formulas page, each
+// chart beside its formula: their old addresses lead to its section.
+const MOVED_CHARTS = {
+  "how-charts-work": ["1-where-the-charts-come-from", "1-de-dónde-salen-las-gráficas"],
+  evolution: ["4-conformity-and-igcd-by-cut", "4-conformidad-e-igcd-por-corte"],
+  measurement: ["3-conformity-of-a-rule", "3-conformidad-de-una-regla"],
+  clients: ["9-data-condition-by-segment", "9-estado-de-los-datos-por-segmento"],
+  "statistical-control": ["12-p-chart-by-group", "12-carta-p-por-grupo"],
+  remediation: ["15-priority-and-remediation-queues", "15-prioridad-y-colas-de-remediación"],
+};
+function movedCharts(base) {
+  return Object.fromEntries(
+    Object.entries(MOVED_CHARTS).flatMap(([page, [en, es]]) => [
+      [`/charts/${page}/`, `${base}guide/formulas/#${en}`],
+      [`/es/charts/${page}/`, `${base}es/guide/formulas/#${es}`],
+    ]),
+  );
+}
+
 export default defineConfig({
   base: isPublic ? "/" : "/docs",
   site: isPublic ? publicUrlOf(process.env.DOCS_PUBLIC_URL) : undefined,
@@ -81,6 +100,7 @@ export default defineConfig({
   redirects: {
     "/": `${root}guide/platform/`,
     "/es/": `${root}es/guide/platform/`,
+    ...movedCharts(root),
   },
   integrations: [
     {
@@ -199,16 +219,9 @@ export default defineConfig({
                 "guide/rule-language",
                 "guide/rule-patterns",
                 "guide/rule-files",
+                // Each dashboard chart's example, beside its formula.
                 "guide/formulas",
                 "guide/charts",
-                {
-                  // Each dashboard chart drawn with made-up data, beside the
-                  // page that defines them.
-                  label: "Chart examples",
-                  translations: { es: "Gráficas de ejemplo" },
-                  collapsed: true,
-                  items: [{ autogenerate: { directory: "charts" } }],
-                },
                 "guide/permissions",
               ],
             },

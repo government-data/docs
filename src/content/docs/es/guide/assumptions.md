@@ -74,5 +74,22 @@ dataset fije otro.
   grupos que cambiaron y el PSI comparan con el corte evaluado anterior,
   así que en el primer corte no tienen qué mostrar.
 
+## Lo que el método describe y aún no se calcula
+
+El método original describe algunas cosas que el producto no calcula hoy.
+Ninguna gráfica las muestra:
+
+- **Los componentes K, V y T del ICD**: la confiabilidad del canal por el
+  que entró un valor, la verificación con una fuente externa y la
+  coherencia con las transacciones. El ICD calcula solo C, S y A.
+- **Colas separadas por causa**, de captura o sistémica, y atípicos
+  separados en errores probables y valores legítimos.
+- **Un ANS cumplido contra una meta.** El tiempo por etapa se muestra por
+  millón de valores junto al del corte anterior, sin una meta que cumplir.
+- **Un IGCD sin actualidad**, y pesos, severidades y umbrales por dataset.
+- **Un trato según la banda.** El producto calcula la banda; lo que una
+  banda dispara, como una debida diligencia intensificada, lo decide la
+  organización.
+
 Cómo se calcula cada cifra está en [Formulaciones](../formulas/); cómo
 leerla, en [De los resultados a los indicadores](../indicators/).

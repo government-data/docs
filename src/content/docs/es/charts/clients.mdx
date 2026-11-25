@@ -12,7 +12,7 @@ import Chart from "../../../../components/Chart.astro";
   Las cifras son inventadas para mostrar cómo se lee el reporte.
 </Aside>
 
-<Chart id="bands-by-type" />
+<Chart id="bands-by-segment" />
 
 **Cómo se lee.** La banda dice hasta dónde se puede confiar en el registro de
 cada cliente. Las personas jurídicas suelen salir
@@ -25,12 +25,10 @@ de las empresas, y se corrige en el origen.
 no se actualizó en el último año baja el componente A del índice de confiabilidad del
 dato (ICD).
 
-<Chart id="problems-by-type" />
-
-<Chart id="top-fields" />
+<Chart id="failures-by-field" />
 
 **Cómo se lee.** Un campo muy por delante del resto suele tener una sola causa
 (una fecha de actualización que nadie renueva, un catálogo): se corrige una
 vez, en el origen o con una campaña, y no registro por registro.
 
-<Chart id="largest-offices" />
+<Chart id="largest-groups" />

@@ -112,6 +112,8 @@ export interface DivergingOptions {
   max: number;
   fmt: (v: number) => string;
   labelWidth?: number;
+  /** When a rise is bad (a share of failures): rises in red, falls in blue. */
+  riseIsBad?: boolean;
 }
 
 export function diverging(o: DivergingOptions): string {
@@ -128,11 +130,12 @@ export function diverging(o: DivergingOptions): string {
     const y = top + i * step + (step - h) / 2;
     const xe = mid + (r.value / o.max) * half;
     const up = r.value >= 0;
+    const good = up !== (o.riseIsBad ?? false);
     s +=
       `<g${hit(r.label, o.fmt(r.value))}>` +
       `<rect class="viz-hitbox" x="0" y="${top + i * step}" width="${W}" height="${step}"/>` +
       text("viz-lbl", x0 - 8, y + h / 2, fit(r.label, x0 - 12), "end") +
-      `<path class="viz-mark" fill="var(${up ? "--viz-pos" : "--viz-neg"})" d="${hbar(mid, xe, y, h)}"/>` +
+      `<path class="viz-mark" fill="var(${good ? "--viz-pos" : "--viz-neg"})" d="${hbar(mid, xe, y, h)}"/>` +
       text("viz-val", up ? xe + 6 : xe - 6, y + h / 2, o.fmt(r.value), up ? "start" : "end") +
       `</g>`;
   });

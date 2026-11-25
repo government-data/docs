@@ -11,7 +11,10 @@ const ruleSelectors = (css: string) =>
     m[1].split(",").map((s) => s.trim()),
   );
 
-describe.each([["stack", "./stack.html"]])("the %s figure (%s) in a docs page", (name, file) => {
+describe.each([
+  ["stack", "./stack.html"],
+  ["stack", "./stack.es.html"],
+])("the %s figure (%s) in a docs page", (name, file) => {
   const { css, markup, script } = embedOf(read(file), name);
   const root = `[data-qd-fig="${name}"]`;
 
@@ -51,6 +54,18 @@ describe.each([["stack", "./stack.html"]])("the %s figure (%s) in a docs page", 
     expect(script).toContain("const DATA = ");
     expect(script).toContain("function frame(");
     expect(script).not.toMatch(/^(export|import) /m);
+  });
+});
+
+describe("the Spanish figure", () => {
+  it("speaks Spanish, with the same drawing as the English one", () => {
+    const en = embedOf(read("./stack.html"), "stack");
+    const es = embedOf(read("./stack.es.html"), "stack");
+    expect(es.markup).toContain("El stack · dónde participa cada tecnología");
+    expect(es.markup).toContain("Pausar el recorrido");
+    expect(es.script).toContain("trDeep(TECHS);");
+    const solids = (m: string) => m.match(/ data-name="/g)?.length ?? 0;
+    expect(solids(es.markup)).toBe(solids(en.markup));
   });
 });
 

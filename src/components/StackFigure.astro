@@ -1,10 +1,11 @@
 ---
 // The stack, and every place each technology takes part, in the
 // installation's machine room: the figure tools/figures/stack/build.mjs
-// writes. The page's language comes from its path under the site's base,
+// writes, in English and, with --es, in Spanish. The page's language comes from its path under the site's base,
 // which is /docs/ in the installation and / on the public site.
 import { langOf } from "../print/texts";
 import en from "../figures/stack.html?raw";
+import es from "../figures/stack.es.html?raw";
 import FigureEmbed from "./FigureEmbed.astro";
 
 interface Props {
@@ -14,8 +15,7 @@ interface Props {
   wide?: boolean;
 }
 const lang = langOf(Astro.url.pathname, import.meta.env.BASE_URL);
-// The Spanish figure comes with its dictionary; until then, the English.
-const pages = { en, es: en };
+const pages = { en, es };
 ---
 
 <FigureEmbed page={pages[lang]} name={Astro.props.name} wide={Astro.props.wide} />

@@ -5,7 +5,7 @@ sidebar:
   label: Visión general
 ---
 
-import ArchitectureDiagram from "../../../../../components/ArchitectureDiagram.astro";
+import StackFigure from "../../../../../components/StackFigure.astro";
 
 **Para quién:** administradores y personal técnico que operan una
 instalación o la revisan: qué corre en sus servidores, para qué sirve cada
@@ -53,22 +53,36 @@ capacidad, con los mismos protocolos, podría tomar su lugar.
 
 ## Arquitectura
 
-Cómo encajan los módulos en los servidores de una instalación. Cada caja
-es una parte de un módulo; cada línea, una conexión y su tipo.
+Cómo se reparten los módulos en las máquinas de una instalación. Una
+instalación corre en tres:
 
-<ArchitectureDiagram lang="es" />
+- el **servidor principal**, con Traefik, el núcleo, el orquestador y el
+  coordinador de Trino que corre y administra, Superset con Valkey, y la
+  pila de operación;
+- un **worker de Trino**, en una máquina propia, que hace el trabajo
+  pesado de las consultas y necesita la mayor memoria;
+- el **servidor del lago**, que guarda los datos y necesita el mayor
+  disco.
+
+Cada máquina corre Alloy y el agente. Para big data, una instalación
+agrega workers de Trino: nada más cambia. La figura recorre el stack una
+tecnología a la vez y enciende cada lugar donde participa; haz clic en
+ella o usa las flechas para avanzar, y pulsa Espacio o ▶ para reanudar el
+recorrido. Los tamaños de cada máquina son puntos de partida propuestos,
+marcados \*, no mediciones.
+
+<StackFigure name="stack" />
 
 Un corte de calidad va así: el operador lo dispara
 según su programación; el núcleo compila las sentencias del corte a partir
-de las reglas de la línea principal del catálogo y las firma; un worker las
-trae, verifica la firma y envía cada una a Trino con un token que solo vale
+de las reglas de la línea principal del catálogo y las firma; un worker
+del orquestador las trae, verifica la firma y envía cada una a Trino con un token que solo vale
 para ese trabajo; Trino lee la fuente, escribe la copia en bronze, deriva
 silver, evalúa las reglas y escribe los resultados en gold. El worker solo
 le reporta al núcleo nombres y conteos.
 
-La [simulación](../simulation/) lo muestra en marcha paso a paso, con el
-tráfico entre las partes: el flujo de calidad, un trabajo de big data, una
-actualización desde AWS y qué pasa cuando una parte falla.
+La [simulación](../simulation/) muestra la misma figura en una página
+propia, más ancha, con espacio para leer la parte de cada tecnología.
 
 ## Las tecnologías
 

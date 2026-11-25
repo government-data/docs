@@ -43,9 +43,9 @@ People enter every application through one door and sign in once, at the
 core. The orchestrator schedules the jobs; Trino, the one SQL engine, reads
 the organisation's databases and writes the lake; the dashboards read the
 lake's results through Trino. The
-[architecture diagram](../stack/overview/#architecture) draws it whole, the
-[simulation](../stack/simulation/) plays it out step by step, and each part
-has a page of its own in the [Technology stack](../stack/overview/).
+[architecture figure](../stack/overview/#architecture) draws it on its
+machines, the [simulation](../stack/simulation/) tours it one technology at
+a time, and each part has a page of its own in the [Technology stack](../stack/overview/).
 
 ## Where to go next
 

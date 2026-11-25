@@ -1,0 +1,64 @@
+---
+// A figure built by tools/figures (a standalone page), placed in a docs page:
+// src/figures/embed.ts says how, and why not in a frame. Each figure lives
+// under its own root (`data-qd-fig`), so two can share a page.
+import { embedOf } from "../figures/embed";
+
+interface Props {
+  /** The figure's generated page, imported with `?raw`. */
+  page: string;
+  /** Its root's name, unique on the page. */
+  name: string;
+  /** Widen past the text's column, on a page without a table of contents. */
+  wide?: boolean;
+}
+const { page, name, wide = false } = Astro.props;
+const { css, markup, script } = embedOf(page, name);
+const styles = `<style>${css}</style>`;
+const code = `<script type="module">${script}</script>`;
+---
+
+<Fragment set:html={styles} />
+<div data-qd-fig={name}>
+  <div class:list={["iso qd-embed not-content", { "qd-wide-embed": wide }]}>
+    <Fragment set:html={markup} />
+  </div>
+</div>
+<Fragment set:html={code} />
+
+<style>
+  /* What the figure's own page gave it: its type, and room to be read. On a
+     wide screen it takes the width beside the sidebar, past the text's
+     column; on a narrow one, the drawing scrolls sideways at the size the
+     figure chose for phones (below 600px). */
+  .qd-embed {
+    margin-block: 1.5rem 2rem;
+    font:
+      14px/1.6 ui-sans-serif,
+      system-ui,
+      -apple-system,
+      "Segoe UI",
+      sans-serif;
+    color: var(--anatomy-text);
+    container-type: inline-size;
+  }
+  /* From 72rem Starlight centres the text's column beside the sidebar; on a
+     page with no table of contents the figure widens equally on both sides,
+     up to the room the sidebar leaves (less a scrollbar). */
+  @media (min-width: 72rem) {
+    .qd-wide-embed {
+      --qd-room: min(96rem, 100vw - var(--sl-sidebar-width) - 2 * var(--sl-content-pad-x) - 1rem);
+      width: max(100%, var(--qd-room));
+      margin-inline: min(0px, (100% - var(--qd-room)) / 2);
+    }
+  }
+  @container (max-width: 600px) {
+    .qd-embed :global(.qd-scroll) {
+      overflow-x: auto;
+    }
+    .qd-embed :global(.qd-scroll .iso-svg) {
+      width: 780px;
+      max-width: none;
+    }
+  }
+</style>

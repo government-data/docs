@@ -41,7 +41,7 @@ una copia de seguridad.
 | `quality-data`  | El núcleo: el inicio de sesión, los permisos, la auditoría, la configuración, y la aplicación Quality Data con su catálogo de reglas | Rust, Traefik, PostgreSQL, Dolt      |
 | `lake-rustfs`   | El lago de datos, donde los datos copiados y los resultados de calidad se guardan como tablas   | RustFS, Apache Iceberg               |
 | `query-trino`   | El motor SQL que lee las fuentes y el lago y ejecuta las reglas de calidad                      | Trino                                |
-| `orchestrator`  | El operador que programa los trabajos, y los workers que los ejecutan                           | El orquestador y sus workers         |
+| `orchestrator`  | El operador que programa los trabajos, y los ejecutores de jobs que los envían a Trino          | El orquestador y sus ejecutores de jobs |
 | `bi-superset`   | Los dashboards de los indicadores de calidad, leídos del lago                                   | Apache Superset, Valkey              |
 | `observability` | La operación: logs técnicos, métricas y los dashboards de auditoría                             | Grafana, Loki, Mimir, Alloy          |
 | `docs`          | Esta guía, servida dentro de la instalación                                                     | Un sitio estático                    |
@@ -56,8 +56,9 @@ capacidad, con los mismos protocolos, podría tomar su lugar.
 Cómo se reparten los módulos en las máquinas de una instalación. Una
 instalación corre en tres:
 
-- el **servidor principal**, con Traefik, el núcleo, el orquestador y el
-  coordinador de Trino que corre y administra, Superset con Valkey, y la
+- el **servidor principal**, con Traefik, el núcleo, el orquestador (su
+  operador y sus ejecutores de jobs) y el coordinador de Trino que corre y
+  administra, Superset con Valkey, y la
   pila de operación;
 - un **worker de Trino**, en una máquina propia, que hace el trabajo
   pesado de las consultas y necesita la mayor memoria;
@@ -75,11 +76,11 @@ marcados \*, no mediciones.
 
 Un corte de calidad va así: el operador lo dispara
 según su programación; el núcleo compila las sentencias del corte a partir
-de las reglas de la línea principal del catálogo y las firma; un worker
-del orquestador las trae, verifica la firma y envía cada una a Trino con un token que solo vale
+de las reglas de la línea principal del catálogo y las firma; un ejecutor
+de jobs del orquestador las trae, verifica la firma y envía cada una a Trino con un token que solo vale
 para ese trabajo; Trino lee la fuente, escribe la copia en bronze, deriva
-silver, evalúa las reglas y escribe los resultados en gold. El worker solo
-le reporta al núcleo nombres y conteos.
+silver, evalúa las reglas y escribe los resultados en gold. El ejecutor de
+jobs solo le reporta al núcleo nombres y conteos.
 
 La [simulación](../simulation/) muestra la misma figura en una página
 propia, más ancha, con espacio para leer la parte de cada tecnología.
@@ -100,7 +101,7 @@ trae, cómo se comunica con el resto y dónde quedan sus datos.
   [RustFS](../rustfs/), el almacenamiento del lago; [Apache
   Iceberg](../iceberg/), el formato de tablas del lago.
 - **Procesamiento:** [Trino](../trino/), el único motor SQL; [el
-  orquestador y sus workers](../orchestrator/).
+  orquestador y sus ejecutores de jobs](../orchestrator/).
 - **Indicadores:** [Apache Superset](../superset/), con
   [Valkey](../valkey/) como caché.
 - **Operación:** [Grafana](../grafana/), [Loki](../loki/), [Mimir](../mimir/)
@@ -118,9 +119,11 @@ están desplegando:
   la extracción y las reglas en la versión actual. Durante un tiempo ambos
   corren lado a lado sobre los mismos cortes y se comparan sus resultados;
   Trino toma el relevo cuando coinciden.
-- **Workers aparte del orquestador.** El orquestador pasa a ser el operador
-  que programa y sigue los trabajos; los workers que los ejecutan pasan a
-  ser una parte aparte que escala por sí sola.
+- **Ejecutores de jobs aparte del operador.** El orquestador pasa a ser el
+  operador que programa y sigue los trabajos, y sus ejecutores de jobs
+  toman cada trabajo, envían a Trino su SQL firmado y reportan. Son
+  livianos y no procesan datos: dos ejecutan trabajos en paralelo en el
+  servidor principal, y se pueden agregar más.
 - **Gold como registro de los resultados.** Los resultados de calidad pasan
   a las tablas gold del lago. Hasta entonces los guarda la base de datos de
   la plataforma.

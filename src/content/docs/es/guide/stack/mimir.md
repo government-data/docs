@@ -17,7 +17,7 @@ dibuja y sobre las que alerta:
 - la CPU, la memoria, la carga, los discos, la red y el reloj de cada
   servidor;
 - las métricas propias de cada servicio, como las peticiones de Traefik,
-  la cola de trabajos y los workers vivos.
+  la cola de trabajos y los ejecutores de jobs vivos.
 
 Las métricas son números con unas pocas etiquetas, como el servidor, su
 rol y el servicio. No llevan datos de las fuentes ni datos personales.

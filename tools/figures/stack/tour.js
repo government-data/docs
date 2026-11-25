@@ -36,7 +36,7 @@ function readoutOf(i, k) {
 }
 function sayOf(i) {
   return tf(
-    "{parts} roles in {places} places; {optional} of the roles optional. {plan} places only on an optional machine.",
+    "{parts} roles in {places} places; {optional} of the roles optional. {plan} {plan|place|places} only on an optional machine.",
     countOf(TECHS[i]),
   );
 }

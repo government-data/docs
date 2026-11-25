@@ -39,7 +39,7 @@ only an explicit purge deletes it, after a backup.
 | `quality-data` | The core: sign-in, permissions, audit, settings, and the Quality Data application with its rules catalog | Rust, Traefik, PostgreSQL, Dolt      |
 | `lake-rustfs`  | The data lake, where the copied data and the quality results are kept as tables           | RustFS, Apache Iceberg               |
 | `query-trino`  | The SQL engine that reads the sources and the lake and runs the quality rules             | Trino                                |
-| `orchestrator` | The operator that schedules jobs, and the workers that run them                           | The orchestrator and its workers     |
+| `orchestrator` | The operator that schedules jobs, and the job runners that send them to Trino             | The orchestrator and its job runners |
 | `bi-superset`  | The dashboards of the quality indicators, read from the lake                              | Apache Superset, Valkey              |
 | `observability`| Operations: technical logs, metrics and the audit dashboards                              | Grafana, Loki, Mimir, Alloy          |
 | `docs`         | This guide, served inside the installation                                                | A static site                        |
@@ -54,8 +54,9 @@ same capability, with the same protocols, could take its place.
 How the modules sit on an installation's machines. An installation runs on
 three:
 
-- the **main server**, with Traefik, the core, the orchestrator and the
-  Trino coordinator it runs and manages, Superset with Valkey, and the
+- the **main server**, with Traefik, the core, the orchestrator (its
+  operator and its job runners) and the Trino coordinator it runs and
+  manages, Superset with Valkey, and the
   operations stack;
 - a **Trino worker**, on a machine of its own, which does the heavy query
   work and needs the most memory;
@@ -72,11 +73,11 @@ not measurements.
 
 A quality cut goes this way: the operator fires it on
 its schedule; the core compiles the cut's statements from the rules on the
-catalog's main line and signs them; a worker of the orchestrator fetches them, checks the
-signature and sends each one to Trino with a token that is valid for that
+catalog's main line and signs them; a job runner of the orchestrator fetches them, checks
+the signature and sends each one to Trino with a token that is valid for that
 job only; Trino reads the source, writes the copy to bronze, derives
-silver, evaluates the rules and writes the results to gold. The worker
-reports only names and counts back to the core.
+silver, evaluates the rules and writes the results to gold. The job
+runner reports only names and counts back to the core.
 
 The [simulation](../simulation/) shows the same figure on a page of its
 own, wider, with room to read each technology's part.
@@ -96,7 +97,7 @@ brings it, how it talks to the rest and where its data lives.
   lake's storage; [Apache Iceberg](../iceberg/), the lake's table
   format.
 - **Processing:** [Trino](../trino/), the one SQL engine; [the
-  orchestrator and its workers](../orchestrator/).
+  orchestrator and its job runners](../orchestrator/).
 - **Indicators:** [Apache Superset](../superset/), with
   [Valkey](../valkey/) as its cache.
 - **Operations:** [Grafana](../grafana/), [Loki](../loki/), [Mimir](../mimir/)
@@ -113,9 +114,11 @@ being rolled out:
   extraction and rules in the current release. For a while both run side
   by side on the same cuts and their results are compared; Trino takes
   over once they agree.
-- **Workers apart from the orchestrator.** The orchestrator becomes the
-  operator that schedules and tracks jobs; the workers that run them become
-  a separate part that scales on its own.
+- **Job runners apart from the operator.** The orchestrator becomes the
+  operator that schedules and tracks jobs, and its job runners take each
+  job, send its signed SQL to Trino and report. They are light and process
+  no data: two run jobs in parallel on the main server, and more can be
+  added.
 - **Gold as the record of results.** The quality results move to the
   lake's gold tables. Until then the platform's database keeps them.
 - **Apache Superset and Valkey.** The indicator dashboards in Superset are

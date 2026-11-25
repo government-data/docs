@@ -30,7 +30,7 @@ The core **writes every SQL statement** a quality job runs. When a cut is
 due, it compiles the rules on the catalog's main line into statements for
 [Trino](../trino/), signs the bundle and records it. It never runs a job
 itself: the [orchestrator](../orchestrator/) schedules jobs, and its
-workers send the signed statements to Trino.
+job runners send the signed statements to Trino.
 
 ## How it is built
 

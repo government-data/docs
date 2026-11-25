@@ -16,7 +16,7 @@ platform and each of its applications.
 | Application or module | What it is for                                                                                          | Guide                                         |
 | --------------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
 | **Quality Data**      | Data quality: rules written by whoever knows the data, cuts that measure it, indicators and remediation queues | [Introduction to Quality Data](../overview/)  |
-| **The orchestrator**  | Schedules and tracks the platform's jobs; its workers run them                                          | [Orchestrator and workers](../stack/orchestrator/) |
+| **The orchestrator**  | Schedules and tracks the platform's jobs; its job runners send them to Trino                            | [Orchestrator and job runners](../stack/orchestrator/) |
 | **Analytics**         | Dashboards of the indicators, with Apache Superset                                                      | [Apache Superset](../stack/superset/)         |
 | **The data lake**     | Where the platform keeps its copies of the data and its results, as open tables                         | [RustFS](../stack/rustfs/), [Apache Iceberg](../stack/iceberg/) |
 | **The user guide**    | These pages, served inside every installation and also published openly                                | This guide                                    |

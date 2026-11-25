@@ -5,7 +5,7 @@ sidebar:
   label: Overview
 ---
 
-import ArchitectureDiagram from "../../../../components/ArchitectureDiagram.astro";
+import StackFigure from "../../../../components/StackFigure.astro";
 
 **For whom:** administrators and technical staff who run an installation
 or review it: what runs on its servers, what each part is for, and where
@@ -51,22 +51,35 @@ same capability, with the same protocols, could take its place.
 
 ## Architecture
 
-How the modules fit together on an installation's servers. Each box is a
-part of a module; each line, a connection and its kind.
+How the modules sit on an installation's machines. An installation runs on
+three:
 
-<ArchitectureDiagram lang="en" />
+- the **main server**, with Traefik, the core, the orchestrator and the
+  Trino coordinator it runs and manages, Superset with Valkey, and the
+  operations stack;
+- a **Trino worker**, on a machine of its own, which does the heavy query
+  work and needs the most memory;
+- the **lake server**, which keeps the data and needs the most disk.
+
+Every machine runs Alloy and the agent. For big data, an installation adds
+Trino workers: nothing else changes. The figure goes through the stack one
+technology at a time and lights every place each one takes part; click it
+or use the arrow keys to step through, and press Space or ▶ to resume the
+tour. The sizes on each machine are proposed starting points, marked \*,
+not measurements.
+
+<StackFigure name="stack" />
 
 A quality cut goes this way: the operator fires it on
 its schedule; the core compiles the cut's statements from the rules on the
-catalog's main line and signs them; a worker fetches them, checks the
+catalog's main line and signs them; a worker of the orchestrator fetches them, checks the
 signature and sends each one to Trino with a token that is valid for that
 job only; Trino reads the source, writes the copy to bronze, derives
 silver, evaluates the rules and writes the results to gold. The worker
 reports only names and counts back to the core.
 
-The [simulation](../simulation/) plays this out step by step, with the
-traffic between the parts: the quality flow, a big-data job, an update
-from AWS and what happens when a part fails.
+The [simulation](../simulation/) shows the same figure on a page of its
+own, wider, with room to read each technology's part.
 
 ## The technologies
 

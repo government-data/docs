@@ -1,53 +1,43 @@
 ---
 title: Simulation
-description: One installation played out step by step, its machines by module and the traffic between them, in the quality flow, a third-party batch, a big-data job, an update from AWS and the failures.
+description: The installation's machines in an isometric room, and a tour of its technologies that lights where each one takes part, what it is, why it was chosen and what it needs.
 sidebar:
   label: Simulation
 tableOfContents: false
 ---
 
-import PlatformSimulation from "../../../../components/PlatformSimulation.astro";
+import StackFigure from "../../../../components/StackFigure.astro";
 
 **For whom:** administrators and technical reviewers who want to see the
 [architecture](../overview/#architecture) at work.
 
-How an installation behaves, played out: its machines grouped by module,
-the traffic between them, the quality flow of a dataset and a third-party
-batch stage by stage, a big-data job on Trino, an update pulled from AWS,
-and what happens, step by step, when something fails. Pick a scenario;
-pause it, change its speed, go step by step, or start another.
+An installation's machines, drawn as a room: the main server, a Trino
+worker and the lake server, with people's desk, the organisation's source
+databases, a third-party provider, and AWS, which the agent pulls updates
+from. The tour goes through the stack one technology at a time, and lights
+every unit and cable where it takes part.
 
-<PlatformSimulation />
-
-## The scenarios
-
-- **Quality flow:** the core compiles the approved rules on the catalog's
-  main line into SQL and signs it; a worker of the
-  [orchestrator](../orchestrator/) runs it on [Trino](../trino/), which
-  reads the source into bronze, derives silver, evaluates the rules and
-  writes the results to gold. See [Apache Iceberg](../iceberg/) for the
-  three layers and [Formulas](../../formulas/) for the indicators.
-- **Third-party batch:** a provider's batch through five gates, from
-  quarantine to the owner's approval and a load that can be undone.
-- **Normal run** and **big-data job:** every part doing its own job, and
-  Trino spreading a very large job over its workers, with one added.
-- **Update from AWS:** the [agent](../agent/) pulls a signed version,
-  backs up and applies it in steps. See [Updates from AWS](../aws/).
-- **Failures:** a worker of the orchestrator, a source, a worker of Trino,
-  a server of the lake, and an update that does not come up.
+<StackFigure name="stack-sim" wide />
 
 ## How to read it
 
-The lines carry the kind of traffic, as in the architecture diagram, and
-each packet names what it carries. A machine's state is in its border and
-its badge: ⟳ working, ✕ down, ⚙ being updated, + just added; a dashed
-machine can be added. The stages of a flow show ✓ passed, ! warned or ✕
-failed, with their result. While a scenario plays, Space pauses it and the
-right arrow goes to the next step.
+- **The tour** moves on by itself. Any click, key or pointer over the text
+  pauses it on its stop; **▶** or **Space** resumes it. The arrow keys, or a
+  click on the figure, go to the next or the previous technology, and the
+  list under the figure goes to any of them.
+- **A lit unit** is a place where the technology runs. A unit **outlined in
+  amber and marked optional** runs only on a machine an installation adds:
+  a second Trino worker, or the lake replica at another site.
+- **A cable** stands for every connection between its two machines; its
+  arrow points from the side that opens the connection. Nothing connects
+  into the installation from outside: the agent opens the line to AWS.
+- **Point at a row** under the figure to light only that row's places.
+- **The cards on the machines' tops** give disk, CPU and memory. The one in
+  red is the resource that machine needs most.
 
 :::note
-It is an illustration of the design, not a measurement: the times and
-figures in the log are the story's, invented for it. Some parts are still
-being rolled out; see [Implementation
-status](../overview/#implementation-status).
+It is an illustration of the design, not a measurement. The sizes marked \*
+are proposed starting points to size a first installation by; size a real
+one from its data. Some parts are still being rolled out; see
+[Implementation status](../overview/#implementation-status).
 :::

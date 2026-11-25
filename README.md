@@ -24,6 +24,13 @@ comments and this README are in English.
   shown in every page's footer and on the printed book's cover.
 - `src/target/`: the two outputs (`DOCS_TARGET`), the pages the public site
   leaves out (`EXCLUDED_FROM_PUBLIC`) and its CSP.
+- `tools/figures/stack/`: the generator of the stack's isometric figure
+  (`src/figures/stack.html` and `stack.es.html`, generated files: never edit
+  them by hand), drawn with the Anatomy kit vendored in
+  `tools/figures/anatomy-kit/`. After a change, run `node
+  tools/figures/stack/build.mjs` and `node tools/figures/stack/build.mjs
+  --es`; each build runs the kit's geometry audit and fails on a problem or
+  on a text with no Spanish (`es.json`).
 
 ## Build
 

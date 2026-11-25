@@ -84,8 +84,8 @@ end covers regulated financial entities in Colombia.
 - **Managers and compliance readers:**
   [Getting started: indicators](../start-reader/) opens a dashboard and
   reads its first indicators; then [Reading the dashboard](../charts/),
-  [From results to indicators](../indicators/) and the example reports in
-  [Charts](../../charts/evolution/), drawn with made-up data.
+  [From results to indicators](../indicators/) and [Formulas](../formulas/), with
+  an example of each chart drawn with made-up data.
 - **Looking something up:** the Tasks pages say how each thing is done and
   who does it; the Reference pages, every key, pattern, finding, formula,
   chart and permission. Every underlined term shows its meaning when you

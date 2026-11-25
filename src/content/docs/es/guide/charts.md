@@ -9,8 +9,8 @@ Cada dataset tiene un dashboard: el **Dashboard** bajo el dataset en el
 **Explorador** y la pestaña **Calidad** de cada tabla que el dataset lee. Esta
 página recorre cada gráfica, en el orden en que aparecen, para quienes actúan
 sobre ellas: responsables de datos, la mesa de calidad y la gerencia. Cómo
-se calcula cada cifra está en [Formulaciones](../formulas/); hay ejemplos con
-datos inventados en la sección [Gráficas](../../charts/evolution/).
+se calcula cada cifra, con un ejemplo de cada gráfica hecho con datos
+inventados, está en [Formulaciones](../formulas/).
 
 ## Antes de leer una gráfica
 
@@ -49,8 +49,8 @@ datos inventados en la sección [Gráficas](../../charts/evolution/).
 de revisiones de reglas que pasaron, e **IGCD** (naranja), el
 índice global de calidad de datos: el índice de confiabilidad del dato (ICD)
 promedio de todas las entidades
-([Formulaciones §1](../formulas/#1-conformidad-de-una-regla) y
-[§3](../formulas/#3-icd-e-igcd)). La tabla agrega
+([Formulaciones §4](../formulas/#4-conformidad-e-igcd-por-corte) y
+[§8](../formulas/#8-icd-del-registro-y-de-la-entidad-e-igcd)). La tabla agrega
 registros y fallos por corte.
 
 **Cómo leerla.** Subir es bueno. El eje vertical no empieza en cero, así que
@@ -74,8 +74,8 @@ actualidad, a una campaña de actualización, no a las oficinas.
 ## Campos con más fallos
 
 **Pregunta:** ¿dónde están los fallos? **Qué se ve:** barras de fallos por
-campo, sumados sobre las reglas que lo leen; la tabla agrega cuántas reglas
-lo leen y cuántas revisiones hicieron.
+campo: los de cada regla cuentan bajo el campo que la regla revisa; la tabla
+agrega cuántas reglas lo revisan y cuántas revisiones hicieron.
 
 **Cómo leerla.** Un campo con muchos fallos y muchas reglas puede ser
 simplemente el más verificado: compáralo con _Reglas con menor conformidad_
@@ -85,7 +85,7 @@ antes de decidir por dónde empezar.
 
 **Pregunta:** ¿qué datos son menos confiables? **Qué se ve:** barras con el
 ICD promedio de cada campo, de 0 a 1, el menor primero
-([Formulaciones §2–3](../formulas/#3-icd-e-igcd)).
+([Formulaciones §7](../formulas/#7-icd-de-un-campo)).
 
 **Cómo leerla.** A diferencia del conteo de fallos, el ICD pondera la
 severidad y, en los campos que vencen, la antigüedad del dato. Un campo bajo
@@ -97,7 +97,7 @@ actualización, no corrección.
 **Pregunta:** ¿cómo se reparten los clientes (o la entidad que sea) según su
 calidad? **Qué se ve:** columnas que cuentan entidades en tramos de 0,05 de 0
 a 1, con líneas en **0,75** y **0,90**, los límites de las bandas
-([Formulaciones §3](../formulas/#3-icd-e-igcd)).
+([Formulaciones §8](../formulas/#8-icd-del-registro-y-de-la-entidad-e-igcd)).
 
 **Cómo leerla.** A la derecha de 0,90 está la banda buena, entre las líneas
 la regular, a la izquierda de 0,75 la mala. Una pila alta justo a la
@@ -145,12 +145,12 @@ registros; a lo alto, su proporción de registros con una **falla grave**
 (una regla bloqueante o mayor que falla en un campo crítico o alto). La
 línea horizontal es el promedio del campo de agrupación (p̄); las dos curvas son los
 límites de control, anchos para grupos pequeños y estrechos para los grandes
-([Formulaciones §5](../formulas/#5-carta-p-por-grupo)). Los puntos grises
+([Formulaciones §12](../formulas/#12-carta-p-por-grupo)). Los puntos grises
 están en control, los rojos ✕ por encima del límite superior, los verdes ✓
 por debajo del inferior. Los registros con el campo de agrupación vacío quedan fuera.
 
 **Cómo leerla.** Solo los puntos fuera de las curvas son señales. Por
-encima: busca la causa en el punto de captura (proceso, formulario,
+encima: busca la causa en ese grupo (proceso, formulario,
 capacitación). Por debajo: algo se hace mejor y vale la pena copiarlo. Entre
 las curvas: variación normal, sin acción, por más que el ranking diga otra
 cosa. No ordenes los grupos por altura: un grupo pequeño muy arriba puede
@@ -188,7 +188,7 @@ azar; revisa la carta p′ antes de actuar.
 importe de atípicos (ingresos, monto del crédito) y cada campo de agrupación, barras de
 los grupos con atípicos: los bajos en naranja, los altos en azul. Un importe
 es atípico cuando su z robusto dentro de su grupo pasa de 3,5 hacia arriba o
-hacia abajo ([Formulaciones §6](../formulas/#6-atípicos-z-robusto-y-mad)).
+hacia abajo ([Formulaciones §16](../formulas/#16-atípicos-z-robusto-y-mad)).
 Solo cuentan los importes positivos. "ningún grupo tiene atípicos" significa
 que no hay.
 
@@ -206,7 +206,7 @@ anterior partido en diez tramos del mismo tamaño (gris, cerca de 10 % cada
 uno) y la proporción de este corte en esos mismos tramos (azul). La nota da
 el PSI y su lectura: **estable** por debajo de 0,10, **deriva moderada** de
 0,10 a 0,25, **deriva significativa** por encima
-([Formulaciones §7](../formulas/#7-deriva-índice-de-estabilidad-poblacional-psi)).
+([Formulaciones §17](../formulas/#17-deriva-índice-de-estabilidad-poblacional-psi)).
 
 **Cómo leerla.** Columnas azules parecidas a las grises es lo bueno. Si el
 azul se amontona en un extremo, la población se movió: cada registro puede
@@ -226,7 +226,7 @@ que falló por primera vez hasta el corte mostrado superan el acuerdo de nivel d
 La tabla agrega los hallazgos **resueltos en este corte**, la antigüedad en
 días del **abierto más antiguo**, el **ANS** y la **prioridad** sumada de
 los abiertos
-([Formulaciones §4](../formulas/#4-prioridad)).
+([Formulaciones §15](../formulas/#15-prioridad-y-colas-de-remediación)).
 
 **Cómo leerla.** Lo rojo es lo primero que se persigue; una prioridad sumada
 alta con pocos hallazgos significa unos pocos costosos. Un hallazgo se
@@ -250,12 +250,13 @@ marcan 0.
 
 **Pregunta:** ¿qué tan viejos son los datos? **Qué se ve:** barras de
 registros según cuánto antes del corte fue su fecha de actualización:
-posterior al corte, hasta 30 días, 31–90 días, 91–180 días, 181 días – 1
-año, 1–2 años, más de 2 años y sin fecha; como proporciones.
+posterior al corte, hasta 30 días, 31–90, 91–180, 181–365, 366–730, más de
+730 días y sin fecha; como proporciones
+([Formulaciones §11](../formulas/#11-antigüedad-de-la-actualización)).
 
-**Cómo leerla.** Un dato puede ser correcto y aun así viejo: todo lo de más
-de un año baja la actualidad (A) del ICD. Una proporción grande de más de un
-año pide una campaña de actualización. Las fechas **posteriores al corte**
+**Cómo leerla.** Un dato puede ser correcto y aun así viejo: en los campos
+que caducan, la actualidad (A) del ICD baja desde el primer día y vale la
+mitad al año. Una proporción grande de más de un año pide una campaña de actualización. Las fechas **posteriores al corte**
 son sospechosas (formato equivocado, una fecha por defecto): revisa cómo se
 capturan.
 
@@ -263,8 +264,8 @@ capturan.
 
 **Pregunta:** ¿qué campos faltan más? **Qué se ve:** barras con el
 porcentaje vacío de cada campo, el más vacío primero; la tabla agrega los
-valores distintos y la forma más común (cada dígito un `9`, cada letra una
-`A`) con su porcentaje de los llenos.
+valores distintos y la forma más común (cada dígito un `9`, cada letra de la
+A a la Z una `A`) con su porcentaje de los llenos.
 
 **Cómo leerla.** Un campo vacío puede ser opcional: compáralo con las reglas.
 Una forma más común muy por debajo del 100 % sugiere formatos mezclados; un
@@ -278,7 +279,7 @@ conformidad de cada regla, de 0 a 100 %, la menor primero; las reglas que
 no aplicaron a ningún registro quedan fuera del dibujo y salen con "—" en la
 tabla, que además tiene el campo, la dimensión, la severidad, a cuántos
 registros aplica y los fallos
-([Formulaciones §1](../formulas/#1-conformidad-de-una-regla)).
+([Formulaciones §3](../formulas/#3-conformidad-de-una-regla)).
 
 **Cómo leerla.** Una conformidad baja significa que el dato está mal o que
 la regla está mal planteada. Revisa las más bajas con el dueño de la regla
@@ -293,7 +294,7 @@ corte, ejecutar las reglas, perfilar, ICD y grupos, colas de remediación,
 recencia de actualización, distribuciones) en milisegundos por millón de
 registro-atributos (registros × campos mapeados); la tabla agrega el tiempo
 simple y el del corte anterior
-([Formulaciones §8](../formulas/#8-tiempo-por-etapa)). Sin
+([Formulaciones §19](../formulas/#19-tiempo-por-etapa)). Sin
 volumen, las barras son milisegundos simples.
 
 **Cómo leerla.** Compara una etapa con su valor anterior por millón, no en

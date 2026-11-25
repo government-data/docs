@@ -9,8 +9,8 @@ Every dataset has a dashboard: the **Dashboard** under the dataset in the
 **Explorer**, and the **Quality** tab of each table the dataset reads. This page
 goes through every chart on it, in the order it shows them, for the people
 who act on it: data stewards, analysts and managers. How each figure
-is calculated is in [Formulas](../formulas/); examples drawn with made-up
-data are in the [Charts](../../charts/evolution/) section.
+is calculated, with an example of each chart drawn with made-up data, is in
+[Formulas](../formulas/).
 
 ## Before you read a chart
 
@@ -46,8 +46,8 @@ data are in the [Charts](../../charts/evolution/) section.
 **Question:** is quality getting better? **What you see:** a line per
 measure over the last twelve cuts up to the one chosen: **Conformity**
 (blue), the share of rule checks that passed, and the **IGCD** (orange), the
-overall data quality index: the mean data reliability index (ICD) of every entity ([Formulas §1](../formulas/#1-conformity-of-a-rule)
-and [§3](../formulas/#3-icd-and-igcd)). The table
+overall data quality index: the mean data reliability index (ICD) of every entity ([Formulas §4](../formulas/#4-conformity-and-igcd-by-cut)
+and [§8](../formulas/#8-icd-of-the-record-and-the-entity-and-igcd)). The table
 adds records and failures per cut.
 
 **How to read it.** Rising is good. The vertical axis does not start at
@@ -71,8 +71,8 @@ timeliness failures at an update campaign, not at the offices.
 ## Fields with the most failures
 
 **Question:** where are the failures? **What you see:** bars of failures per
-field, summed over the rules that read it; the table adds how many rules
-read it and how many checks they made.
+field: each rule's count under the field the rule checks; the table adds
+how many rules check it and how many checks they made.
 
 **How to read it.** A field with many failures and many rules may simply be
 the most checked: compare with _Rules with the lowest conformity_ before
@@ -82,7 +82,7 @@ deciding where to start.
 
 **Question:** which data elements are least reliable? **What you see:**
 bars of each field's mean ICD, from 0 to 1, the lowest first
-([Formulas §2–3](../formulas/#3-icd-and-igcd)).
+([Formulas §7](../formulas/#7-icd-of-a-field)).
 
 **How to read it.** Unlike failure counts, the ICD weighs severity and,
 for fields that expire, how old the data is. A field low here but with few
@@ -94,7 +94,7 @@ fix.
 **Question:** how are the customers (or whatever the entity is) spread across
 quality? **What you see:** columns counting entities in bins of 0.05 from 0
 to 1, with lines at **0.75** and **0.90**, the band limits
-([Formulas §3](../formulas/#3-icd-and-igcd)).
+([Formulas §8](../formulas/#8-icd-of-the-record-and-the-entity-and-igcd)).
 
 **How to read it.** Right of 0.90 is the good band, between the lines the
 fair one, left of 0.75 the poor one. A tall pile just left of a line is
@@ -140,12 +140,12 @@ records; up, its share of records with a **serious failure** (a blocking or
 major rule failing on a critical or high field). The horizontal line is the
 grouping field's average (p̄); the two curves are the control limits, wide for
 small groups and narrow for large ones
-([Formulas §5](../formulas/#5-p-chart-by-group)). Grey dots are in
+([Formulas §12](../formulas/#12-p-chart-by-group)). Grey dots are in
 control, red ✕ above the upper limit, green ✓ below the lower one. Records
 with the grouping field empty are left out.
 
 **How to read it.** Only dots outside the curves are signals. Above: look
-for the cause at the point of capture (process, form, training). Below:
+for the cause in that group (process, form, training). Below:
 something done better, worth copying. Between the curves: normal variation,
 no action, however the ranking looks. Do not rank groups by height: a small
 group high up may still be inside its wide limits. Serious failures still
@@ -181,7 +181,7 @@ a lot by chance; check the p′ chart before acting.
 for the outlier amount (income, loan amount) and each grouping field, bars of
 the groups with outliers: low ones in orange, high ones in blue. An amount
 is an outlier when its robust z within its group is beyond 3.5 either way
-([Formulas §6](../formulas/#6-outliers-robust-z-and-mad)). Only positive
+([Formulas §16](../formulas/#16-outliers-robust-z-and-mad)). Only positive
 amounts count. "no outliers in any group" means none.
 
 **How to read it.** An outlier is not an error by itself: the chart does not
@@ -198,7 +198,7 @@ previous cut split into ten bins of the same size (grey, about 10 % each)
 and this cut's share in the same bins (blue). The note gives the PSI and
 its reading: **stable** below 0.10, **moderate drift** from 0.10 to 0.25,
 **significant drift** above
-([Formulas §7](../formulas/#7-drift-population-stability-index-psi)).
+([Formulas §17](../formulas/#17-drift-population-stability-index-psi)).
 
 **How to read it.** Blue columns close to the grey ones are good. Blue
 piling up at one end means the population moved: every record may be valid
@@ -216,7 +216,7 @@ is a record failing a rule; it is overdue when the days from the cut where it
 first failed to the cut shown exceed the queue's service level agreement (SLA). The table adds the
 findings **resolved at this cut**, the **oldest open** finding's age in days,
 the **SLA** and the open findings' summed **priority**
-([Formulas §4](../formulas/#4-priority)).
+([Formulas §15](../formulas/#15-priority-and-remediation-queues)).
 
 **How to read it.** Red is what to chase first; a high summed priority with
 few findings means a few costly ones. A finding is resolved only when a
@@ -239,11 +239,12 @@ finding counts from the cut shown, so **Overdue** and **Resolved at this cut** r
 
 **Question:** how old is the data? **What you see:** bars of records by how
 long before the cut the update date was: after the cut, up to 30 days,
-31–90 days, 91–180 days, 181 days – 1 year, 1–2 years, over 2 years, and no
-date; shown as shares.
+31–90, 91–180, 181–365, 366–730, over 730 days, and no date; shown as
+shares ([Formulas §11](../formulas/#11-update-recency)).
 
-**How to read it.** Data can be right and still old: everything over a year
-weighs down the timeliness of the ICD. A big share over a year calls for an
+**How to read it.** Data can be right and still old: in fields that expire,
+the ICD's timeliness (A) falls from the first day and is half at a year. A
+big share over a year calls for an
 update campaign. Dates **after the cut** are suspicious (wrong format, a
 default date): check how they are captured.
 
@@ -251,7 +252,7 @@ default date): check how they are captured.
 
 **Question:** which fields are missing most? **What you see:** bars of each
 field's empty share, the emptiest first; the table adds distinct values and
-the commonest shape (each digit a `9`, each letter an `A`) with its share of
+the commonest shape (each digit a `9`, each letter A to Z an `A`) with its share of
 the filled values.
 
 **How to read it.** An empty field may be optional: compare with the rules.
@@ -265,7 +266,7 @@ no values, only shapes.
 rule's conformity, from 0 to 100 %, the lowest first; rules that applied to
 no record are left out of the drawing and show "—" in the table, which also
 has the field, dimension, severity, records it applies to and failures
-([Formulas §1](../formulas/#1-conformity-of-a-rule)).
+([Formulas §3](../formulas/#3-conformity-of-a-rule)).
 
 **How to read it.** Low conformity means the data is wrong or the rule is
 badly posed. Review the lowest with the rule's owner before fixing thousands
@@ -278,7 +279,7 @@ of records. A rule that applies to few records swings a lot between cuts.
 rules, profile, ICD and groups, remediation queues, update recency,
 distributions) in milliseconds per million values (records × mapped
 fields; the chart calls them record-attributes); the table adds the plain time and the previous cut's
-([Formulas §8](../formulas/#8-time-per-stage)). Without a volume, the
+([Formulas §19](../formulas/#19-time-per-stage)). Without a volume, the
 bars are plain milliseconds.
 
 **How to read it.** Compare a stage with its previous value per million,

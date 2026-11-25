@@ -69,5 +69,23 @@ What can be set is each remediation queue's service level agreement
   PSI compare with the previous evaluated cut, so on the first cut they
   have nothing to show.
 
+## Described by the method, not calculated yet
+
+The original method describes some things the product does not calculate
+today. None of the charts shows them:
+
+- **The ICD's K, V and T components**: the reliability of the channel a
+  value came in through, verification against an external source, and
+  coherence with transactions. The ICD calculates C, S and A only.
+- **Queues split by cause**, capture or systemic, and outliers told apart
+  as probable errors or legitimate values.
+- **An SLA met against a target.** The time per stage is shown per million
+  values beside the previous cut's, with no target to meet.
+- **An IGCD without timeliness**, and weights, severities and thresholds
+  set per dataset.
+- **A treatment by band.** The product calculates the band; what a band
+  triggers, such as enhanced due diligence, is the organisation's
+  decision.
+
 How each figure is calculated is in [Formulas](../formulas/); how to read
 it, in [From results to indicators](../indicators/).

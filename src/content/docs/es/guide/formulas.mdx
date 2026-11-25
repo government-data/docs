@@ -1,0 +1,569 @@
+---
+title: Formulaciones
+description: Cada gráfica del dashboard con su ejemplo, la fórmula con que se calcula y cómo se lee.
+sidebar:
+  order: 5
+---
+
+import { Aside } from "@astrojs/starlight/components";
+import Chart from "../../../../components/Chart.astro";
+
+Esta página reúne, para cada una de las 18 gráficas del dashboard de un
+dataset, un ejemplo, la fórmula con que Quality Data la calcula y cómo
+leerla. Qué hacer con cada gráfica está en [Cómo leer el
+dashboard](../charts/); qué significa cada indicador, en [De los resultados
+a los indicadores](../indicators/).
+
+<Aside type="caution" title="Datos de ejemplo">
+  Las gráficas de esta página usan cifras inventadas sobre un dataset de clientes; no son datos de
+  ninguna organización. Las gráficas de reglas salen de las mismas quince reglas inventadas, y las de
+  grupos, de las mismas oficinas, así que sus cifras cuadran entre sí.
+</Aside>
+
+Notación: $i$ = registro, $e$ = entidad, $a$ = campo, $r$ = regla, $g$ =
+grupo, $k$ = componente del ICD (índice de confiabilidad del dato),
+$\mathbf{1}[\cdot]$ = 1 si la condición se cumple y 0 si no. Los pesos,
+severidades y umbrales de abajo son fijos en el producto hoy. Algunos
+conceptos del método original (los componentes K, V y T del ICD, la causa
+de una falla, los atípicos como error probable, un ANS medido contra una
+meta, un trato según la banda) todavía no se calculan: ver [Supuestos y
+límites](../assumptions/).
+
+## 1. De dónde salen las gráficas
+
+Cada gráfica es una consulta sobre un **modelo de resultados** que toda
+evaluación escribe igual, para cualquier dataset: clientes, pedidos,
+productos, proveedores. Debajo de cada gráfica, **Consulta** dice qué parte
+de ese modelo la alimenta, y **Requiere**, qué debe tener un dataset para
+que la gráfica aparezca.
+
+| Parte                     | Una fila por                                                     | Qué guarda                                                                           |
+| ------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Resumen del corte         | Dataset y corte                                                  | Índice global de calidad de datos (IGCD), registros, entidades, bandas               |
+| Resultados por regla      | Dataset, corte y regla                                           | Campo, dimensión, severidad, aplica, fallos                                          |
+| Calidad por campo         | Dataset, corte y campo                                           | ICD medio, vacíos, distintos, forma más común, antigüedad de la actualización        |
+| ICD por entidad           | Dataset, corte y entidad                                         | ICD, banda, segmento                                                                 |
+| Cifras por grupo          | Dataset, corte, campo de agrupación y grupo                      | Registros, registros con falla grave, ICD medio                                      |
+| Pruebas de distribución   | Dataset, corte y variable                                        | Percentiles de cada variable de deriva, atípicos por grupo                           |
+| Hallazgos por cola        | Dataset, corte, cola y el corte en que se abrieron sus hallazgos | Hallazgos abiertos y resueltos, su prioridad                                         |
+| Registro de la evaluación | Dataset, corte y etapa                                           | El tiempo de la etapa                                                                |
+
+Solo guardan agregados; los registros individuales siguen detrás del
+permiso de ver datos personales. Al mapear un dataset, algunos de sus
+campos toman un rol, y cada rol activa las gráficas que lo necesitan:
+
+| Rol                    | Ejemplo en clientes  | Ejemplo en pedidos       | Activa                                                                         |
+| ---------------------- | -------------------- | ------------------------ | ------------------------------------------------------------------------------ |
+| Llave de entidad       | Documento            | El documento del cliente | Distribución del ICD, transiciones entre bandas                                |
+| Segmento               | Tipo de cliente      | Tipo de pedido           | Estado por segmento (con una llave de entidad)                                 |
+| Campo de agrupación    | Oficina, asesor      | Tienda, producto, canal  | Carta p′, grupos más grandes, grupos que más cambiaron, colas de remediación   |
+| Fecha de actualización | Última actualización | Fecha del último cambio  | Antigüedad de la actualización, y el componente A del ICD                      |
+| Importe de atípicos    | Ingresos totales     | Monto del pedido         | Atípicos por grupo (con un campo de agrupación)                                |
+| Variable de deriva     | Ingresos, edad       | Precio, días de entrega  | PSI por deciles                                                                |
+
+Las gráficas que no necesitan nada (conformidad e IGCD por corte, fallos
+por dimensión y severidad, campos con más fallos, campos con menor ICD,
+perfilado, conformidad por regla, tiempo por etapa) aparecen en todos los
+datasets. El indicador SFC pertenece a un [módulo
+opcional](../sector-colombia-finance/).
+
+## 2. Qué lee una regla y cuándo aplica
+
+Toda cifra de esta página sale del resultado de cada regla en cada
+registro, que es uno de tres:
+
+- **No aplica** cuando el registro está fuera de la población de la regla
+  o no cumple su condición `when`; cuando el campo que revisa está vacío,
+  salvo que la regla diga `on_empty: fail` (`required` existe para fallar
+  en los vacíos, así que un vacío sí lo hace fallar); o cuando falta un
+  valor que la revisión necesita, como una de las partes de un `sum`.
+- **Falla** cuando aplica y la revisión no se cumple.
+- **Pasa** cuando aplica y la revisión se cumple.
+
+Una regla **lee** todo campo que nombra: el que revisa, los de su `when` y
+su población, los que comprueba vacíos, y los campos de origen de un campo
+derivado. Si lee un solo campo, cuenta en el componente $C$ de ese campo;
+si lee varios, en el $S$ de cada uno. Por ejemplo, un `required` sobre el
+representante legal limitado a las empresas lee también el tipo de
+cliente, así que cuenta en el $S$ de los dos campos y no en el $C$ del
+representante.
+
+Cada regla tiene una **dimensión** de calidad, que fija su patrón
+(`required` es completitud; `format`, `length` y `domain`, validez; `range`
+y `placeholder`, exactitud; `unique`, unicidad; `fresh`, actualidad; los
+de varios campos, consistencia; una `expression` declara la suya), y una
+**severidad** con su peso $s_r$: bloqueante 1,0, mayor 0,6, menor 0,3. Sin
+severidad escrita, `required` es bloqueante, `unique` y `differs` menores,
+y las demás mayores. Las seis dimensiones clasifican reglas: no son
+componentes del ICD. Una regla `fresh`, por ejemplo, cuenta en el $C$ o el
+$S$ de su campo como cualquier otra, y es distinta del componente $A$ de la
+sección 7.
+
+Cada campo tiene una **prioridad** con su peso $c_a$: crítica 4, alta 3,
+media 2, baja 1. Mientras nadie la fija, es media.
+
+## 3. Conformidad de una regla
+
+¿Qué reglas se cumplen menos?
+
+$$
+\text{conformidad}_r = 1 - \frac{\text{fallos}_r}{\text{aplica}_r}
+$$
+
+$\text{aplica}_r$ cuenta los registros a los que aplica la regla y
+$\text{fallos}_r$ los que la fallan. Una regla que no aplicó a ningún
+registro no tiene conformidad: sale con "—" en la tabla y fuera del dibujo.
+
+<Chart id="rule-conformity" />
+
+**Cómo se lee.** Una conformidad baja quiere decir que el dato está mal o
+que la regla está mal planteada: revisa las más bajas con su dueño antes de
+corregir miles de registros. Una regla que aplica a pocos registros, como
+R-31 aquí, oscila mucho entre cortes: lee su conteo antes que su tasa. Más
+en [Cómo leer el dashboard](../charts/#reglas-con-menor-conformidad).
+
+## 4. Conformidad e IGCD por corte
+
+¿La calidad mejora?
+
+$$
+\text{conformidad}_{\text{corte}} = 1 - \frac{\sum_r \text{fallos}_r}{\sum_r \text{aplica}_r}
+$$
+
+La conformidad del corte suma fallos y aplicaciones de todas sus reglas; el
+IGCD es el de la sección 8. La gráfica muestra los últimos doce cortes hasta
+el elegido.
+
+<Chart id="igcd-trend" />
+
+**Cómo se lee.** Que ambas suban es bueno. El eje vertical no empieza en
+cero: mira la tabla antes de hablar de un cambio. Una conformidad estable
+con un IGCD que baja suele ser desactualización (el componente $A$), que se
+corrige con una campaña de actualización y no caso a caso.
+
+## 5. Fallos por dimensión y severidad
+
+¿Qué tipo de problema domina?
+
+$$
+\text{fallos}_{d,s} = \sum_{r:\ \text{dimensión}(r) = d,\ \text{severidad}(r) = s} \text{fallos}_r
+$$
+
+Un fallo es un registro que falla una regla: un registro que falla tres
+reglas cuenta tres. La tabla agrega cuántas reglas hay en cada par y a
+cuántos registros aplicaron.
+
+<Chart id="failures-by-dimension" />
+
+**Cómo se lee.** Primero los bloqueantes y mayores. Muchos fallos de
+completitud apuntan al formulario de captura o a la fuente; muchos de
+actualidad, a una campaña de actualización.
+
+## 6. Campos con más fallos
+
+¿Dónde están los fallos?
+
+$$
+\text{fallos}_a = \sum_{r:\ \text{campo}(r) = a} \text{fallos}_r
+$$
+
+$\text{campo}(r)$ es el campo que la regla revisa (su `field`), aunque lea
+otros en su condición. La tabla agrega cuántas reglas revisan el campo y
+cuántas revisiones hicieron.
+
+<Chart id="failures-by-field" />
+
+**Cómo se lee.** Un campo con muchos fallos y muchas reglas puede ser
+simplemente el más verificado: compáralo con la conformidad por regla antes
+de decidir por dónde empezar.
+
+## 7. ICD de un campo
+
+¿Qué datos son menos confiables?
+
+$$
+\begin{aligned}
+C_{a,i} &= 1 - \frac{\sum_{r \in \text{propias}(a)} s_r\,\mathbf{1}[\text{falla}_{r,i}]}{\sum_{r \in \text{propias}(a),\ \text{aplica}} s_r}
+  && \text{conformidad de las reglas que leen solo } a\\[4pt]
+S_{a,i} &= 1 - \frac{\sum_{r \in \text{cruce}(a)} s_r\,\mathbf{1}[\text{falla}_{r,i}]}{\sum_{r \in \text{cruce}(a),\ \text{aplica}} s_r}
+  && \text{consistencia con otros campos}\\[4pt]
+A_{a,i} &= 0{,}5^{\,\max(d_i,\,0)/365}
+  && \text{solo si } a \text{ caduca y el registro tiene fecha}\\[6pt]
+\text{ICD}_{a,i} &= \frac{\sum_{k} w_k\, x_{k,a,i}}{\sum_{k} w_k},
+  \qquad (w_C, w_S, w_A) = (0{,}40,\ 0{,}15,\ 0{,}15)\\[6pt]
+\text{ICD}_a &= \operatorname{media}_{i:\ \text{ICD}_{a,i} \text{ existe}}\ \text{ICD}_{a,i}
+\end{aligned}
+$$
+
+$\text{propias}(a)$ son las reglas que leen solo el campo $a$ y
+$\text{cruce}(a)$ las que leen $a$ y otros (sección 2). $d_i$ son los días
+desde la fecha de actualización del registro hasta el corte. $A$ baja desde
+el primer día: 0,94 a los 30 días, 0,71 a los 180, 0,50 al año, 0,25 a los
+dos años. Solo existe para los campos marcados como que caducan (datos de
+contacto, ingresos, un empleador), si el dataset tiene un campo de fecha de
+actualización, y en los registros que tienen esa fecha: un registro sin
+fecha no tiene $A$, no un $A$ de cero. Un componente que no existe para un
+registro (ninguna regla aplica, el campo no caduca, no hay fecha) sale de la
+suma y los demás pesos se renormalizan; un campo sin ningún componente no
+tiene ICD en ese registro.
+
+<Chart id="fields-lowest-icd" />
+
+**Cómo se lee.** A diferencia del conteo de fallos, el ICD pondera la
+severidad y, en los campos que caducan, la antigüedad. Un campo bajo aquí
+con pocos fallos, como la fecha de actualización del ejemplo, suele estar
+**viejo** más que mal: necesita actualización, no corrección.
+
+## 8. ICD del registro y de la entidad, e IGCD
+
+¿Cómo se reparten las entidades según su calidad?
+
+$$
+\begin{aligned}
+\text{ICD}_i &= \frac{\sum_a c_a\, \text{ICD}_{a,i}}{\sum_a c_a}
+  \qquad \text{sobre los campos con ICD en } i\\[6pt]
+\text{ICD}_{a,e} &= \begin{cases} \min_{i \in e} \text{ICD}_{a,i} & a \text{ crítico}\\ \operatorname{media}_{i \in e} \text{ICD}_{a,i} & \text{en los demás} \end{cases},
+  \qquad \text{ICD}_e = \frac{\sum_a c_a\, \text{ICD}_{a,e}}{\sum_a c_a}\\[6pt]
+\text{IGCD} &= \frac{1}{N} \sum_{e=1}^{N} \text{ICD}_e,
+  \qquad \text{tramo}_e = \frac{\min\left(\lfloor 20\,\text{ICD}_e \rfloor,\ 19\right)}{20}
+\end{aligned}
+$$
+
+Una entidad $e$ es el conjunto de registros que comparten la **llave de
+entidad**, normalizada: en un campo de documento se quedan solo los dígitos,
+sin ceros a la izquierda; en cualquier otro, el valor sin espacios a los
+lados y en mayúsculas; si la llave tiene varios campos, se unen. Un
+registro con la llave, o una de sus partes, vacía no pertenece a ninguna
+entidad: queda fuera del ICD por entidad, del IGCD y de las bandas. $N$ es
+el número de entidades con ICD. Sin llave de entidad, el IGCD es la media
+del ICD de los registros y no hay bandas. La gráfica cuenta las entidades
+por tramos de 0,05 nombrados por su inicio; un ICD de 1,00 cuenta en el
+último, y los tramos sin entidades no salen.
+
+<Chart id="icd-distribution" />
+
+**Cómo se lee.** A la derecha de 0,90 está la banda buena, entre las líneas
+la regular, a la izquierda de 0,75 la mala. Una pila alta justo a la
+izquierda de una línea es barata de mover: pocas correcciones por entidad
+le cambian la banda.
+
+## 9. Estado de los datos por segmento
+
+¿Un tipo de entidad está peor que otro?
+
+$$
+\text{Banda}_e = \begin{cases}
+  \text{Buen estado} & \text{ICD}_e \ge 0{,}90\\
+  \text{Regular} & 0{,}75 \le \text{ICD}_e < 0{,}90\\
+  \text{Malo} & \text{ICD}_e < 0{,}75
+\end{cases}
+\qquad
+\text{segmento}_e = \operatorname{moda}_{i \in e}\ \text{segmento}_i
+$$
+
+El segmento de una entidad es el valor más común del campo de segmento
+entre sus registros; si dos empatan, el primero en orden alfabético. La
+gráfica cuenta las entidades de cada segmento por banda, el segmento más
+grande primero. La banda es una clasificación: el producto no dispara
+ninguna acción según ella.
+
+<Chart id="bands-by-segment" />
+
+**Cómo se lee.** Un segmento mucho más rojo que los demás suele fallar en
+campos que sus registros no traen: un problema del proceso, que se corrige
+en la fuente. Un segmento pequeño puede verse extremo con pocas entidades:
+lee su conteo en la tabla.
+
+## 10. Transiciones entre bandas
+
+¿A dónde fueron las entidades desde el corte anterior?
+
+$$
+n_{b \to b'} = \#\left\{ e : \text{Banda}_e^{\text{anterior}} = b,\ \text{Banda}_e^{\text{este}} = b' \right\}
+$$
+
+Las entidades se emparejan entre los dos cortes por un hash con clave de su
+llave normalizada: la llave misma nunca sale de la evaluación. Solo cuentan
+las entidades con banda en los dos cortes; en el primer corte evaluado no
+hay transiciones.
+
+<Chart id="band-transitions" />
+
+**Cómo se lee.** La diagonal se quedó igual; por encima de ella (hacia
+buen estado) mejoraron, por debajo empeoraron. Un flujo grande de buen
+estado a regular sin errores nuevos suele ser dato que caduca (el
+componente $A$).
+
+## 11. Antigüedad de la actualización
+
+¿Qué tan viejos son los datos?
+
+$$
+d_i = \text{corte} - \text{fecha de actualización}_i \ \text{(días)}
+\qquad
+\text{tramos: } d_i < 0,\ 0\text{–}30,\ 31\text{–}90,\ 91\text{–}180,\ 181\text{–}365,\ 366\text{–}730,\ > 730,\ \text{sin fecha}
+$$
+
+Cuenta todos los registros del corte por los días entre su fecha de
+actualización y la fecha del corte, nunca hoy. "Sin fecha" son los
+registros con ese campo vacío. La tabla muestra el $A$ (sección 7) que da
+cada tramo a un campo que caduca.
+
+<Chart id="recency" />
+
+**Cómo se lee.** Un dato puede ser correcto y aun así viejo, y $A$ baja
+desde el primer día, no a partir de un año. Una proporción grande en los
+tramos de más de un año pide una campaña de actualización. Las fechas
+posteriores al corte son sospechosas (formato equivocado, una fecha por
+defecto): revisa cómo se capturan.
+
+## 12. Carta p′ por grupo
+
+¿Este grupo falla más de lo normal, o es ruido?
+
+$$
+\begin{aligned}
+p_g &= \frac{\text{graves}_g}{n_g}, \qquad \bar{p} = \frac{\sum_g \text{graves}_g}{\sum_g n_g}, \qquad
+  \sigma_g = \sqrt{\frac{\bar{p}\,(1 - \bar{p})}{n_g}}, \qquad z_g = \frac{p_g - \bar{p}}{\sigma_g}\\[6pt]
+\sigma_z &= \frac{\overline{MR}(z)}{1{,}128}, \qquad
+  \text{LCS}_g = \min\left(1,\ \bar{p} + 3\,\sigma_g\,\sigma_z\right), \qquad
+  \text{LCI}_g = \max\left(0,\ \bar{p} - 3\,\sigma_g\,\sigma_z\right)
+\end{aligned}
+$$
+
+$p_g$ es la proporción de los registros del grupo $g$ con **al menos una
+falla grave**: una regla bloqueante o mayor que lee un campo crítico o alto
+y falla. Con grupos de miles de registros, los límites binomiales simples
+casi desaparecen y todo grupo sale fuera de control; $\sigma_z$, la
+dispersión real entre grupos medida con el rango móvil de $z$ sobre los
+grupos ordenados por tamaño (carta p′ de Laney), los ensancha. Con un solo
+grupo, $\sigma_z = 1$. Hay una carta por campo de agrupación, sobre sus
+1.000 grupos más grandes; el grupo vacío queda fuera. Hay señal si $p_g$
+sale de sus límites.
+
+<Chart id="p-chart" />
+
+**Cómo se lee.** Solo los puntos fuera de las curvas son señales. Por
+encima: algo en ese grupo produce más fallas graves que en los demás, y
+vale la pena buscar la causa. Por debajo: algo se hace mejor y vale la
+pena copiarlo. Entre las curvas: variación normal, por más que el ranking
+diga otra cosa. Si todos los grupos suben a la vez, la causa está en la
+fuente, no en los grupos.
+
+## 13. Grupos más grandes
+
+¿Dónde están la mayoría de los registros?
+
+$$
+n_g,\qquad \frac{\text{graves}_g}{n_g},\qquad \overline{\text{ICD}}_g = \operatorname{media}_{i \in g}\ \text{ICD}_i
+$$
+
+Los quince grupos con más registros de cada campo de agrupación, con su
+proporción con falla grave (sección 12) y su ICD medio (sección 8). Los
+registros con el campo de agrupación vacío forman su propio grupo, "(vacío)".
+
+<Chart id="largest-groups" />
+
+**Cómo se lee.** Léela con la carta p′: un grupo grande con una proporción
+algo peor mueve más registros que uno pequeño con una mucho peor. Un
+"(vacío)" grande es en sí mismo un problema de captura.
+
+## 14. Grupos que más cambiaron
+
+¿Qué grupos se movieron desde el corte anterior?
+
+$$
+\Delta_g = \frac{\text{graves}_g}{n_g}\bigg|_{\text{este corte}} - \frac{\text{graves}_g}{n_g}\bigg|_{\text{corte anterior}}
+$$
+
+En puntos porcentuales, para los grupos con registros en los dos cortes;
+salen los quince con mayor $|\Delta_g|$ de cada campo de agrupación. Un
+$\Delta_g$ positivo es peor: más registros con falla grave. En el primer
+corte evaluado no hay con qué comparar.
+
+<Chart id="groups-changed" />
+
+**Cómo se lee.** Señala dónde mirar, no a quién culpar: un grupo puede
+empeorar porque recibió registros de otro. Los grupos pequeños se mueven
+mucho por azar; revisa la carta p′ antes de actuar.
+
+## 15. Prioridad y colas de remediación
+
+¿Cuánto espera en la cola de cada grupo, y cuánto va tarde?
+
+$$
+\begin{aligned}
+\text{Prioridad}_{i,r} &= \max_{a \in \text{lee}(r)}\ \underbrace{\frac{c_a}{4}\,\left(1 - \text{ICD}_{a,i}\right)}_{\text{impacto de negocio}} \times \text{cercanía}_a\\[6pt]
+\text{vencido}_{i,r} &\iff \text{desde}_{i,r} + \text{ANS}_g < \text{corte},
+  \qquad \text{ANS}_g = \text{el del grupo, si no el del campo de agrupación, si no 30 días}
+\end{aligned}
+$$
+
+Un **hallazgo** es un registro $i$ que falla una regla $r$; necesita una
+llave de registro (la del mapeo, o la de entidad). Su prioridad toma el
+término más alto entre los campos que lee la regla. $\text{cercanía}_a$ vale
+0,2 salvo en un dataset con el indicador SFC, donde depende de qué tan cerca
+del umbral está la celda del campo (ver el [módulo
+opcional](../sector-colombia-finance/#cercanía-al-umbral-y-prioridad)).
+Cada hallazgo cae en una cola por cada campo de agrupación: la del valor del
+registro. $\text{desde}$ es el corte en que el hallazgo se abrió, llevado de
+un corte al siguiente mientras la misma regla siga fallando en el mismo
+registro. Por cola, la gráfica da:
+
+- **Abiertos**: los hallazgos del corte; **vencidos**, los que cumplen la
+  condición de arriba.
+- **Resueltos en este corte**: los hallazgos del corte anterior que este
+  corte ya no tiene.
+- **Abierto más antiguo**: los días desde el $\text{desde}$ más antiguo
+  hasta el corte.
+- **Prioridad**: la suma de la de sus hallazgos abiertos.
+
+Salen las quince colas con más hallazgos abiertos de cada campo de
+agrupación. Mientras los hallazgos aún no pasan de un corte al siguiente,
+todo hallazgo cuenta desde el corte mostrado, y **Vencidos** y **Resueltos**
+marcan 0.
+
+<Chart id="queues" />
+
+**Cómo se lee.** Lo rojo es lo primero que se persigue; una prioridad
+sumada alta con pocos hallazgos significa unos pocos costosos. Un hallazgo
+se resuelve solo cuando un corte posterior deja de fallarlo. Cómo se fija
+el ANS está en [Cómo leer el dashboard](../charts/#colas-de-remediación).
+
+## 16. Atípicos: z robusto y MAD
+
+¿Hay importes raros para su grupo?
+
+$$
+\begin{aligned}
+x_i &= \log_{10}\left(\text{importe}_i\right), \qquad
+\tilde{x}_g = \operatorname{mediana}_{i \in g}\ x_i, \qquad
+\text{MAD}_g = \operatorname{mediana}_{i \in g} \left| x_i - \tilde{x}_g \right|\\[6pt]
+z_i &= \frac{0{,}6745\,\left(x_i - \tilde{x}_g\right)}{\max\left(\text{MAD}_g,\ 0{,}10\right)},
+  \qquad \text{bajo} \iff z_i < -3{,}5, \qquad \text{alto} \iff z_i > 3{,}5
+\end{aligned}
+$$
+
+Para cada grupo de un campo de agrupación se toma el importe típico (la
+**mediana**; con un número par de importes, la media de los dos del medio)
+y qué tanto se apartan normalmente de él (la **MAD**, desviación absoluta
+mediana). El **z robusto** dice a cuántas de esas distancias típicas está
+cada importe. Se usan mediana y MAD, y no promedio y desviación estándar,
+porque unos pocos importes enormes moverían el promedio y esconderían
+justamente los casos raros; el logaritmo hace que el doble pese lo mismo en
+cualquier nivel. Solo cuentan los importes positivos. Los registros con el
+campo de agrupación vacío forman el grupo "(vacío)". Se calculan los 1.000
+grupos con más importes y salen los quince con más atípicos.
+
+**Ejemplo.** Con importes de 1; 1,1; 1,2; 1,3 y 50 mil, la mediana es 1,2
+mil y la MAD 0,1 mil: el valor extremo no la infla. Tomados en logaritmo,
+la MAD queda por debajo de 0,10 y se usa el piso: 50 mil da un z robusto de
+cerca de 10,9, atípico, y los otros cuatro quedan a menos de 0,6 de cero.
+
+<Chart id="outliers" />
+
+**Cómo se lee.** Un atípico no es por sí mismo un error: la gráfica no
+distingue un error de un valor legítimo. Revisa los grupos con la mayor
+proporción, corrige los errores (dígitos de más, otra unidad) y conserva
+los legítimos. En un grupo con pocos importes la mediana es inestable: lee
+el conteo en la tabla.
+
+## 17. Deriva: índice de estabilidad poblacional (PSI)
+
+¿Cambió la población de este corte frente al anterior?
+
+$$
+\text{PSI} = \sum_{k=1}^{10} \left(a_k - e_k\right) \ln\frac{a_k}{e_k}
+\qquad \begin{cases}
+  < 0{,}10 & \text{estable}\\
+  0{,}10 \text{ a } 0{,}25 & \text{deriva moderada}\\
+  > 0{,}25 & \text{deriva significativa}
+\end{cases}
+$$
+
+El PSI (en inglés, _Population Stability Index_) compara cómo se reparte
+una variable de deriva en este corte y en el **corte evaluado anterior**.
+Cada evaluación guarda los percentiles 0 a 100 de la variable, exactos, con
+interpolación lineal entre dos valores. Los deciles del corte anterior son
+los diez tramos; $e_k$ es la proporción del corte anterior en el tramo $k$
+(cerca del 10 %) y $a_k$ la de este corte, las dos leídas de sus
+percentiles, con una resolución de 1 %. Un tramo vacío cuenta como 0,0001,
+para que el logaritmo exista. Hay una gráfica por variable de deriva, y
+ninguna en el primer corte evaluado.
+
+<Chart id="psi" />
+
+**Cómo se lee.** Columnas azules parecidas a las grises es lo bueno. Si el
+azul se amontona en un extremo, la población se movió: cada registro puede
+ser válido y el lote, aun así, sospechoso. Con deriva moderada, revísalo
+antes de usarlo; con deriva significativa, busca la causa (una fuente
+nueva, un cambio de unidad, un error de carga). Por la resolución de 1 %, un
+PSI cercano a 0 es aproximado.
+
+## 18. Perfilado
+
+¿Qué campos faltan más, y qué forma tienen sus valores?
+
+$$
+\text{vacíos}_a = \frac{\#\{i : a_i \text{ vacío}\}}{n},
+\qquad
+\text{forma más común}_a = \frac{\#\{i : \text{forma}(a_i) = f^{*}_a\}}{\#\{i : a_i \text{ lleno}\}}
+$$
+
+Un valor está vacío si es nulo o solo tiene espacios. La **forma** de un
+valor cambia cada dígito por `9` y cada letra de la A a la Z, mayúscula o
+minúscula, por `A`; los demás caracteres (espacios, guiones, `@`, letras
+con tilde) quedan como están, y se corta a 40 caracteres. Las repeticiones
+no se comprimen: un celular de diez dígitos es `9999999999`. $f^{*}_a$ es
+la forma más común entre los valores llenos (en un empate, la primera en
+orden alfabético). La tabla agrega los valores distintos.
+
+<Chart id="profiling" />
+
+**Cómo se lee.** Un campo vacío puede ser opcional: compáralo con las
+reglas. Una forma más común muy por debajo del 100 % sugiere formatos
+mezclados, salvo en campos libres como el correo o el nombre, donde es lo
+normal; un código que perdió su cero a la izquierda aparece como una forma
+más corta. Es perfilado: no muestra valores, solo formas.
+
+## 19. Tiempo por etapa
+
+¿La evaluación se vuelve más lenta para el volumen que procesa?
+
+$$
+\text{ms por millón}_{\text{etapa}} = \frac{t_{\text{etapa}}}{V / 10^{6}},
+\qquad V = \text{registros} \times \text{campos mapeados}
+$$
+
+$t$ es el tiempo de la etapa en milisegundos. Expresado por millón de
+valores, un dataset más grande no parece una evaluación más lenta. La tabla
+pone al lado el mismo cálculo del corte anterior; sin volumen, las barras
+son milisegundos simples.
+
+<Chart id="performance" />
+
+**Cómo se lee.** Compara una etapa con su valor anterior por millón, no en
+tiempo simple: una base más grande tarda más sin ser más lenta. Ejecutar
+las reglas suele dominar.
+
+## 20. Indicador SFC
+
+Solo para un dataset que participa en el indicador de la Superintendencia
+Financiera de Colombia (SFC): ver el [módulo
+opcional](../sector-colombia-finance/).
+
+$$
+\text{celda}_a = \mathbf{1}\left[\text{correctos}_a \ge \lceil 0{,}90 \cdot \text{activos} \rceil\right],
+\qquad
+\text{SFC} = \operatorname{media}_a\ \text{celda}_a
+$$
+
+Un registro activo está correcto en la celda de un campo cuando el campo
+está lleno y ninguna regla que lo lee falla.
+
+<Chart id="sfc-cells" />
+
+**Cómo se lee.** Las celdas en rojo dentro de la franja 80–90 % son donde
+menos correcciones cambian la celda de 0 a 1; las verdes apenas por encima
+del 90 % están en riesgo. Más en [Cómo leer la gráfica del indicador
+SFC](../sector-colombia-finance/#cómo-leer-la-gráfica-del-indicador-sfc).

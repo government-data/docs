@@ -91,8 +91,8 @@ cubre las entidades financieras vigiladas en Colombia.
 - **Gerencia y cumplimiento:**
   [Primeros pasos: indicadores](../start-reader/) abre un dashboard y lee
   sus primeros indicadores; después, [Cómo leer el dashboard](../charts/),
-  [De los resultados a los indicadores](../indicators/) y los reportes de ejemplo de
-  [Gráficas](../../charts/evolution/), hechos con datos inventados.
+  [De los resultados a los indicadores](../indicators/) y [Formulaciones](../formulas/), con
+  un ejemplo de cada gráfica hecho con datos inventados.
 - **Para consultar algo:** las páginas de Tareas dicen cómo se hace cada
   cosa y quién la hace; las de Referencia, cada clave, patrón, hallazgo,
   fórmula, gráfica y permiso. Cada término subrayado muestra su significado

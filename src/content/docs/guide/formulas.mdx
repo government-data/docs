@@ -1,0 +1,558 @@
+---
+title: Formulas
+description: Each chart of the dashboard with its example, the formula it is calculated with, and how to read it.
+sidebar:
+  order: 5
+---
+
+import { Aside } from "@astrojs/starlight/components";
+import Chart from "../../../components/Chart.astro";
+
+This page gathers, for each of the 18 charts on a dataset's dashboard, an
+example, the formula Quality Data calculates it with, and how to read it.
+What to do with each chart is in [Reading the dashboard](../charts/); what
+each indicator means, in [From results to indicators](../indicators/).
+
+<Aside type="caution" title="Example data">
+  The charts on this page use made-up figures about a customer dataset; they are no organisation's
+  data. The rule charts come from the same fifteen made-up rules, and the group charts from the same
+  offices, so their figures agree with each other.
+</Aside>
+
+Notation: $i$ = record, $e$ = entity, $a$ = field, $r$ = rule, $g$ = group,
+$k$ = component of the ICD (data reliability index), $\mathbf{1}[\cdot]$ = 1
+when the condition holds and 0 otherwise. The weights, severities and
+thresholds below are fixed in the product today. Some concepts of the
+original method (the ICD's K, V and T components, a failure's cause,
+outliers as probable errors, an SLA measured against a target, a treatment
+by band) are not calculated yet: see [Assumptions and
+limits](../assumptions/).
+
+## 1. Where the charts come from
+
+Each chart is a query over a **results model** that every evaluation writes
+the same way, for any dataset: customers, orders, products, suppliers.
+Under each chart, **Query** says which part of that model feeds it, and
+**Needs** what a dataset must have for the chart to appear.
+
+| Part                | One row per                                            | What it holds                                                                    |
+| ------------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| Cut summary         | Dataset and cut                                        | Overall data quality index (IGCD), records, entities, bands                      |
+| Rule results        | Dataset, cut and rule                                  | Field, dimension, severity, applies, failures                                    |
+| Field quality       | Dataset, cut and field                                 | Mean ICD, empties, distinct values, commonest shape, update recency              |
+| Entity ICD          | Dataset, cut and entity                                | ICD, band, segment                                                               |
+| Group figures       | Dataset, cut, grouping field and group                 | Records, records with a serious failure, mean ICD                                |
+| Distribution checks | Dataset, cut and variable                              | Each drift variable's percentiles, outliers by group                             |
+| Queue findings      | Dataset, cut, queue and the cut its findings opened at | Open and resolved findings, their priority                                       |
+| Evaluation log      | Dataset, cut and stage                                 | The stage's time                                                                 |
+
+They hold aggregates only; individual records stay behind the permission to
+see personal data. When a dataset is mapped, some of its fields take a
+role, and each role turns on the charts that need it:
+
+| Role           | Example in customers | Example in orders       | Turns on                                                                       |
+| -------------- | -------------------- | ----------------------- | ------------------------------------------------------------------------------ |
+| Entity key     | Document             | The customer's document | Distribution of the ICD, band transitions                                      |
+| Segment        | Customer type        | Order type              | Data condition by segment (with an entity key)                                 |
+| Grouping field | Office, advisor      | Store, product, channel | p′ chart, largest groups, groups that changed most, remediation queues         |
+| Update date    | Last update          | Last change date        | Update recency, and the ICD's A component                                      |
+| Outlier amount | Total income         | Order amount            | Outliers by group (with a grouping field)                                      |
+| Drift variable | Income, age          | Price, delivery days    | PSI by deciles                                                                 |
+
+Charts that need nothing (conformity and IGCD by cut, failures by dimension
+and severity, fields with the most failures, fields with the lowest ICD,
+profiling, conformity by rule, time per stage) appear for every dataset.
+The SFC indicator belongs to an [optional
+module](../sector-colombia-finance/).
+
+## 2. What a rule reads and when it applies
+
+Every figure on this page comes from each rule's result on each record,
+which is one of three:
+
+- **Does not apply** when the record is outside the rule's population or
+  does not meet its `when` condition; when the field it checks is empty,
+  unless the rule says `on_empty: fail` (`required` exists to fail on
+  empties, so an empty value does fail it); or when a value the check needs
+  is missing, such as one of the parts of a `sum`.
+- **Fails** when it applies and the check does not hold.
+- **Passes** when it applies and the check holds.
+
+A rule **reads** every field it names: the one it checks, those in its
+`when` and its population, those it checks for emptiness, and the source
+fields of a derived field. If it reads one field, it counts in that
+field's $C$ component; if it reads several, in the $S$ of each. For
+example, a `required` on the legal representative limited to companies also
+reads the customer type, so it counts in the $S$ of both fields and not in
+the representative's $C$.
+
+Each rule has a quality **dimension**, set by its pattern (`required` is
+completeness; `format`, `length` and `domain`, validity; `range` and
+`placeholder`, accuracy; `unique`, uniqueness; `fresh`, timeliness; those
+across fields, consistency; an `expression` declares its own), and a
+**severity** with its weight $s_r$: blocking 1.0, major 0.6, minor 0.3.
+Without a written severity, `required` is blocking, `unique` and `differs`
+minor, and the rest major. The six dimensions classify rules: they are not
+components of the ICD. A `fresh` rule, for example, counts in its field's
+$C$ or $S$ like any other, and is distinct from the $A$ component of
+section 7.
+
+Each field has a **priority** with its weight $c_a$: critical 4, high 3,
+medium 2, low 1. Until someone sets it, it is medium.
+
+## 3. Conformity of a rule
+
+Which rules are met least?
+
+$$
+\text{conformity}_r = 1 - \frac{\text{failures}_r}{\text{applies}_r}
+$$
+
+$\text{applies}_r$ counts the records the rule applies to and
+$\text{failures}_r$ those that fail it. A rule that applied to no record
+has no conformity: it shows "—" in the table and is left out of the
+drawing.
+
+<Chart id="rule-conformity" />
+
+**How to read it.** A low conformity means the data is wrong or the rule is
+badly framed: review the lowest with their owner before fixing thousands of
+records. A rule that applies to few records, like R-31 here, swings a lot
+between cuts: read its count before its rate. More in [Reading the
+dashboard](../charts/#rules-with-the-lowest-conformity).
+
+## 4. Conformity and IGCD by cut
+
+Is quality improving?
+
+$$
+\text{conformity}_{\text{cut}} = 1 - \frac{\sum_r \text{failures}_r}{\sum_r \text{applies}_r}
+$$
+
+A cut's conformity sums failures and applies over all its rules; the IGCD
+is section 8's. The chart shows the last twelve cuts up to the one chosen.
+
+<Chart id="igcd-trend" />
+
+**How to read it.** Both rising is good. The vertical axis does not start
+at zero: check the table before calling something a change. Steady
+conformity with a falling IGCD is usually outdated data (the $A$
+component), fixed by an update campaign rather than case by case.
+
+## 5. Failures by dimension and severity
+
+Which kind of problem dominates?
+
+$$
+\text{failures}_{d,s} = \sum_{r:\ \text{dimension}(r) = d,\ \text{severity}(r) = s} \text{failures}_r
+$$
+
+A failure is a record failing a rule: a record that fails three rules
+counts three. The table adds how many rules each pair has and how many
+records they applied to.
+
+<Chart id="failures-by-dimension" />
+
+**How to read it.** Blocking and major first. Many completeness failures
+point at the capture form or the source; many timeliness failures, at an
+update campaign.
+
+## 6. Fields with the most failures
+
+Where are the failures?
+
+$$
+\text{failures}_a = \sum_{r:\ \text{field}(r) = a} \text{failures}_r
+$$
+
+$\text{field}(r)$ is the field the rule checks (its `field`), even if it
+reads others in its condition. The table adds how many rules check the
+field and how many checks they made.
+
+<Chart id="failures-by-field" />
+
+**How to read it.** A field with many failures and many rules may simply be
+the most checked: compare it with conformity by rule before deciding where
+to start.
+
+## 7. ICD of a field
+
+Which data is least reliable?
+
+$$
+\begin{aligned}
+C_{a,i} &= 1 - \frac{\sum_{r \in \text{own}(a)} s_r\,\mathbf{1}[\text{fails}_{r,i}]}{\sum_{r \in \text{own}(a),\ \text{applies}} s_r}
+  && \text{conformity of the rules that read only } a\\[4pt]
+S_{a,i} &= 1 - \frac{\sum_{r \in \text{cross}(a)} s_r\,\mathbf{1}[\text{fails}_{r,i}]}{\sum_{r \in \text{cross}(a),\ \text{applies}} s_r}
+  && \text{consistency with other fields}\\[4pt]
+A_{a,i} &= 0.5^{\,\max(d_i,\,0)/365}
+  && \text{only if } a \text{ expires and the record has a date}\\[6pt]
+\text{ICD}_{a,i} &= \frac{\sum_{k} w_k\, x_{k,a,i}}{\sum_{k} w_k},
+  \qquad (w_C, w_S, w_A) = (0.40,\ 0.15,\ 0.15)\\[6pt]
+\text{ICD}_a &= \operatorname{mean}_{i:\ \text{ICD}_{a,i} \text{ exists}}\ \text{ICD}_{a,i}
+\end{aligned}
+$$
+
+$\text{own}(a)$ are the rules that read only field $a$ and
+$\text{cross}(a)$ those that read $a$ and others (section 2). $d_i$ is the
+number of days from the record's update date to the cut. $A$ falls from the
+first day: 0.94 at 30 days, 0.71 at 180, 0.50 at a year, 0.25 at two years.
+It exists only for fields marked as expiring (contact data, income, an
+employer), when the dataset has an update date field, and on the records
+that have that date: a record with no date has no $A$, not an $A$ of zero.
+A component that does not exist for a record (no rule applies, the field
+does not expire, there is no date) leaves the sum and the remaining weights
+are renormalised; a field with no component has no ICD on that record.
+
+<Chart id="fields-lowest-icd" />
+
+**How to read it.** Unlike the failure count, the ICD weighs severity and,
+for fields that expire, age. A field low here with few failures, like the
+example's update date, is usually **old** rather than wrong: it needs
+updating, not correcting.
+
+## 8. ICD of the record and the entity, and IGCD
+
+How are the entities spread by their quality?
+
+$$
+\begin{aligned}
+\text{ICD}_i &= \frac{\sum_a c_a\, \text{ICD}_{a,i}}{\sum_a c_a}
+  \qquad \text{over the fields with an ICD on } i\\[6pt]
+\text{ICD}_{a,e} &= \begin{cases} \min_{i \in e} \text{ICD}_{a,i} & a \text{ critical}\\ \operatorname{mean}_{i \in e} \text{ICD}_{a,i} & \text{otherwise} \end{cases},
+  \qquad \text{ICD}_e = \frac{\sum_a c_a\, \text{ICD}_{a,e}}{\sum_a c_a}\\[6pt]
+\text{IGCD} &= \frac{1}{N} \sum_{e=1}^{N} \text{ICD}_e,
+  \qquad \text{bin}_e = \frac{\min\left(\lfloor 20\,\text{ICD}_e \rfloor,\ 19\right)}{20}
+\end{aligned}
+$$
+
+An entity $e$ is the set of records sharing the **entity key**, normalised:
+a document field keeps its digits only, without leading zeros; any other
+field, its value without surrounding spaces and in upper case; a key of
+several fields joins them. A record whose key, or one of its parts, is
+empty belongs to no entity: it is left out of the entity ICD, the IGCD and
+the bands. $N$ is the number of entities with an ICD. Without an entity
+key, the IGCD is the mean of the records' ICD and there are no bands. The
+chart counts entities in 0.05 bins named by where they start; an ICD of
+1.00 counts in the last, and bins with no entity are not shown.
+
+<Chart id="icd-distribution" />
+
+**How to read it.** Right of 0.90 is the good band, between the lines the
+fair one, left of 0.75 the poor one. A tall pile just left of a line is
+cheap to move: a few fixes per entity change its band.
+
+## 9. Data condition by segment
+
+Is one kind of entity worse off than another?
+
+$$
+\text{Band}_e = \begin{cases}
+  \text{Good} & \text{ICD}_e \ge 0.90\\
+  \text{Fair} & 0.75 \le \text{ICD}_e < 0.90\\
+  \text{Poor} & \text{ICD}_e < 0.75
+\end{cases}
+\qquad
+\text{segment}_e = \operatorname{mode}_{i \in e}\ \text{segment}_i
+$$
+
+An entity's segment is the commonest value of the segment field among its
+records; on a tie, the first in alphabetical order. The chart counts each
+segment's entities by band, the largest segment first. The band is a
+classification: the product triggers no action from it.
+
+<Chart id="bands-by-segment" />
+
+**How to read it.** A segment much redder than the rest usually fails on
+fields its records do not bring: a process problem, fixed at the source. A
+small segment can look extreme with few entities: read its count in the
+table.
+
+## 10. Band transitions
+
+Where did the entities go since the previous cut?
+
+$$
+n_{b \to b'} = \#\left\{ e : \text{Band}_e^{\text{previous}} = b,\ \text{Band}_e^{\text{this}} = b' \right\}
+$$
+
+Entities are matched between the two cuts by a keyed hash of their
+normalised key: the key itself never leaves the evaluation. Only entities
+with a band in both cuts count; the first evaluated cut has no transitions.
+
+<Chart id="band-transitions" />
+
+**How to read it.** The diagonal stayed the same; above it (towards good)
+improved, below it worsened. A large flow from good to fair without new
+errors is usually data that expires (the $A$ component).
+
+## 11. Update recency
+
+How old is the data?
+
+$$
+d_i = \text{cut} - \text{update date}_i \ \text{(days)}
+\qquad
+\text{bands: } d_i < 0,\ 0\text{–}30,\ 31\text{–}90,\ 91\text{–}180,\ 181\text{–}365,\ 366\text{–}730,\ > 730,\ \text{no date}
+$$
+
+It counts every record of the cut by the days between its update date and
+the cut's date, never today. "No date" are the records with that field
+empty. The table shows the $A$ (section 7) each band gives a field that
+expires.
+
+<Chart id="recency" />
+
+**How to read it.** Data can be correct and still old, and $A$ falls from
+the first day, not after a year. A large share in the bands over a year
+calls for an update campaign. Dates after the cut are suspect (a wrong
+format, a default date): check how they are captured.
+
+## 12. p′ chart by group
+
+Does this group fail more than usual, or is it noise?
+
+$$
+\begin{aligned}
+p_g &= \frac{\text{serious}_g}{n_g}, \qquad \bar{p} = \frac{\sum_g \text{serious}_g}{\sum_g n_g}, \qquad
+  \sigma_g = \sqrt{\frac{\bar{p}\,(1 - \bar{p})}{n_g}}, \qquad z_g = \frac{p_g - \bar{p}}{\sigma_g}\\[6pt]
+\sigma_z &= \frac{\overline{MR}(z)}{1.128}, \qquad
+  \text{UCL}_g = \min\left(1,\ \bar{p} + 3\,\sigma_g\,\sigma_z\right), \qquad
+  \text{LCL}_g = \max\left(0,\ \bar{p} - 3\,\sigma_g\,\sigma_z\right)
+\end{aligned}
+$$
+
+$p_g$ is the share of group $g$'s records with **at least one serious
+failure**: a blocking or major rule that reads a critical or high field and
+fails. With groups of thousands of records, the plain binomial limits
+almost vanish and every group looks out of control; $\sigma_z$, the real
+spread between groups measured with the moving range of $z$ over the groups
+ordered by size (Laney's p′ chart), widens them. With a single group,
+$\sigma_z = 1$. There is one chart per grouping field, over its 1,000
+largest groups; the empty group is left out. There is a signal when $p_g$
+falls outside its limits.
+
+<Chart id="p-chart" />
+
+**How to read it.** Only points outside the curves are signals. Above:
+something in that group produces more serious failures than in the others,
+and its cause is worth finding. Below: something is done better and is
+worth copying. Between the curves: normal variation, whatever the ranking
+says. If every group rises at once, the cause is in the source, not in the
+groups.
+
+## 13. Largest groups
+
+Where are most of the records?
+
+$$
+n_g,\qquad \frac{\text{serious}_g}{n_g},\qquad \overline{\text{ICD}}_g = \operatorname{mean}_{i \in g}\ \text{ICD}_i
+$$
+
+The fifteen groups with the most records of each grouping field, with their
+share with a serious failure (section 12) and their mean ICD (section 8).
+Records with the grouping field empty make their own group, "(empty)".
+
+<Chart id="largest-groups" />
+
+**How to read it.** Read it with the p′ chart: a large group with a
+slightly worse share moves more records than a small one with a much worse
+share. A large "(empty)" is a capture problem in itself.
+
+## 14. Groups that changed most
+
+Which groups moved since the previous cut?
+
+$$
+\Delta_g = \frac{\text{serious}_g}{n_g}\bigg|_{\text{this cut}} - \frac{\text{serious}_g}{n_g}\bigg|_{\text{previous cut}}
+$$
+
+In percentage points, for the groups with records in both cuts; the
+fifteen with the largest $|\Delta_g|$ of each grouping field are shown. A
+positive $\Delta_g$ is worse: more records with a serious failure. The
+first evaluated cut has nothing to compare with.
+
+<Chart id="groups-changed" />
+
+**How to read it.** It shows where to look, not whom to blame: a group can
+worsen because it took records over from another. Small groups move a lot
+by chance; check the p′ chart before acting.
+
+## 15. Priority and remediation queues
+
+How much waits in each group's queue, and how much is late?
+
+$$
+\begin{aligned}
+\text{Priority}_{i,r} &= \max_{a \in \text{reads}(r)}\ \underbrace{\frac{c_a}{4}\,\left(1 - \text{ICD}_{a,i}\right)}_{\text{business impact}} \times \text{closeness}_a\\[6pt]
+\text{overdue}_{i,r} &\iff \text{since}_{i,r} + \text{SLA}_g < \text{cut},
+  \qquad \text{SLA}_g = \text{the group's, else the grouping field's, else 30 days}
+\end{aligned}
+$$
+
+A **finding** is a record $i$ failing a rule $r$; it needs a record key
+(the mapping's, or the entity's). Its priority takes the highest term over
+the fields the rule reads. $\text{closeness}_a$ is 0.2 except in a dataset
+with the SFC indicator, where it depends on how close the field's cell is
+to the threshold (see the [optional
+module](../sector-colombia-finance/#closeness-to-the-threshold-and-priority)).
+Each finding falls in one queue per grouping field: that of the record's
+value. $\text{since}$ is the cut the finding opened at, carried from one cut
+to the next while the same rule keeps failing on the same record. Per
+queue, the chart gives:
+
+- **Open**: the cut's findings; **overdue**, those meeting the condition
+  above.
+- **Resolved at this cut**: the previous cut's findings this cut no longer
+  has.
+- **Oldest open**: the days from the oldest $\text{since}$ to the cut.
+- **Priority**: the sum over its open findings.
+
+The fifteen queues with the most open findings of each grouping field are
+shown. While findings are not yet carried from one cut to the next, every
+finding counts from the cut shown, and **Overdue** and **Resolved** show 0.
+
+<Chart id="queues" />
+
+**How to read it.** Red is what to chase first; a high summed priority with
+few findings means a few costly ones. A finding is resolved only when a
+later cut stops failing it. How the SLA is set is in [Reading the
+dashboard](../charts/#remediation-queues).
+
+## 16. Outliers: robust z and MAD
+
+Are there amounts unusual for their group?
+
+$$
+\begin{aligned}
+x_i &= \log_{10}\left(\text{amount}_i\right), \qquad
+\tilde{x}_g = \operatorname{median}_{i \in g}\ x_i, \qquad
+\text{MAD}_g = \operatorname{median}_{i \in g} \left| x_i - \tilde{x}_g \right|\\[6pt]
+z_i &= \frac{0.6745\,\left(x_i - \tilde{x}_g\right)}{\max\left(\text{MAD}_g,\ 0.10\right)},
+  \qquad \text{low} \iff z_i < -3.5, \qquad \text{high} \iff z_i > 3.5
+\end{aligned}
+$$
+
+For each group of a grouping field, take the typical amount (the
+**median**; with an even number of amounts, the mean of the two middle
+ones) and how far amounts usually stray from it (the **MAD**, median
+absolute deviation). The **robust z** says how many of those typical
+distances each amount is away. Median and MAD are used instead of mean and
+standard deviation because a few huge amounts would move the mean and hide
+precisely the unusual cases; the logarithm makes doubling weigh the same at
+any level. Only positive amounts count. Records with the grouping field
+empty make the "(empty)" group. The 1,000 groups with the most amounts are
+calculated, and the fifteen with the most outliers are shown.
+
+**Example.** With amounts of 1, 1.1, 1.2, 1.3 and 50 thousand, the median
+is 1.2 thousand and the MAD 0.1 thousand: the extreme value does not
+inflate it. Taken as logarithms, the MAD falls below 0.10 and the floor is
+used: 50 thousand gets a robust z of about 10.9, an outlier, and the other
+four stay within 0.6 of zero.
+
+<Chart id="outliers" />
+
+**How to read it.** An outlier is not an error by itself: the chart does
+not tell an error from a legitimate value. Review the groups with the
+largest share, fix the errors (extra digits, another unit) and keep the
+legitimate ones. In a group with few amounts the median is unstable: read
+the count in the table.
+
+## 17. Drift: population stability index (PSI)
+
+Did this cut's population change from the previous one?
+
+$$
+\text{PSI} = \sum_{k=1}^{10} \left(a_k - e_k\right) \ln\frac{a_k}{e_k}
+\qquad \begin{cases}
+  < 0.10 & \text{stable}\\
+  0.10 \text{ to } 0.25 & \text{moderate drift}\\
+  > 0.25 & \text{significant drift}
+\end{cases}
+$$
+
+The PSI compares how a drift variable is spread in this cut and in the
+**previous evaluated cut**. Each evaluation keeps the variable's
+percentiles 0 to 100, exact, with linear interpolation between two values.
+The previous cut's deciles are the ten bins; $e_k$ is the previous cut's
+share in bin $k$ (about 10 %) and $a_k$ this cut's, both read off their
+percentiles, to a resolution of 1 %. An empty bin counts as 0.0001, so the
+logarithm exists. There is one chart per drift variable, and none on the
+first evaluated cut.
+
+<Chart id="psi" />
+
+**How to read it.** Blue columns like the grey ones is good. If the blue
+piles up at one end, the population moved: every record can be valid and
+the batch still suspect. With moderate drift, review it before using it;
+with significant drift, look for the cause (a new source, a change of unit,
+a loading error). Because of the 1 % resolution, a PSI near 0 is
+approximate.
+
+## 18. Profiling
+
+Which fields are missing most, and what shape do their values take?
+
+$$
+\text{empty}_a = \frac{\#\{i : a_i \text{ empty}\}}{n},
+\qquad
+\text{commonest shape}_a = \frac{\#\{i : \text{shape}(a_i) = f^{*}_a\}}{\#\{i : a_i \text{ filled}\}}
+$$
+
+A value is empty if it is null or only spaces. A value's **shape** turns
+each digit into `9` and each letter A to Z, upper or lower case, into `A`;
+every other character (spaces, hyphens, `@`, accented letters) stays as it
+is, and it is cut at 40 characters. Repeats are not compressed: a ten-digit
+mobile number is `9999999999`. $f^{*}_a$ is the commonest shape among the
+filled values (on a tie, the first in alphabetical order). The table adds
+the distinct values.
+
+<Chart id="profiling" />
+
+**How to read it.** An empty field may be optional: compare it with the
+rules. A commonest shape far below 100 % suggests mixed formats, except in
+free fields such as e-mail or name, where it is normal; a code that lost its
+leading zero shows as a shorter shape. It is profiling: it shows no values,
+only shapes.
+
+## 19. Time per stage
+
+Is the evaluation getting slower for the volume it processes?
+
+$$
+\text{ms per million}_{\text{stage}} = \frac{t_{\text{stage}}}{V / 10^{6}},
+\qquad V = \text{records} \times \text{mapped fields}
+$$
+
+$t$ is the stage's time in milliseconds. Expressed per million values, a
+larger dataset does not look like a slower evaluation. The table puts the
+previous cut's figure beside it; without a volume, the bars are plain
+milliseconds.
+
+<Chart id="performance" />
+
+**How to read it.** Compare a stage with its previous value per million,
+not in plain time: a larger base takes longer without being slower. Running
+the rules usually dominates.
+
+## 20. SFC indicator
+
+Only for a dataset that takes part in the indicator of Colombia's
+Superintendencia Financiera (SFC): see the [optional
+module](../sector-colombia-finance/).
+
+$$
+\text{cell}_a = \mathbf{1}\left[\text{correct}_a \ge \lceil 0.90 \cdot \text{active} \rceil\right],
+\qquad
+\text{SFC} = \operatorname{mean}_a\ \text{cell}_a
+$$
+
+An active record is correct in a field's cell when the field is filled and
+no rule that reads it fails.
+
+<Chart id="sfc-cells" />
+
+**How to read it.** Red cells inside the 80–90 % band are where the fewest
+fixes turn a cell from 0 to 1; green ones just above 90 % are at risk. More
+in [Reading the SFC indicator
+chart](../sector-colombia-finance/#reading-the-sfc-indicator-chart).

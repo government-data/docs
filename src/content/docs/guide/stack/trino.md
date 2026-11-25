@@ -25,8 +25,8 @@ Being distributed is what fits Trino to large volumes. A coordinator plans
 each query and splits it into tasks, and its workers run them in parallel,
 each on its own part of the data, so a large source or lake table is read
 by several machines at once rather than by one. An installation that needs
-more capacity adds workers. The [simulation](../simulation/) shows it in
-its big-data job.
+more capacity adds workers. The [simulation](../simulation/) shows where
+each part runs.
 
 Trino never decides what to run. The [core](../core/) writes every
 statement, compiled from the rules, and signs it; the
@@ -61,8 +61,13 @@ before it ever reaches Trino.
 
 ## Sizing
 
-Most installations run Trino on **one server**, which plans and executes
-the queries. Larger ones run a coordinator and several workers. Memory is
+The **coordinator** runs on the main server, inside the
+[orchestrator](../orchestrator/), which runs and manages it. The
+**workers** run on machines of their own: an installation starts with one
+and adds more for big data, without moving any data, since workers keep
+nothing between queries. A worker needs the most memory; as a starting
+point, about 13 GB for Trino on each worker, to be sized from the
+installation's own data. Memory is
 divided between quality jobs and dashboard queries, so one cannot starve
 the other, and a query too big for the memory spills to a disk of its own.
 Before Trino restarts for an update, the orchestrator lets the running

@@ -26,7 +26,7 @@ coordinador planea cada consulta y la parte en tareas, y sus workers las
 ejecutan en paralelo, cada uno sobre su parte de los datos; así una fuente
 o una tabla grande del lago la leen varias máquinas a la vez y no una
 sola. Una instalación que necesita más capacidad añade workers. La
-[simulación](../simulation/) lo muestra en su trabajo de big data.
+[simulación](../simulation/) muestra dónde corre cada parte.
 
 Trino nunca decide qué ejecutar. El [núcleo](../core/) escribe cada
 sentencia, compilada a partir de las reglas, y la firma; los
@@ -64,9 +64,13 @@ reglas, antes de que lleguen a Trino.
 
 ## Dimensionamiento
 
-La mayoría de las instalaciones corren Trino en **un servidor**, que
-planea y ejecuta las consultas. Las más grandes corren un coordinador y
-varios workers. La memoria se reparte entre los trabajos de calidad y las
+El **coordinador** corre en el servidor principal, dentro del
+[orquestador](../orchestrator/), que lo corre y lo administra. Los
+**workers** corren en máquinas propias: una instalación empieza con uno y
+añade más para big data, sin mover datos, porque los workers no guardan
+nada entre consultas. Un worker es el que más memoria necesita; como punto
+de partida, unos 13 GB para Trino en cada worker, a dimensionar según los
+datos de la instalación. La memoria se reparte entre los trabajos de calidad y las
 consultas de los dashboards, para que unos no ahoguen a otros, y una
 consulta demasiado grande para la memoria se apoya en un disco propio.
 Antes de que Trino se reinicie por una actualización, el orquestador deja

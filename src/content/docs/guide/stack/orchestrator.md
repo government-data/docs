@@ -22,6 +22,11 @@ The **operator** is the orchestrator's service. The **workers** are a
 deployable of their own: they keep no state, so an installation adds or
 removes workers, on one server or several, without touching the rest.
 
+The orchestrator also runs and manages [Trino](../trino/)'s
+**coordinator**, on the main server beside the operator, so it knows when
+Trino may restart. Trino's own workers, which do the heavy query work, run
+on machines of their own.
+
 ## A cut, step by step
 
 1. The operator fires the cut on its schedule, or when someone starts it.

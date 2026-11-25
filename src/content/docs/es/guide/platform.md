@@ -44,9 +44,9 @@ Las personas entran a cada aplicación por una sola puerta e inician sesión
 una vez, en el núcleo. El orquestador programa los trabajos; Trino, el
 único motor SQL, lee las bases de datos de la organización y escribe el
 lago; los dashboards leen los resultados del lago a través de Trino. El
-[diagrama de arquitectura](../stack/overview/#arquitectura) lo dibuja
-completo, la [simulación](../stack/simulation/) lo muestra en marcha paso
-a paso, y cada parte tiene su propia página en el [Stack
+[figura de arquitectura](../stack/overview/#arquitectura) lo dibuja en
+sus máquinas, la [simulación](../stack/simulation/) lo recorre una
+tecnología a la vez, y cada parte tiene su propia página en el [Stack
 tecnológico](../stack/overview/).
 
 ## A dónde ir después

@@ -23,6 +23,11 @@ El **operador** es el servicio del orquestador. Los **workers** son una
 pieza desplegable aparte: no guardan estado, así que una instalación añade
 o quita workers, en uno o varios servidores, sin tocar el resto.
 
+El orquestador también corre y administra el **coordinador** de
+[Trino](../trino/), en el servidor principal junto al operador, así sabe
+cuándo Trino puede reiniciarse. Los workers propios de Trino, que hacen el
+trabajo pesado de las consultas, corren en máquinas propias.
+
 ## Un corte, paso a paso
 
 1. El operador dispara el corte según su programación, o cuando alguien lo

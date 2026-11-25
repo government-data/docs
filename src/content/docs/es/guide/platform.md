@@ -17,7 +17,7 @@ aplicaciones.
 | Aplicación o módulo  | Para qué sirve                                                                                                 | Guía                                          |
 | -------------------- | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
 | **Quality Data**     | Calidad de datos: reglas que escribe quien conoce los datos, cortes que la miden, indicadores y colas de remediación | [Introducción a Quality Data](../overview/)   |
-| **El orquestador**   | Programa y sigue los trabajos de la plataforma; sus workers los ejecutan                                       | [Orquestador y workers](../stack/orchestrator/) |
+| **El orquestador**   | Programa y sigue los trabajos de la plataforma; sus ejecutores de jobs los envían a Trino                      | [Orquestador y ejecutores de jobs](../stack/orchestrator/) |
 | **Analítica**        | Dashboards de los indicadores, con Apache Superset                                                             | [Apache Superset](../stack/superset/)         |
 | **El lago de datos** | Donde la plataforma guarda sus copias de los datos y sus resultados, como tablas abiertas                      | [RustFS](../stack/rustfs/), [Apache Iceberg](../stack/iceberg/) |
 | **La guía de usuario** | Estas páginas, servidas dentro de cada instalación y publicadas también abiertamente                         | Esta guía                                     |

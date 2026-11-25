@@ -22,9 +22,18 @@ export function tr(text) {
   return text;
 }
 
+/**
+ * A template filled: {key} is the value; {key|one|other} is the word that
+ * agrees with it, `one` when the value is 1, `other` otherwise ("1 opcional",
+ * "2 opcionales").
+ */
+export const fillTemplate = (template, values) =>
+  template.replace(/\{(\w+)(?:\|([^|}]*)\|([^}]*))?\}/g, (_, key, one, other) =>
+    one === undefined ? String(values[key]) : Number(values[key]) === 1 ? one : other,
+  );
+
 /** A template with {placeholders}, translated, then filled. */
-export const tf = (template, values) =>
-  tr(template).replace(/\{(\w+)\}/g, (_, key) => String(values[key]));
+export const tf = (template, values) => fillTemplate(tr(template), values);
 
 // Keys whose values are identifiers or sources, never words for a reader.
 const KEEP = new Set([
@@ -72,7 +81,8 @@ export function trDeep(value, key = "") {
 export const browserSource = (dict) =>
   `const ES = ${JSON.stringify(dict)};
 const tr = (text) => (typeof text === "string" && text in ES ? ES[text] : text);
-const tf = (template, values) => tr(template).replace(/\\{(\\w+)\\}/g, (_, key) => String(values[key]));
+const fillTemplate = ${fillTemplate.toString()};
+const tf = (template, values) => fillTemplate(tr(template), values);
 const KEEP = new Set(${JSON.stringify([...KEEP])});
 function trDeep(value) {
   if (Array.isArray(value)) value.forEach((item, i) => (typeof item === "string" ? (value[i] = tr(item)) : trDeep(item)));

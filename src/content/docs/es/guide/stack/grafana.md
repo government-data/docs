@@ -17,7 +17,7 @@ indicadores de calidad, que dibuja [Superset](../superset/):
 - los **logs técnicos** de cada servicio, leídos de Loki, incluida cada
   línea de una ejecución en todos los servidores;
 - las **métricas** de cada servidor y servicio, leídas de Mimir: CPU,
-  memoria, discos, red, el reloj, la cola y los workers;
+  memoria, discos, red, el reloj, la cola y los ejecutores de jobs;
 - **alertas** cuando un servidor o un servicio necesita atención, enviadas
   por correo;
 - los **dashboards de auditoría**: quién hizo qué, cada vista de datos

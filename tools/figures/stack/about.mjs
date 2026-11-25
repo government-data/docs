@@ -53,8 +53,8 @@ export const ABOUT = {
   orchestrator: [
     a(
       "The orchestrator",
-      "The platform's operator of jobs, and the workers it hands them to.",
-      "Running a cut is split in three roles, each doing one thing: the core writes and signs, the operator schedules and tracks, the workers send and report. It runs Trino's coordinator, so it knows when Trino may restart.",
+      "The platform's operator of jobs, and the job runners it hands them to.",
+      "Running a cut is split in three roles, each doing one thing: the core writes and signs, the operator schedules and tracks, the job runners send and report. It runs Trino's coordinator, so it knows when Trino may restart.",
     ),
   ],
   trino: [

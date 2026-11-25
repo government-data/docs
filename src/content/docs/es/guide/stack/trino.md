@@ -30,7 +30,8 @@ sola. Una instalación que necesita más capacidad añade workers. La
 
 Trino nunca decide qué ejecutar. El [núcleo](../core/) escribe cada
 sentencia, compilada a partir de las reglas, y la firma; los
-[workers](../orchestrator/) envían esas sentencias a Trino. Mientras se
+[ejecutores de jobs](../orchestrator/) del orquestador envían esas
+sentencias a Trino. Mientras se
 escribe una regla, sus ejemplos se revisan en el momento en el editor de
 reglas, antes de que lleguen a Trino.
 
@@ -57,7 +58,7 @@ reglas, antes de que lleguen a Trino.
 
 | Con                                  | Cómo                                                                        |
 | ------------------------------------ | --------------------------------------------------------------------------- |
-| Workers, Superset                    | El protocolo de cliente de Trino por HTTPS, con un token por trabajo o por persona |
+| Ejecutores de jobs, Superset         | El protocolo de cliente de Trino por HTTPS, con un token por trabajo o por persona |
 | Las bases de datos de la organización | El protocolo propio de cada motor (como SQL Server, Oracle, PostgreSQL o MySQL), solo lectura |
 | El lago                              | S3 e Iceberg REST, a través de la puerta del lago, con TLS mutuo            |
 | El núcleo                            | Lee del núcleo sus reglas de acceso                                         |

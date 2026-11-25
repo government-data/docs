@@ -16,7 +16,7 @@ draws and alerts on:
 
 - each server's CPU, memory, load, disks, network and clock;
 - each service's own metrics, such as Traefik's requests, the queue of
-  jobs and the live workers.
+  jobs and the live job runners.
 
 Metrics are numbers with a few labels, such as the server, its role and
 the service. They carry no data from the sources and no personal data.

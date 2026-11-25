@@ -30,7 +30,8 @@ each part runs.
 
 Trino never decides what to run. The [core](../core/) writes every
 statement, compiled from the rules, and signs it; the
-[workers](../orchestrator/) send those statements to Trino. While a rule is
+orchestrator's [job runners](../orchestrator/) send those statements to
+Trino. While a rule is
 being written, its examples are checked on the spot by the rule editor,
 before it ever reaches Trino.
 
@@ -54,7 +55,7 @@ before it ever reaches Trino.
 
 | With                        | How                                                                       |
 | --------------------------- | ------------------------------------------------------------------------- |
-| Workers, Superset           | Trino's client protocol over HTTPS, with a token per job or per person    |
+| Job runners, Superset       | Trino's client protocol over HTTPS, with a token per job or per person    |
 | The organisation's databases | Each engine's own protocol (such as SQL Server, Oracle, PostgreSQL or MySQL), read only |
 | The lake                    | S3 and Iceberg REST, through the lake's gate, with mutual TLS             |
 | The core                    | It reads its access rules from the core                                   |

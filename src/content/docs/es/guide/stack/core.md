@@ -30,8 +30,8 @@ El núcleo **escribe cada sentencia SQL** que ejecuta un trabajo de
 calidad. Cuando toca un corte, compila las reglas de la línea principal del
 catálogo en sentencias para [Trino](../trino/), firma el paquete y lo
 registra. Nunca ejecuta un trabajo por sí mismo: el
-[orquestador](../orchestrator/) programa los trabajos, y sus workers envían
-las sentencias firmadas a Trino.
+[orquestador](../orchestrator/) programa los trabajos, y sus ejecutores de
+jobs envían las sentencias firmadas a Trino.
 
 ## Cómo está hecho
 

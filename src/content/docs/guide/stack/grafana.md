@@ -17,7 +17,7 @@ indicators, which [Superset](../superset/) draws:
 - **technical logs** of every service, read from Loki, including every
   line of one run across all servers;
 - **metrics** of every server and service, read from Mimir: CPU, memory,
-  disks, network, the clock, the queue and the workers;
+  disks, network, the clock, the queue and the job runners;
 - **alerts** when a server or a service needs attention, sent by mail;
 - the **audit dashboards**: who did what, every view of personal data with
   its reason, and the runs. See [Personal data and the audit

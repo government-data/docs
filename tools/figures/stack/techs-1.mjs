@@ -55,7 +55,7 @@ export const TECHS_1 = [
         "Reaches the lake through its adapter, the lake module's admin service: health, warehouses, replication",
         ["api", "gate", "rustfs", "cable:main-lake"],
       ),
-      pt("Never runs a job: the orchestrator's workers send its signed SQL to Trino", ["api", "operator"]),
+      pt("Never runs a job: the orchestrator's job runners send its signed SQL to Trino", ["api", "operator"]),
     ],
   },
   {
@@ -79,7 +79,7 @@ export const TECHS_1 = [
       ]),
       pt(
         "A token per job, valid for that job alone, which Trino checks",
-        ["iam", "worker1", "worker2", "coordinator", "tw1.trino", "cable:tw1-main"],
+        ["iam", "runner1", "runner2", "coordinator", "tw1.trino", "cable:tw1-main"],
       ),
     ],
   },
@@ -132,7 +132,7 @@ export const TECHS_1 = [
   },
   {
     id: "orchestrator",
-    name: "The orchestrator and its workers",
+    name: "The orchestrator and its job runners",
     short: "Orchestrator",
     note: "the operator fires schedules and tracks every job; it also runs and manages the Trino coordinator",
     parts: [
@@ -140,8 +140,8 @@ export const TECHS_1 = [
         "operator",
       ]),
       pt(
-        "Its workers fetch the core's signed SQL, check the signature and send each statement to Trino",
-        ["worker1", "worker2", "api", "coordinator"],
+        "Two job runners take jobs in parallel: each checks the signature of the core's SQL and sends it to Trino",
+        ["runner1", "runner2", "api", "coordinator"],
       ),
       pt("Runs and manages the Trino coordinator, on the main server beside it", [
         "operator",
@@ -151,8 +151,15 @@ export const TECHS_1 = [
         "operator",
         "coordinator",
       ]),
-      pt("Workers keep no state: more are added without touching the rest", ["worker1", "worker2"]),
-      pt("Reports only names, counts and durations back to the core", ["worker1", "worker2", "api"]),
+      pt("Job runners are light and process no data: they send the signed SQL and report; more can be added", [
+        "runner1",
+        "runner2",
+      ]),
+      pt("They report only names, counts, snapshot ids and any failed stage back to the core", [
+        "runner1",
+        "runner2",
+        "api",
+      ]),
     ],
   },
   {

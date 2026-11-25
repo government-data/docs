@@ -47,8 +47,8 @@ export const CABINETS = [
       ],
       [
         { id: "operator", name: "Operator" },
-        { id: "worker1", name: "Worker" },
-        { id: "worker2", name: "Worker" },
+        { id: "runner1", name: "Job runner 1" },
+        { id: "runner2", name: "Job runner 2" },
         {
           id: "coordinator",
           name: "Trino coordinator",

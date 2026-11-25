@@ -70,7 +70,7 @@ const NOT_DRAWN = [
     "both on the main server; the coordinator hands the work to the worker",
   ],
   [
-    "orchestrator's workers → the core, and → the Trino coordinator",
+    "orchestrator's job runners → the core, and → the Trino coordinator",
     "all on the main server, through Traefik's internal entry point",
   ],
   [

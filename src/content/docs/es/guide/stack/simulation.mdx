@@ -1,57 +1,47 @@
 ---
 title: Simulación
-description: Una instalación en marcha paso a paso, sus máquinas por módulo y el tráfico entre ellas, en el flujo de calidad, un lote de un tercero, un trabajo de big data, una actualización desde AWS y las fallas.
+description: Las máquinas de una instalación en una sala isométrica, y un recorrido por sus tecnologías que enciende dónde participa cada una, qué es, por qué se eligió y qué necesita.
 sidebar:
   label: Simulación
 tableOfContents: false
 ---
 
-import PlatformSimulation from "../../../../../components/PlatformSimulation.astro";
+import StackFigure from "../../../../../components/StackFigure.astro";
 
 **Para quién:** administradores y revisores técnicos que quieren ver la
 [arquitectura](../overview/#arquitectura) en funcionamiento.
 
-Cómo se comporta una instalación, en marcha: sus máquinas agrupadas por
-módulo, el tráfico entre ellas, el flujo de calidad de un dataset y un
-lote de un tercero etapa por etapa, un trabajo de big data en Trino, una
-actualización traída de AWS, y qué pasa, paso a paso, cuando algo falla.
-Elige un escenario; páusalo, cambia su velocidad, avanza paso a paso o
-empieza otro.
+Las máquinas de una instalación, dibujadas como una sala: el servidor
+principal, un worker de Trino y el servidor del lago, con el escritorio de
+las personas, las bases de datos de origen de la organización, un
+proveedor tercero, y AWS, de donde el agente trae las actualizaciones. El
+recorrido pasa por el stack una tecnología a la vez, y enciende cada
+unidad y cada cable donde participa.
 
-<PlatformSimulation />
-
-## Los escenarios
-
-- **Flujo de calidad:** el núcleo compila a SQL las reglas aprobadas de la
-  línea main del catálogo y lo firma; un worker del
-  [orquestador](../orchestrator/) lo ejecuta en [Trino](../trino/), que
-  lee la fuente a bronze, deriva silver, evalúa las reglas y escribe los
-  resultados en gold. Ver [Apache Iceberg](../iceberg/) para las tres
-  capas y [Formulaciones](../../formulas/) para los indicadores.
-- **Lote de un tercero:** el lote de un proveedor por cinco compuertas,
-  desde la cuarentena hasta la aprobación del dueño y una carga que se
-  puede deshacer.
-- **Corrida normal** y **trabajo de big data:** cada parte haciendo su
-  propio trabajo, y Trino repartiendo un trabajo muy grande entre sus
-  workers, con uno añadido.
-- **Actualización desde AWS:** el [agente](../agent/) trae una versión
-  firmada, respalda y la aplica por pasos. Ver [Actualizaciones desde
-  AWS](../aws/).
-- **Fallas:** un worker del orquestador, una fuente, un worker de Trino,
-  un servidor del lago y una actualización que no arranca.
+<StackFigure name="stack-sim" wide />
 
 ## Cómo leerla
 
-Las líneas llevan el tipo de tráfico, como en el diagrama de arquitectura,
-y cada paquete dice qué lleva. El estado de una máquina está en su borde y
-su insignia: ⟳ trabajando, ✕ caída, ⚙ actualizándose, + recién añadida;
-una máquina punteada se puede añadir. Las etapas de un flujo muestran ✓
-pasó, ! con aviso o ✕ falló, con su resultado. Mientras corre un
-escenario, Espacio lo pausa y la flecha derecha pasa al siguiente paso.
+- **El recorrido** avanza solo. Cualquier clic, tecla o el puntero sobre
+  el texto lo pausa en su parada; **▶** o **Espacio** lo reanudan. Las
+  flechas, o un clic en la figura, van a la tecnología siguiente o a la
+  anterior, y la lista bajo la figura va a cualquiera de ellas.
+- **Una unidad encendida** es un lugar donde corre la tecnología. Una
+  unidad **con contorno ámbar y marcada opcional** corre solo en una
+  máquina que una instalación agrega: un segundo worker de Trino, o la
+  réplica del lago en otra sede.
+- **Un cable** representa todas las conexiones entre sus dos máquinas; su
+  flecha apunta desde el lado que abre la conexión. Nada se conecta a la
+  instalación desde fuera: el agente abre la línea hacia AWS.
+- **Señala una fila** bajo la figura para encender solo los lugares de esa
+  fila.
+- **Las tarjetas sobre las máquinas** dan disco, CPU y memoria. La que va
+  en rojo es el recurso que esa máquina más necesita.
 
 :::note
-Es una ilustración del diseño, no una medición: los tiempos y las cifras
-del log son de la historia, inventados para ella. Algunas partes todavía
-se están desplegando; ver [Estado de la
+Es una ilustración del diseño, no una medición. Los tamaños marcados \*
+son puntos de partida propuestos para dimensionar una primera
+instalación; una instalación real se dimensiona a partir de sus datos.
+Algunas partes todavía se están desplegando; ver [Estado de la
 implementación](../overview/#estado-de-la-implementación).
 :::

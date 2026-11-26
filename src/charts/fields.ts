@@ -1,5 +1,5 @@
-// The example charts of the fields and of the run: how long ago the records
-// were updated, the fields' profile, and the time per stage.
+// The example charts of the fields: how long ago the records were updated,
+// and the fields' profile.
 
 import { bars, columns, num, pct } from "../chart-kit/index";
 import { RECORDS } from "./rules";
@@ -106,55 +106,7 @@ const profiling: Example = {
   },
 };
 
-const performance: Example = {
-  query: ["Registro de la evaluación", "Evaluation log"],
-  needs: NOTHING,
-  make: (lang) => {
-    const fields = 40;
-    const previousRecords = 54_300;
-    // Each stage's milliseconds in this cut and in the previous one.
-    const stages: [Text, number, number][] = [
-      [["Cargar el corte", "Load the cut"], 4_150, 4_090],
-      [["Ejecutar las reglas", "Run the rules"], 16_200, 15_300],
-      [["Perfilar", "Profile"], 2_400, 2_380],
-      [["ICD y grupos", "ICD and groups"], 2_850, 2_790],
-      [["Colas de remediación", "Remediation queues"], 1_310, 1_280],
-      [["Recencia de actualización", "Update recency"], 200, 190],
-      [["Distribuciones", "Distributions"], 920, 900],
-    ];
-    const millions = (RECORDS * fields) / 1e6;
-    const previousMillions = (previousRecords * fields) / 1e6;
-    const rows = stages.map(([t, ms]) => ({ label: pick(lang, t), value: ms / millions }));
-    const f = (v: number) => `${num(lang, v)} ms`;
-    return {
-      title: pick(lang, ["Tiempo por etapa", "Time per stage"]),
-      note: pick(lang, [
-        `Milisegundos por millón de valores: ${num(lang, RECORDS)} registros × ${fields} campos mapeados = ${num(lang, millions, 3)} millones.`,
-        `Milliseconds per million values: ${num(lang, RECORDS)} records × ${fields} mapped fields = ${num(lang, millions, 3)} million.`,
-      ]),
-      plot: {
-        svg: bars({ rows, max: 8000, fmt: f, labelWidth: 190 }),
-        table: {
-          head: [
-            pick(lang, ["Etapa", "Stage"]),
-            pick(lang, ["Tiempo", "Time"]),
-            pick(lang, ["Por millón", "Per million"]),
-            pick(lang, ["Por millón, corte anterior", "Per million, previous cut"]),
-          ],
-          rows: stages.map(([t, ms, prev]) => [
-            pick(lang, t),
-            f(ms),
-            f(ms / millions),
-            f(prev / previousMillions),
-          ]),
-        },
-      },
-    };
-  },
-};
-
 export const FIELD_CHARTS: Record<string, Example> = {
   recency,
   profiling,
-  performance,
 };

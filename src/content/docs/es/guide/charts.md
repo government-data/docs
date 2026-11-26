@@ -17,7 +17,7 @@ inventados, está en [Formulaciones](../formulas/).
 - **El corte.** El selector **Corte**, arriba, lista los cortes evaluados del
   dataset, el más reciente primero. Todas las gráficas muestran el corte
   elegido. Las que comparan (transiciones de banda, grupos que más
-  cambiaron, el índice de estabilidad poblacional (PSI), el tiempo por etapa frente al anterior) lo comparan con el
+  cambiaron, el índice de estabilidad poblacional (PSI)) lo comparan con el
   **corte evaluado anterior**, no con el mes pasado ni con hoy.
 - **Las antigüedades se cuentan al corte, nunca a hoy.** "Hasta 30 días",
   "vencidos" y el hallazgo abierto más antiguo se miden desde la fecha del
@@ -285,21 +285,6 @@ registros aplica y los fallos
 la regla está mal planteada. Revisa las más bajas con el dueño de la regla
 antes de corregir miles de registros. Una regla que aplica a pocos registros
 oscila mucho entre cortes.
-
-## Tiempo por etapa
-
-**Pregunta:** ¿la evaluación se vuelve más lenta para el volumen que
-procesa? **Qué se ve:** una barra por etapa de la evaluación (cargar el
-corte, ejecutar las reglas, perfilar, ICD y grupos, colas de remediación,
-recencia de actualización, distribuciones) en milisegundos por millón de
-registro-atributos (registros × campos mapeados); la tabla agrega el tiempo
-simple y el del corte anterior
-([Formulaciones §19](../formulas/#19-tiempo-por-etapa)). Sin
-volumen, las barras son milisegundos simples.
-
-**Cómo leerla.** Compara una etapa con su valor anterior por millón, no en
-tiempo simple: una base más grande tarda más sin ser más lenta. Ejecutar las
-reglas suele dominar.
 
 ## Errores comunes
 

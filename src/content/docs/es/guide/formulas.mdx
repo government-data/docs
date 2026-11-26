@@ -8,11 +8,16 @@ sidebar:
 import { Aside } from "@astrojs/starlight/components";
 import Chart from "../../../../components/Chart.astro";
 
-Esta página reúne, para cada una de las 18 gráficas del dashboard de un
-dataset, un ejemplo, la fórmula con que Quality Data la calcula y cómo
-leerla. Qué hacer con cada gráfica está en [Cómo leer el
+Esta página reúne, para cada una de las 17 gráficas del dashboard de
+calidad de un dataset, un ejemplo, la fórmula con que Quality Data la
+calcula y cómo leerla. El núcleo evalúa las reglas y envía las
+notificaciones; las gráficas las dibuja el dashboard de calidad en
+Superset, la aplicación de BI de la instalación, a partir de los resultados
+en gold. Qué hacer con cada gráfica está en [Cómo leer el
 dashboard](../charts/); qué significa cada indicador, en [De los resultados
-a los indicadores](../indicators/).
+a los indicadores](../indicators/). Cuánto tarda cada etapa de una
+evaluación es una métrica del sistema, que se ve en Grafana, no una gráfica
+del dashboard.
 
 <Aside type="caution" title="Datos de ejemplo">
   Las gráficas de esta página usan cifras inventadas sobre un dataset de clientes; no son datos de
@@ -31,8 +36,8 @@ límites](../assumptions/).
 
 ## 1. De dónde salen las gráficas
 
-Cada gráfica es una consulta sobre un **modelo de resultados** que toda
-evaluación escribe igual, para cualquier dataset: clientes, pedidos,
+Cada gráfica es una consulta sobre un **modelo de resultados** en gold que
+toda evaluación escribe igual, para cualquier dataset: clientes, pedidos,
 productos, proveedores. Debajo de cada gráfica, **Consulta** dice qué parte
 de ese modelo la alimenta, y **Requiere**, qué debe tener un dataset para
 que la gráfica aparezca.
@@ -42,15 +47,16 @@ que la gráfica aparezca.
 | Resumen del corte         | Dataset y corte                                                  | Índice global de calidad de datos (IGCD), registros, entidades, bandas               |
 | Resultados por regla      | Dataset, corte y regla                                           | Campo, dimensión, severidad, aplica, fallos                                          |
 | Calidad por campo         | Dataset, corte y campo                                           | ICD medio, vacíos, distintos, forma más común, antigüedad de la actualización        |
-| ICD por entidad           | Dataset, corte y entidad                                         | ICD, banda, segmento                                                                 |
+| ICD por entidad           | Dataset, corte y entidad                                         | ICD, banda, segmento; las gráficas solo lo leen en vistas agregadas                  |
 | Cifras por grupo          | Dataset, corte, campo de agrupación y grupo                      | Registros, registros con falla grave, ICD medio                                      |
 | Pruebas de distribución   | Dataset, corte y variable                                        | Percentiles de cada variable de deriva, atípicos por grupo                           |
 | Hallazgos por cola        | Dataset, corte, cola y el corte en que se abrieron sus hallazgos | Hallazgos abiertos y resueltos, su prioridad                                         |
-| Registro de la evaluación | Dataset, corte y etapa                                           | El tiempo de la etapa                                                                |
 
-Solo guardan agregados; los registros individuales siguen detrás del
-permiso de ver datos personales. Al mapear un dataset, algunos de sus
-campos toman un rol, y cada rol activa las gráficas que lo necesitan:
+Las gráficas solo leen agregados: el ICD por entidad les llega en tres
+vistas agregadas (la distribución del ICD, las bandas por segmento y las
+transiciones entre bandas), nunca una fila por entidad, y los registros
+individuales siguen detrás del permiso de ver datos personales. Al mapear
+un dataset, algunos de sus campos toman un rol, y cada rol activa las gráficas que lo necesitan:
 
 | Rol                    | Ejemplo en clientes  | Ejemplo en pedidos       | Activa                                                                         |
 | ---------------------- | -------------------- | ------------------------ | ------------------------------------------------------------------------------ |
@@ -63,7 +69,7 @@ campos toman un rol, y cada rol activa las gráficas que lo necesitan:
 
 Las gráficas que no necesitan nada (conformidad e IGCD por corte, fallos
 por dimensión y severidad, campos con más fallos, campos con menor ICD,
-perfilado, conformidad por regla, tiempo por etapa) aparecen en todos los
+perfilado, conformidad por regla) aparecen en todos los
 datasets. El indicador SFC pertenece a un [módulo
 opcional](../sector-colombia-finance/).
 
@@ -526,27 +532,7 @@ mezclados, salvo en campos libres como el correo o el nombre, donde es lo
 normal; un código que perdió su cero a la izquierda aparece como una forma
 más corta. Es perfilado: no muestra valores, solo formas.
 
-## 19. Tiempo por etapa
-
-¿La evaluación se vuelve más lenta para el volumen que procesa?
-
-$$
-\text{ms por millón}_{\text{etapa}} = \frac{t_{\text{etapa}}}{V / 10^{6}},
-\qquad V = \text{registros} \times \text{campos mapeados}
-$$
-
-$t$ es el tiempo de la etapa en milisegundos. Expresado por millón de
-valores, un dataset más grande no parece una evaluación más lenta. La tabla
-pone al lado el mismo cálculo del corte anterior; sin volumen, las barras
-son milisegundos simples.
-
-<Chart id="performance" />
-
-**Cómo se lee.** Compara una etapa con su valor anterior por millón, no en
-tiempo simple: una base más grande tarda más sin ser más lenta. Ejecutar
-las reglas suele dominar.
-
-## 20. Indicador SFC
+## 19. Indicador SFC
 
 Solo para un dataset que participa en el indicador de la Superintendencia
 Financiera de Colombia (SFC): ver el [módulo

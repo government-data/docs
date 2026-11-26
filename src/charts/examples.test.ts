@@ -3,8 +3,8 @@ import { figure } from "../chart-kit/index";
 import { CATALOG, chart, EXAMPLE_IDS } from "./examples";
 
 describe("the example charts", () => {
-  it("draw one example for each of the product's 18 catalogue charts, and no other", () => {
-    expect(Object.keys(CATALOG)).toHaveLength(18);
+  it("draw one example for each of the product's 17 catalogue charts, and no other", () => {
+    expect(Object.keys(CATALOG)).toHaveLength(17);
     expect([...Object.values(CATALOG)].sort()).toEqual([...EXAMPLE_IDS].sort());
   });
 

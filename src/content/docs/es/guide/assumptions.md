@@ -84,8 +84,8 @@ Ninguna gráfica las muestra:
   coherencia con las transacciones. El ICD calcula solo C, S y A.
 - **Colas separadas por causa**, de captura o sistémica, y atípicos
   separados en errores probables y valores legítimos.
-- **Un ANS cumplido contra una meta.** El tiempo por etapa se muestra por
-  millón de valores junto al del corte anterior, sin una meta que cumplir.
+- **Un ANS cumplido contra una meta.** Cuánto tarda cada etapa de una
+  evaluación es una métrica del sistema en Grafana, sin una meta que cumplir.
 - **Un IGCD sin actualidad**, y pesos, severidades y umbrales por dataset.
 - **Un trato según la banda.** El producto calcula la banda; lo que una
   banda dispara, como una debida diligencia intensificada, lo decide la

@@ -55,7 +55,7 @@ const lowestIcd: Example = {
 };
 
 const icdDistribution: Example = {
-  query: ["ICD por entidad", "Entity ICD"],
+  query: ["Vista agregada: distribución del ICD", "Aggregate view: ICD distribution"],
   needs: AN_ENTITY,
   make: (lang) => {
     // Bins from 0.40: the lower ones have no entities and are not drawn.
@@ -98,7 +98,7 @@ const icdDistribution: Example = {
 };
 
 const bandsBySegment: Example = {
-  query: ["ICD por entidad", "Entity ICD"],
+  query: ["Vista agregada: bandas por segmento", "Aggregate view: bands by segment"],
   needs: [
     "una llave de entidad y un segmento (aquí, tipo de cliente)",
     "an entity key and a segment (here, customer type)",
@@ -132,7 +132,7 @@ const bandsBySegment: Example = {
 };
 
 const bandTransitions: Example = {
-  query: ["ICD por entidad, 2 cortes", "Entity ICD, 2 cuts"],
+  query: ["Vista agregada: transiciones entre bandas, 2 cortes", "Aggregate view: band transitions, 2 cuts"],
   needs: ["una llave de entidad y dos cortes", "an entity key and two cuts"],
   make: (lang) => {
     const names = bands(lang).map((b, i) => `${BAND_ICONS[i]} ${b.label.split(" (")[0]}`);

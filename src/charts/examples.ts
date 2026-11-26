@@ -1,7 +1,8 @@
 // The guide's example charts, by name: each drawn with made-up figures, to
 // show how a chart of the product reads, never any organisation's data.
 // One example per chart of the product's catalogue (CATALOG below), each in
-// the section of the formulas page that defines it.
+// the section of the formulas page that defines it. The product draws these
+// charts in the quality dashboard in Superset, from gold.
 
 import type { Figure, Lang } from "../chart-kit/index";
 import { DISTRIBUTION_CHARTS } from "./distributions";
@@ -39,7 +40,6 @@ export const CATALOG: Record<string, string> = {
   update_recency: "recency",
   profiling: "profiling",
   conformity_by_rule: "rule-conformity",
-  time_by_stage: "performance",
 };
 
 /** Every example's name. */

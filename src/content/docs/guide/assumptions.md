@@ -79,8 +79,8 @@ today. None of the charts shows them:
   coherence with transactions. The ICD calculates C, S and A only.
 - **Queues split by cause**, capture or systemic, and outliers told apart
   as probable errors or legitimate values.
-- **An SLA met against a target.** The time per stage is shown per million
-  values beside the previous cut's, with no target to meet.
+- **An SLA met against a target.** How long each stage of an evaluation
+  takes is a system metric in Grafana, with no target to meet.
 - **An IGCD without timeliness**, and weights, severities and thresholds
   set per dataset.
 - **A treatment by band.** The product calculates the band; what a band

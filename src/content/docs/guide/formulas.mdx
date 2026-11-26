@@ -8,10 +8,15 @@ sidebar:
 import { Aside } from "@astrojs/starlight/components";
 import Chart from "../../../components/Chart.astro";
 
-This page gathers, for each of the 18 charts on a dataset's dashboard, an
-example, the formula Quality Data calculates it with, and how to read it.
-What to do with each chart is in [Reading the dashboard](../charts/); what
-each indicator means, in [From results to indicators](../indicators/).
+This page gathers, for each of the 17 charts on a dataset's quality
+dashboard, an example, the formula Quality Data calculates it with, and how
+to read it. The core evaluates the rules and sends the notifications; the
+charts are drawn by the quality dashboard in Superset, the installation's
+BI application, from the results in gold. What to do with each chart is in
+[Reading the dashboard](../charts/); what each indicator means, in [From
+results to indicators](../indicators/). How long each stage of an
+evaluation takes is a system metric, shown in Grafana, not a chart of the
+dashboard.
 
 <Aside type="caution" title="Example data">
   The charts on this page use made-up figures about a customer dataset; they are no organisation's
@@ -30,8 +35,8 @@ limits](../assumptions/).
 
 ## 1. Where the charts come from
 
-Each chart is a query over a **results model** that every evaluation writes
-the same way, for any dataset: customers, orders, products, suppliers.
+Each chart is a query over a **results model** in gold that every evaluation
+writes the same way, for any dataset: customers, orders, products, suppliers.
 Under each chart, **Query** says which part of that model feeds it, and
 **Needs** what a dataset must have for the chart to appear.
 
@@ -40,15 +45,16 @@ Under each chart, **Query** says which part of that model feeds it, and
 | Cut summary         | Dataset and cut                                        | Overall data quality index (IGCD), records, entities, bands                      |
 | Rule results        | Dataset, cut and rule                                  | Field, dimension, severity, applies, failures                                    |
 | Field quality       | Dataset, cut and field                                 | Mean ICD, empties, distinct values, commonest shape, update recency              |
-| Entity ICD          | Dataset, cut and entity                                | ICD, band, segment                                                               |
+| Entity ICD          | Dataset, cut and entity                                | ICD, band, segment; charts read it only through aggregate views                  |
 | Group figures       | Dataset, cut, grouping field and group                 | Records, records with a serious failure, mean ICD                                |
 | Distribution checks | Dataset, cut and variable                              | Each drift variable's percentiles, outliers by group                             |
 | Queue findings      | Dataset, cut, queue and the cut its findings opened at | Open and resolved findings, their priority                                       |
-| Evaluation log      | Dataset, cut and stage                                 | The stage's time                                                                 |
 
-They hold aggregates only; individual records stay behind the permission to
-see personal data. When a dataset is mapped, some of its fields take a
-role, and each role turns on the charts that need it:
+Charts read aggregates only: the entity ICD reaches them through three
+aggregate views (the ICD distribution, bands by segment and band
+transitions), never one row per entity, and individual records stay behind
+the permission to see personal data. When a dataset is mapped, some of its
+fields take a role, and each role turns on the charts that need it:
 
 | Role           | Example in customers | Example in orders       | Turns on                                                                       |
 | -------------- | -------------------- | ----------------------- | ------------------------------------------------------------------------------ |
@@ -61,7 +67,7 @@ role, and each role turns on the charts that need it:
 
 Charts that need nothing (conformity and IGCD by cut, failures by dimension
 and severity, fields with the most failures, fields with the lowest ICD,
-profiling, conformity by rule, time per stage) appear for every dataset.
+profiling, conformity by rule) appear for every dataset.
 The SFC indicator belongs to an [optional
 module](../sector-colombia-finance/).
 
@@ -515,27 +521,7 @@ free fields such as e-mail or name, where it is normal; a code that lost its
 leading zero shows as a shorter shape. It is profiling: it shows no values,
 only shapes.
 
-## 19. Time per stage
-
-Is the evaluation getting slower for the volume it processes?
-
-$$
-\text{ms per million}_{\text{stage}} = \frac{t_{\text{stage}}}{V / 10^{6}},
-\qquad V = \text{records} \times \text{mapped fields}
-$$
-
-$t$ is the stage's time in milliseconds. Expressed per million values, a
-larger dataset does not look like a slower evaluation. The table puts the
-previous cut's figure beside it; without a volume, the bars are plain
-milliseconds.
-
-<Chart id="performance" />
-
-**How to read it.** Compare a stage with its previous value per million,
-not in plain time: a larger base takes longer without being slower. Running
-the rules usually dominates.
-
-## 20. SFC indicator
+## 19. SFC indicator
 
 Only for a dataset that takes part in the indicator of Colombia's
 Superintendencia Financiera (SFC): see the [optional

@@ -16,8 +16,8 @@ is calculated, with an example of each chart drawn with made-up data, is in
 
 - **The cut.** The **Cut** selector at the top lists the dataset's evaluated
   cuts, the latest first. Every chart shows the cut chosen. Charts that
-  compare (band transitions, groups that changed most, the population stability index (PSI), the time per
-  stage beside the previous one) compare it with the **evaluated cut before
+  compare (band transitions, groups that changed most, the population
+  stability index (PSI)) compare it with the **evaluated cut before
   it**, not with last month or with today.
 - **Ages are counted at the cut, never today.** "Up to 30 days", "overdue"
   and the oldest open finding are measured from the cut's date. An old cut
@@ -271,20 +271,6 @@ has the field, dimension, severity, records it applies to and failures
 **How to read it.** Low conformity means the data is wrong or the rule is
 badly posed. Review the lowest with the rule's owner before fixing thousands
 of records. A rule that applies to few records swings a lot between cuts.
-
-## Time per stage
-
-**Question:** is the evaluation getting slower for the volume it handles?
-**What you see:** a bar per stage of the evaluation (load the cut, run the
-rules, profile, ICD and groups, remediation queues, update recency,
-distributions) in milliseconds per million values (records × mapped
-fields; the chart calls them record-attributes); the table adds the plain time and the previous cut's
-([Formulas §19](../formulas/#19-time-per-stage)). Without a volume, the
-bars are plain milliseconds.
-
-**How to read it.** Compare a stage with its previous value per million,
-not in plain time: a larger base takes longer without being slower. Running
-the rules usually dominates.
 
 ## Common pitfalls
 
